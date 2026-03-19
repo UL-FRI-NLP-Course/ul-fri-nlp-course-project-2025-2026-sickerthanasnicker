@@ -31,23 +31,23 @@
 %----------------------------------------------------------------------------------------
 
 % Header
-\JournalInfo{FRI Natural language processing course 2021}
+\JournalInfo{FRI Natural language processing course 2025}
 
 % Interim or final report
 \Archive{Project report} 
 %\Archive{Final report} 
 
 % Article title
-\PaperTitle{Natural language processing course Latex Template} 
+\PaperTitle{AI chat assistant for law domain}
 
 % Authors (student competitors) and their info
-\Authors{John Doe, Jane Doe, and Mike Smith}
+\Authors{Tibor Koderman, Jerneja Krajcar, Blaž Mikec}
 
 % Advisors
 \affiliation{\textit{Advisors: Slavko Žitnik}}
 
 % Keywords
-\Keywords{Keyword1, Keyword2, Keyword3 ...}
+\Keywords{Law domain, AI chatbot, LLMD4LH, }
 \newcommand{\keywordname}{Keywords}
 
 
@@ -84,149 +84,144 @@ The abstract goes here. The abstract goes here. The abstract goes here. The abst
 
 %------------------------------------------------
 
-\section*{Methods}
+\section*{Existing Work}
 
-Use the Methods section to describe what you did an how you did it -- in what way did you prepare the data, what algorithms did you use, how did you test various solutions ... Provide all the required details for a reproduction of your work.
+In recent years, several solutions have emerged that aim to simplify access to legal information
+and provide assistance in understanding national legislation. In the context of Slovenian law,
+we identified a small number of relevant platforms that partially address this problem.
 
-Below are \LaTeX examples of some common elements that you will probably need when writing your report (e.g. figures, equations, lists, code examples ...).
+One notable example is \textit{Pravko.si}, which functions as a conversational assistant
+for legal questions. \cite{Pravko.si} The system provides relatively precise answers and, importantly,
+supports its responses with references to relevant legal acts and related materials.
+This increases transparency and allows users to verify the correctness of the information.
+Additionally, the assistant is capable of simplifying legal language to some extent,
+making it more accessible to non-expert users. However, we observed that the system struggles
+in cases where the requested information is not available in its knowledge base,
+leading to unresponsive behavior instead of providing a fallback explanation or clarification.
 
+Another platform is \textit{MojMaliPravnik.net}, which operates more as a question-and-answer portal
+than an autonomous AI assistant. \cite{MojMaliPravnik.net} Users can submit legal questions, and answers are either provided
+automatically or by human experts. Free questions and answers are published publicly (in anonymized form),
+creating a shared knowledge base that can benefit other users with similar issues.
+The automatically generated responses often resemble excerpts from legal documents,
+which may limit their readability and practical usefulness. For more complex inquiries,
+the platform offers paid individual legal advice, which is handled by professionals rather
+than automated systems.
 
-\subsection*{Equations}
+From this overview, we observe that existing solutions either focus on conversational interaction
+with limited robustness, or rely heavily on human expertise with minimal automation.
+Furthermore, there is a lack of systems that combine accurate referencing of formal legal acts
+with reliable handling of missing information and consistently understandable explanations.
 
-You can write equations inline, e.g. $\cos\pi=-1$, $E = m \cdot c^2$ and $\alpha$, or you can include them as separate objects. The Bayes’s rule is stated mathematically as:
+We also observe that general-purpose language models are ill-suited for Slovenian legal question answering.
+Trained on broad multilingual data, they lack specialized knowledge of Slovenian statutes and often
+hallucinate plausible but false information, such as inventing statute numbers.
+In practice, models like ChatGPT have been found to generate completely fabricated case citations
+and legal quotes.
 
-\begin{equation}
-	P(A|B) = \frac{P(B|A)P(A)}{P(B)},
-	\label{eq:bayes}
-\end{equation}
+This gap motivates the development of our proposed AI assistant, which aims to provide grounded,
+explainable, and robust answers based directly on formal Slovenian legal sources while maintaining
+accessibility for general users.
 
-where $A$ and $B$ are some events. You can also reference it -- the equation \ref{eq:bayes} describes the Bayes's rule.
+%\subsection*{Equations}
 
-\subsection*{Lists}
+%You can write equations inline, e.g. $\cos\pi=-1$, $E = m \cdot c^2$ and $\alpha$, or you can include them as separate objects. The Bayes’s rule is stated mathematically as:
 
-We can insert numbered and bullet lists:
+%\begin{equation}
+%	P(A|B) = \frac{P(B|A)P(A)}{P(B)},
+%	\label{eq:bayes}
+%\end{equation}
+
+%where $A$ and $B$ are some events. You can also reference it -- the equation \ref{eq:bayes} describes the Bayes's rule.
+
+%\subsection*{Lists}
+
+%We can insert numbered and bullet lists:
 
 % the [noitemsep] option makes the list more compact
-\begin{enumerate}[noitemsep] 
-	\item First item in the list.
-	\item Second item in the list.
-	\item Third item in the list.
-\end{enumerate}
+%\begin{enumerate}[noitemsep]
+%	\item First item in the list.
+%	\item Second item in the list.
+%	\item Third item in the list.
+%\end{enumerate}
 
-\begin{itemize}[noitemsep] 
-	\item First item in the list.
-	\item Second item in the list.
-	\item Third item in the list.
-\end{itemize}
+%\begin{itemize}[noitemsep]
+%	\item First item in the list.
+%	\item Second item in the list.
+%	\item Third item in the list.
+%\end{itemize}
 
-We can use the description environment to define or describe key terms and phrases.
+%We can use the description environment to define or describe key terms and phrases.
 
-\begin{description}
-	\item[Word] What is a word?.
-	\item[Concept] What is a concept?
-	\item[Idea] What is an idea?
-\end{description}
+%\begin{description}
+%	\item[Word] What is a word?.
+%	\item[Concept] What is a concept?
+%	\item[Idea] What is an idea?
+%\end{description}
 
+%\subsection*{Figures}
 
-\subsection*{Random text}
+%You can insert figures that span over the whole page, or over just a single column. The first one, \figurename~\ref{fig:column}, is an example of a figure that spans only across one of the two columns in the report.
 
-This text is inserted only to make this template look more like a proper report. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam blandit dictum facilisis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Interdum et malesuada fames ac ante ipsum primis in faucibus. Etiam convallis tellus velit, quis ornare ipsum aliquam id. Maecenas tempus mauris sit amet libero elementum eleifend. Nulla nunc orci, consectetur non consequat ac, consequat non nisl. Aenean vitae dui nec ex fringilla malesuada. Proin elit libero, faucibus eget neque quis, condimentum laoreet urna. Etiam at nunc quis felis pulvinar dignissim. Phasellus turpis turpis, vestibulum eget imperdiet in, molestie eget neque. Curabitur quis ante sed nunc varius dictum non quis nisl. Donec nec lobortis velit. Ut cursus, libero efficitur dictum imperdiet, odio mi fermentum dui, id vulputate metus velit sit amet risus. Nulla vel volutpat elit. Mauris ex erat, pulvinar ac accumsan sit amet, ultrices sit amet turpis.
+%\begin{figure}[ht]\centering
+%	\includegraphics[width=\linewidth]{single_column.pdf}
+%	\caption{\textbf{A random visualization.} This is an example of a figure that spans only across one of the two columns.}
+%	\label{fig:column}
+%\end{figure}
 
-Phasellus in ligula nunc. Vivamus sem lorem, malesuada sed pretium quis, varius convallis lectus. Quisque in risus nec lectus lobortis gravida non a sem. Quisque et vestibulum sem, vel mollis dolor. Nullam ante ex, scelerisque ac efficitur vel, rhoncus quis lectus. Pellentesque scelerisque efficitur purus in faucibus. Maecenas vestibulum vulputate nisl sed vestibulum. Nullam varius turpis in hendrerit posuere.
-
-
-\subsection*{Figures}
-
-You can insert figures that span over the whole page, or over just a single column. The first one, \figurename~\ref{fig:column}, is an example of a figure that spans only across one of the two columns in the report.
-
-\begin{figure}[ht]\centering
-	\includegraphics[width=\linewidth]{single_column.pdf}
-	\caption{\textbf{A random visualization.} This is an example of a figure that spans only across one of the two columns.}
-	\label{fig:column}
-\end{figure}
-
-On the other hand, \figurename~\ref{fig:whole} is an example of a figure that spans across the whole page (across both columns) of the report.
+%On the other hand, \figurename~\ref{fig:whole} is an example of a figure that spans across the whole page (across both columns) of the report.
 
 % \begin{figure*} makes the figure take up the entire width of the page
-\begin{figure*}[ht]\centering 
-	\includegraphics[width=\linewidth]{whole_page.pdf}
-	\caption{\textbf{Visualization of a Bayesian hierarchical model.} This is an example of a figure that spans the whole width of the report.}
-	\label{fig:whole}
-\end{figure*}
+%\begin{figure*}[ht]\centering
+%	\includegraphics[width=\linewidth]{whole_page.pdf}
+%	\caption{\textbf{Visualization of a Bayesian hierarchical model.} This is an example of a figure that spans the whole width of the report.}
+%	\label{fig:whole}
+%\end{figure*}
 
 
-\subsection*{Tables}
+%\subsection*{Tables}
 
-Use the table environment to insert tables.
+%Use the table environment to insert tables.
 
-\begin{table}[hbt]
-	\caption{Table of grades.}
-	\centering
-	\begin{tabular}{l l | r}
-		\toprule
-		\multicolumn{2}{c}{Name} \\
-		\cmidrule(r){1-2}
-		First name & Last Name & Grade \\
-		\midrule
-		John & Doe & $7.5$ \\
-		Jane & Doe & $10$ \\
-		Mike & Smith & $8$ \\
-		\bottomrule
-	\end{tabular}
-	\label{tab:label}
-\end{table}
-
-
-\subsection*{Code examples}
-
-You can also insert short code examples. You can specify them manually, or insert a whole file with code. Please avoid inserting long code snippets, advisors will have access to your repositories and can take a look at your code there. If necessary, you can use this technique to insert code (or pseudo code) of short algorithms that are crucial for the understanding of the manuscript.
-
-\lstset{language=Python}
-\lstset{caption={Insert code directly from a file.}}
-\lstset{label={lst:code_file}}
-\lstinputlisting[language=Python]{code/example.py}
-
-\lstset{language=R}
-\lstset{caption={Write the code you want to insert.}}
-\lstset{label={lst:code_direct}}
-\begin{lstlisting}
-import(dplyr)
-import(ggplot)
-
-ggplot(diamonds,
-	   aes(x=carat, y=price, color=cut)) +
-  geom_point() +
-  geom_smooth()
-\end{lstlisting}
-
-%------------------------------------------------
-
-\section*{Results}
-
-Use the results section to present the final results of your work. Present the results in a objective and scientific fashion. Use visualisations to convey your results in a clear and efficient manner. When comparing results between various techniques use appropriate statistical methodology.
-
-\subsection*{More random text}
-
-This text is inserted only to make this template look more like a proper report. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam blandit dictum facilisis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Interdum et malesuada fames ac ante ipsum primis in faucibus. Etiam convallis tellus velit, quis ornare ipsum aliquam id. Maecenas tempus mauris sit amet libero elementum eleifend. Nulla nunc orci, consectetur non consequat ac, consequat non nisl. Aenean vitae dui nec ex fringilla malesuada. Proin elit libero, faucibus eget neque quis, condimentum laoreet urna. Etiam at nunc quis felis pulvinar dignissim. Phasellus turpis turpis, vestibulum eget imperdiet in, molestie eget neque. Curabitur quis ante sed nunc varius dictum non quis nisl. Donec nec lobortis velit. Ut cursus, libero efficitur dictum imperdiet, odio mi fermentum dui, id vulputate metus velit sit amet risus. Nulla vel volutpat elit. Mauris ex erat, pulvinar ac accumsan sit amet, ultrices sit amet turpis.
-
-Phasellus in ligula nunc. Vivamus sem lorem, malesuada sed pretium quis, varius convallis lectus. Quisque in risus nec lectus lobortis gravida non a sem. Quisque et vestibulum sem, vel mollis dolor. Nullam ante ex, scelerisque ac efficitur vel, rhoncus quis lectus. Pellentesque scelerisque efficitur purus in faucibus. Maecenas vestibulum vulputate nisl sed vestibulum. Nullam varius turpis in hendrerit posuere.
-
-Nulla rhoncus tortor eget ipsum commodo lacinia sit amet eu urna. Cras maximus leo mauris, ac congue eros sollicitudin ac. Integer vel erat varius, scelerisque orci eu, tristique purus. Proin id leo quis ante pharetra suscipit et non magna. Morbi in volutpat erat. Vivamus sit amet libero eu lacus pulvinar pharetra sed at felis. Vivamus non nibh a orci viverra rhoncus sit amet ullamcorper sem. Ut nec tempor dui. Aliquam convallis vitae nisi ac volutpat. Nam accumsan, erat eget faucibus commodo, ligula dui cursus nisi, at laoreet odio augue id eros. Curabitur quis tellus eget nunc ornare auctor.
+%\begin{table}[hbt]
+%	\caption{Table of grades.}
+%	\centering
+%	\begin{tabular}{l l | r}
+%		\toprule
+%		\multicolumn{2}{c}{Name} \\
+%		\cmidrule(r){1-2}
+%		First name & Last Name & Grade \\
+%		\midrule
+%		John & Doe & $7.5$ \\
+%		Jane & Doe & $10$ \\
+%		Mike & Smith & $8$ \\
+%		\bottomrule
+%	\end{tabular}
+%	\label{tab:label}
+%\end{table}
 
 
-%------------------------------------------------
+%\subsection*{Code examples}
 
-\section*{Discussion}
+%You can also insert short code examples. You can specify them manually, or insert a whole file with code. Please avoid inserting long code snippets, advisors will have access to your repositories and can take a look at your code there. If necessary, you can use this technique to insert code (or pseudo code) of short algorithms that are crucial for the understanding of the manuscript.
 
-Use the Discussion section to objectively evaluate your work, do not just put praise on everything you did, be critical and exposes flaws and weaknesses of your solution. You can also explain what you would do differently if you would be able to start again and what upgrades could be done on the project in the future.
+%\lstset{language=Python}
+%\lstset{caption={Insert code directly from a file.}}
+%\lstset{label={lst:code_file}}
+%\lstinputlisting[language=Python]{code/example.py}
 
+%\lstset{language=R}
+%\lstset{caption={Write the code you want to insert.}}
+%\lstset{label={lst:code_direct}}
+%\begin{lstlisting}
+%import(dplyr)
+%import(ggplot)
 
-%------------------------------------------------
-
-\section*{Acknowledgments}
-
-Here you can thank other persons (advisors, colleagues ...) that contributed to the successful completion of your project.
-
+%ggplot(diamonds,
+%	   aes(x=carat, y=price, color=cut)) +
+%  geom_point() +
+%  geom_smooth()
+%\end{lstlisting}
 
 %----------------------------------------------------------------------------------------
 %	REFERENCE LIST
