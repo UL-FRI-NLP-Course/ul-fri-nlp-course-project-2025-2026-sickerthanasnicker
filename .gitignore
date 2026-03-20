@@ -131,6 +131,7 @@ dmypy.json
 
 # latex build files
 /report/.out
+/report/pdf
 
 # Datasets
 /data/*
