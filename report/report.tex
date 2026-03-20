@@ -123,6 +123,35 @@ This gap motivates the development of our proposed AI assistant, which aims to p
 explainable, and robust answers based directly on formal Slovenian legal sources while maintaining
 accessibility for general users.
 
+\section*{Corpus Analysis}
+
+For the development of our system, we selected \textit{COLESLAW 1.0}, a recent collection of
+Slovenian legal texts published in the CLARIN.SI repository. \cite{COLESLAW1.0} The corpus contains
+547,799 texts and 771,931,725 words distributed across 12 JSONL files. At the highest level, it
+combines four complementary legal domains: the PISRS legal information system, the
+\textit{SodnaPraksa} collection of court decisions, the Constitutional Court collection
+(\textit{USRS}), and texts from the \textit{Uradni list}. This is useful for our task because the
+dataset does not focus only on laws or only on court decisions, but instead combines several types
+of legal texts in one place.
+
+A closer look at the internal structure shows that the corpus is not balanced across domains, which
+is important for downstream modeling choices. The largest share by number of documents comes from
+\textit{Uradni list}, which contributes 274,531 texts, or just over half of the corpus, while
+\textit{SodnaPraksa} contributes 217,409 texts. In terms of word count, however,
+\textit{SodnaPraksa} becomes the dominant source with 352.3 million words (45.6\% of all words),
+followed by \textit{Uradni list} with 296.7 million words (38.4\%). PISRS is much smaller in the
+number of documents, with 40,749 texts, but still contributes 96.8 million words, which indicates
+that its documents are on average longer and denser than many gazette entries. The USRS collection
+adds a further 15,110 constitutional court documents and 26.2 million words.
+
+The corpus also contains noticeable differences between subcollections. For example,
+\textit{sp\_courts} is the largest individual part of the dataset, while \textit{ul-razglasni}
+contains shorter announcement-style texts. Some legislative collections in PISRS are much longer,
+especially the register of regulations and draft regulations. Because of this, the corpus includes
+both short notices and long legal documents. In our opinion, this makes COLESLAW 1.0 a good
+starting point for building a Slovenian legal assistant, since it is large, diverse, and based on
+official public sources.
+
 %\subsection*{Equations}
 
 %You can write equations inline, e.g. $\cos\pi=-1$, $E = m \cdot c^2$ and $\alpha$, or you can include them as separate objects. The Bayes’s rule is stated mathematically as:
