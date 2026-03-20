@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+# latex build files
+/report/.out
+
+# Datasets
+/data/*
