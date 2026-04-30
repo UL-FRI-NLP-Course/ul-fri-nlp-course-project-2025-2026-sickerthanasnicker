@@ -1,0 +1,33 @@
+{
+  "defaults": {
+    "provider": "ollama",
+    "model": "llama3:latest",
+    "judge_provider": "ollama",
+    "judge_model": "llama3:latest",
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "max_tokens": 700,
+    "seed": 42,
+    "top_k": 3
+  },
+  "arena_models": [
+    {
+      "model_id": "ollama-llama3",
+      "provider": "ollama",
+      "model": "llama3:latest",
+      "enabled": true
+    },
+    {
+      "model_id": "ollama-mistral",
+      "provider": "ollama",
+      "model": "mistral:7b",
+      "enabled": true
+    },
+    {
+      "model_id": "webui-project",
+      "provider": "openwebui",
+      "model": "ul-fri-nlp-course-project-eal",
+      "enabled": true
+    }
+  ]
+}

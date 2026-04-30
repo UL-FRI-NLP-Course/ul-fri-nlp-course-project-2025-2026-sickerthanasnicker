@@ -1,32 +1,83 @@
 # Evaluation Pipeline
 
-This directory contains a reproducible evaluation setup for the Slovenian legal RAG assistant.
+This directory contains a reproducible evaluation setup for the Slovenian employment-law RAG assistant.
+
 It compares:
 
-- `baseline`: answers the question without retrieved context.
-- `rag`: retrieves legal passages with the existing BM25 search code from `report/code/rag.py` and answers only from that context.
-- `slovenian`: optional extra model variant, enabled only when a Slovenian model is configured.
+- `baseline`: model answers without retrieved context;
+- `rag`: BM25 retrieval from `report/code/rag.py`, then model answers only from retrieved context;
+- `arena`: the same baseline/RAG comparison across multiple configured models.
 
-The checked-in project currently contains retrieval but no production LLM call. For reproducibility, the scripts therefore support two modes:
+The default evaluation now uses local Ollama with `llama3:latest`. The deterministic offline mode is still available with `--provider offline`, but it is intended only as a smoke test.
 
-- offline fallback mode, which is deterministic and needs no API key;
-- real LLM mode through OpenAI or Ollama, configured with environment variables.
+## What The Evaluation Shows
+
+The pipeline is designed to demonstrate four things:
+
+- baseline answers are more likely to invent unsupported legal claims;
+- RAG improves factual correctness by giving the model relevant legal passages;
+- RAG can refuse questions whose answer is not in the corpus;
+- retrieval quality affects final answer quality, so retrieval is evaluated separately from generation.
 
 ## Files
 
-- `questions.jsonl`: 20 evaluation questions split into factual, ambiguous, and unanswerable cases.
-- `run_eval.py`: runs baseline and RAG answer generation.
-- `retrieval_eval.py`: evaluates retrieval independently from answer generation.
-- `judge_eval.py`: evaluates answers and aggregates results.
+- `questions.jsonl`: 20 factual, ambiguous, and unanswerable questions.
+- `config.json`: default provider/model settings and arena model list.
+- `config.example.env`: example environment variables without secrets.
+- `list_models.py`: lists Ollama or Open WebUI models.
+- `run_eval.py`: runs baseline/RAG answer generation.
+- `retrieval_eval.py`: evaluates retrieval independently.
+- `judge_eval.py`: scores answers and prints aggregate results.
+- `visualize_results.py`: creates charts and a Markdown report.
+- `fine_tuning/prepare_dataset.py`: prepares grounded QA JSONL for later fine-tuning.
 
 Generated outputs are written to `evaluation/results/`.
 
-## Run
+## Configuration
 
-Install the retrieval dependency if needed:
+The scripts load the repository-root `.env` if it exists. `.env` is ignored by git.
+
+Example:
 
 ```bash
-pip install rank-bm25
+cp evaluation/config.example.env .env
+```
+
+Default local setup:
+
+```bash
+EVAL_PROVIDER=ollama
+EVAL_MODEL=llama3:latest
+JUDGE_PROVIDER=ollama
+JUDGE_MODEL=llama3:latest
+OLLAMA_HOST=http://localhost:11434
+```
+
+Open WebUI setup:
+
+```bash
+WEBUI_HOST=https://your-open-webui.example.com
+WEBUI_API_KEY=your-api-key
+```
+
+Open WebUI support uses:
+
+- `GET /api/models` for model discovery;
+- `POST /api/chat/completions` for generation.
+
+## Model Discovery
+
+```bash
+python evaluation/list_models.py --provider ollama
+python evaluation/list_models.py --provider openwebui
+```
+
+## Run
+
+Install dependencies if needed:
+
+```bash
+pip install rank-bm25 matplotlib python-dotenv
 ```
 
 Run retrieval evaluation:
@@ -35,58 +86,106 @@ Run retrieval evaluation:
 python evaluation/retrieval_eval.py
 ```
 
-Run answer generation:
+Run default local Llama evaluation:
 
 ```bash
 python evaluation/run_eval.py
 ```
 
-Judge answers and print the summary table:
+Run a small quick check:
+
+```bash
+python evaluation/run_eval.py --limit 2
+```
+
+Run arena comparison from `config.json`:
+
+```bash
+python evaluation/run_eval.py --arena
+```
+
+Judge answers:
 
 ```bash
 python evaluation/judge_eval.py
 ```
 
-## Optional LLM Providers
-
-OpenAI:
+Generate charts and a report:
 
 ```bash
-export EVAL_PROVIDER=openai
-export EVAL_MODEL=<model-name>
-export OPENAI_API_KEY=<api-key>
-python evaluation/run_eval.py
-python evaluation/judge_eval.py
+python evaluation/visualize_results.py
 ```
 
-Ollama:
+Outputs:
 
-```bash
-export EVAL_PROVIDER=ollama
-export EVAL_MODEL=<ollama-model>
-python evaluation/run_eval.py
-python evaluation/judge_eval.py
+- `evaluation/results/answers.jsonl`
+- `evaluation/results/judgements.jsonl`
+- `evaluation/results/retrieval.jsonl`
+- `evaluation/results/summary_scores.png`
+- `evaluation/results/hallucination_by_model.png`
+- `evaluation/results/refusal_accuracy.png`
+- `evaluation/results/retrieval_quality.png`
+- `evaluation/results/report.md`
+
+## Arena Models
+
+Default arena models in `config.json`:
+
+- `ollama-llama3`: `ollama / llama3:latest`
+- `ollama-mistral`: `ollama / mistral:7b`
+- `webui-project`: `openwebui / ul-fri-nlp-course-project-eal`
+
+Each generated answer keeps the required fields:
+
+```json
+{
+  "id": "...",
+  "variant": "baseline | rag",
+  "question": "...",
+  "context": "...",
+  "answer": "..."
+}
 ```
 
-Optional Slovenian model:
+The upgraded pipeline also adds:
 
-```bash
-export SLOVENIAN_MODEL=<model-name>
-python evaluation/run_eval.py
+```json
+{
+  "model_id": "...",
+  "provider": "...",
+  "model": "...",
+  "prompt_mode": "no_context | rag_context",
+  "temperature": 0.0,
+  "top_p": 1.0,
+  "max_tokens": 700
+}
 ```
 
 ## Metrics
 
-Retrieval quality is measured before generation:
+Retrieval quality:
 
-- hit rate: for factual and ambiguous questions, whether reference keywords appear in the retrieved top-k context;
-- unanswerable false evidence rate: how often retrieved context looks like it contains evidence for unanswerable questions;
-- average context length: average number of retrieved context words.
+- hit rate for factual and ambiguous questions;
+- false evidence rate for unanswerable questions;
+- average context length.
 
-Answer quality is measured per system:
+Answer quality:
 
-- correctness, grounding, completeness, and clarity are scored from 0 to 5, where higher is better;
-- hallucination is scored from 0 to 5, where lower is better;
-- refusal accuracy measures whether the model refuses unanswerable questions.
+- correctness, grounding, completeness, clarity: 0-5 where higher is better;
+- hallucination: 0-5 where lower is better;
+- refusal accuracy for unanswerable questions.
 
-The RAG prompt requires the model to answer only from retrieved context. This should improve factual correctness, reduce unsupported claims, and make unanswerable questions easier to reject. The final answer quality still depends on retrieval: if the right passage is not retrieved, the generator cannot reliably produce a grounded answer.
+## Fine-Tuning Preparation
+
+Prepare grounded QA data:
+
+```bash
+python evaluation/fine_tuning/prepare_dataset.py
+```
+
+This creates:
+
+- `evaluation/fine_tuning/data/train.jsonl`
+- `evaluation/fine_tuning/data/dev.jsonl`
+
+This step does not run expensive fine-tuning. It creates chat-style examples that can later be used for PEFT/LoRA experiments or for an Ollama Modelfile/system-prompt-tuned model.

@@ -1,32 +1,30 @@
 import argparse
 import json
-import os
 import re
-import urllib.error
-import urllib.request
 from collections import defaultdict
 from pathlib import Path
+
+from eval_config import (
+    generation_options,
+    get_default_judge_model,
+    get_default_judge_provider,
+    load_config,
+    load_env,
+)
+from io_utils import load_jsonl, write_jsonl
+from model_providers import chat_model
+from text_utils import content_terms
 
 
 DEFAULT_QUESTIONS_FILE = Path(__file__).with_name("questions.jsonl")
 DEFAULT_ANSWERS_FILE = Path(__file__).with_name("results") / "answers.jsonl"
 DEFAULT_OUTPUT_FILE = Path(__file__).with_name("results") / "judgements.jsonl"
 
-TOKEN_RE = re.compile(r"[0-9]+|[A-Za-zČŠŽĆĐčšžćđ]+")
 REFUSAL_RE = re.compile(
     r"ni mogoče|ne morem|ni dovolj|ni v kontekstu|ni podan|ne vsebuje|"
     r"ne more zanesljivo|nima odgovora|premalo informacij",
     re.IGNORECASE,
 )
-
-STOPWORDS = {
-    "ali", "brez", "da", "do", "ga", "gre", "ima", "in", "iz", "je", "jih",
-    "jo", "kaj", "kako", "kakšen", "kakšna", "kakšne", "kdaj", "ker", "ki",
-    "ko", "kolikšna", "koliko", "lahko", "me", "med", "mi", "mora", "moram",
-    "na", "nad", "ne", "ni", "o", "ob", "od", "po", "pod", "pri", "se",
-    "so", "s", "sta", "te", "ter", "to", "v", "vprašanje", "za", "z", "že",
-    "kontekst", "zanesljivo", "odgovoriti", "pove", "danega", "korpusa",
-}
 
 JUDGE_SYSTEM_PROMPT = """Ocenjuj odgovore na vprašanja iz slovenskega prava.
 
@@ -46,33 +44,6 @@ Vrni JSON rezultat z naslednjimi polji:
 }
 
 Pri hallucination pomeni 0 brez halucinacij, 5 huda halucinacija."""
-
-
-def load_jsonl(path):
-    with open(path, encoding="utf-8") as fp:
-        return [json.loads(line) for line in fp if line.strip()]
-
-
-def stem_token(token):
-    token = token.lower()
-    for suffix in (
-        "skega", "skem", "skih", "ostjo", "anje", "enega", "ega", "imi",
-        "ami", "ijo", "ost", "ih", "im", "em", "om", "a", "e", "i", "o", "u",
-    ):
-        if len(token) > len(suffix) + 3 and token.endswith(suffix):
-            return token[: -len(suffix)]
-    return token
-
-
-def content_terms(text):
-    terms = []
-    for token in TOKEN_RE.findall(text.lower()):
-        if token in STOPWORDS:
-            continue
-        if len(token) <= 2 and not token.isdigit():
-            continue
-        terms.append(stem_token(token))
-    return terms
 
 
 def score_overlap(reference, answer):
@@ -105,6 +76,17 @@ def fallback_judge(question_item, answer_item):
     reference = question_item["reference"]
     question_type = question_item["type"]
     refused = is_refusal(answer)
+
+    if answer.startswith("[ERROR:"):
+        return {
+            "correctness": 0,
+            "grounding": 0,
+            "completeness": 0,
+            "clarity": 0,
+            "hallucination": 0,
+            "refusal": False,
+            "reason": "Model call failed; answer was not evaluated semantically.",
+        }
 
     if question_type == "unanswerable":
         correctness = 5 if refused else 1
@@ -152,51 +134,8 @@ def fallback_judge(question_item, answer_item):
     }
 
 
-def call_openai(prompt, model):
-    from openai import OpenAI
-
-    client = OpenAI()
-    response = client.responses.create(
-        model=model,
-        input=prompt,
-        temperature=0,
-    )
-    if hasattr(response, "output_text"):
-        return response.output_text.strip()
-    return str(response).strip()
-
-
-def call_ollama(prompt, model):
-    host = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
-    payload = {
-        "model": model,
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0},
-    }
-    request = urllib.request.Request(
-        f"{host}/api/generate",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    with urllib.request.urlopen(request, timeout=120) as response:
-        data = json.loads(response.read().decode("utf-8"))
-    return data.get("response", "").strip()
-
-
-def resolve_provider(provider, model):
-    if provider != "auto":
-        return provider
-    if os.environ.get("OPENAI_API_KEY") and model:
-        return "openai"
-    if model and (os.environ.get("OLLAMA_HOST") or os.environ.get("OLLAMA_MODEL")):
-        return "ollama"
-    return "offline"
-
-
-def build_judge_prompt(question_item, answer_item):
-    return f"""{JUDGE_SYSTEM_PROMPT}
+def build_judge_messages(question_item, answer_item):
+    content = f"""{JUDGE_SYSTEM_PROMPT}
 
 Tip vprašanja: {question_item["type"]}
 Vprašanje: {question_item["question"]}
@@ -207,6 +146,7 @@ Kontekst:
 Odgovor modela:
 {answer_item.get("answer", "")}
 """
+    return [{"role": "user", "content": content}]
 
 
 def parse_json_response(text):
@@ -240,49 +180,36 @@ def normalize_judgement(data):
     }
 
 
-def judge_answer(question_item, answer_item, provider, model):
-    resolved = resolve_provider(provider, model)
-    if resolved == "offline":
-        judgement = fallback_judge(question_item, answer_item)
-        return judgement, "offline"
+def judge_answer(question_item, answer_item, provider, model, options):
+    if provider == "offline":
+        return fallback_judge(question_item, answer_item), "offline"
 
-    prompt = build_judge_prompt(question_item, answer_item)
+    messages = build_judge_messages(question_item, answer_item)
     try:
-        if resolved == "openai":
-            raw = call_openai(prompt, model)
-        elif resolved == "ollama":
-            raw = call_ollama(prompt, model)
-        else:
-            raw = ""
+        raw = chat_model(provider, model, messages, options)
         judgement = normalize_judgement(parse_json_response(raw))
-        return judgement, resolved
+        return judgement, provider
     except Exception as exc:
         judgement = fallback_judge(question_item, answer_item)
-        judgement["reason"] += f" Judge fallback used after {resolved} failure: {exc}"
+        judgement["reason"] += f" Judge fallback used after {provider} failure: {type(exc).__name__}: {exc}"
         return judgement, "offline_fallback"
-
-
-def write_jsonl(path, rows):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as fp:
-        for row in rows:
-            fp.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
 def summarize(rows):
     grouped = defaultdict(list)
     for row in rows:
-        grouped[row["variant"]].append(row)
+        key = (row.get("model_id", row.get("model", "")), row["variant"])
+        grouped[key].append(row)
 
     print("Answer evaluation")
     print(
-        f"{'variant':<12} {'n':>3} {'correct':>8} {'ground':>8} "
+        f"{'model_id':<24} {'variant':<10} {'n':>3} {'correct':>8} {'ground':>8} "
         f"{'complete':>9} {'clarity':>8} {'halluc':>8} {'refusal':>8}"
     )
-    print("-" * 78)
+    print("-" * 106)
 
     summary = {}
-    for variant, items in sorted(grouped.items()):
+    for (model_id, variant), items in sorted(grouped.items()):
         n = len(items)
         avg = {}
         for metric in ("correctness", "grounding", "completeness", "clarity", "hallucination"):
@@ -294,46 +221,66 @@ def summarize(rows):
             if unanswerable
             else 0.0
         )
-        summary[variant] = {**avg, "refusal_accuracy": refusal_accuracy}
+        summary[(model_id, variant)] = {**avg, "refusal_accuracy": refusal_accuracy}
 
         print(
-            f"{variant:<12} {n:>3} {avg['correctness']:>8.2f} "
+            f"{model_id:<24} {variant:<10} {n:>3} {avg['correctness']:>8.2f} "
             f"{avg['grounding']:>8.2f} {avg['completeness']:>9.2f} "
             f"{avg['clarity']:>8.2f} {avg['hallucination']:>8.2f} "
             f"{refusal_accuracy:>8.2f}"
         )
 
-    if "baseline" in summary and "rag" in summary:
-        correctness_delta = summary["rag"]["correctness"] - summary["baseline"]["correctness"]
-        hallucination_delta = summary["rag"]["hallucination"] - summary["baseline"]["hallucination"]
-        print()
-        print(f"RAG vs baseline correctness delta: {correctness_delta:+.2f}")
-        print(f"RAG vs baseline hallucination delta: {hallucination_delta:+.2f} (lower is better)")
+    print()
+    for model_id in sorted({key[0] for key in summary}):
+        baseline = summary.get((model_id, "baseline"))
+        rag = summary.get((model_id, "rag"))
+        if not baseline or not rag:
+            continue
+        correctness_delta = rag["correctness"] - baseline["correctness"]
+        hallucination_delta = rag["hallucination"] - baseline["hallucination"]
+        print(
+            f"{model_id}: RAG correctness {correctness_delta:+.2f}, "
+            f"hallucination {hallucination_delta:+.2f} (lower is better)"
+        )
 
 
 def parse_args():
+    load_env()
+    config = load_config()
+
     parser = argparse.ArgumentParser(description="Judge generated answers and aggregate results.")
     parser.add_argument("--questions", type=Path, default=DEFAULT_QUESTIONS_FILE)
     parser.add_argument("--answers", type=Path, default=DEFAULT_ANSWERS_FILE)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT_FILE)
     parser.add_argument(
         "--provider",
-        choices=["auto", "offline", "openai", "ollama"],
-        default=os.environ.get("JUDGE_PROVIDER", os.environ.get("EVAL_PROVIDER", "auto")),
+        choices=["offline", "ollama", "openwebui", "openai"],
+        default=None,
+        help="Judge provider. Defaults to config/env, normally ollama.",
     )
-    parser.add_argument("--model", default=os.environ.get("JUDGE_MODEL") or os.environ.get("EVAL_MODEL") or os.environ.get("OLLAMA_MODEL"))
+    parser.add_argument("--model", default=None, help="Judge model.")
+    parser.add_argument("--temperature", type=float, default=None)
+    parser.add_argument("--top-p", type=float, default=None)
+    parser.add_argument("--max-tokens", type=int, default=None)
+    parser.add_argument("--seed", type=int, default=None)
+    parser.set_defaults(_config=config)
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
+    config = args._config
+    options = generation_options(config, args)
+    provider = args.provider or get_default_judge_provider(config)
+    model = args.model or get_default_judge_model(config)
+
     question_map = {item["id"]: item for item in load_jsonl(args.questions)}
     answers = load_jsonl(args.answers)
 
     rows = []
     for answer_item in answers:
         question_item = question_map[answer_item["id"]]
-        judgement, judge_provider = judge_answer(question_item, answer_item, args.provider, args.model)
+        judgement, judge_provider = judge_answer(question_item, answer_item, provider, model, options)
         rows.append(
             {
                 "id": answer_item["id"],
@@ -341,13 +288,19 @@ def main():
                 "variant": answer_item["variant"],
                 "question": answer_item["question"],
                 "answer": answer_item["answer"],
+                "model_id": answer_item.get("model_id", answer_item.get("model", "")),
+                "provider": answer_item.get("provider", ""),
+                "model": answer_item.get("model", ""),
+                "prompt_mode": answer_item.get("prompt_mode", ""),
                 "judge_provider": judge_provider,
+                "judge_model": model,
                 **judgement,
             }
         )
 
     write_jsonl(args.output, rows)
     print(f"Saved {len(rows)} judgements to {args.output}")
+    print(f"Judge: {provider} / {model}")
     summarize(rows)
 
 
