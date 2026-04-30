@@ -32,6 +32,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate retrieval quality.")
     parser.add_argument("--questions", type=Path, default=DEFAULT_QUESTIONS_FILE)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT_FILE)
+    parser.add_argument("--chunks", type=Path, default=CHUNKS_FILE)
     parser.add_argument("--top-k", type=int, default=3)
     parser.add_argument("--threshold", type=float, default=0.35)
     return parser.parse_args()
@@ -40,7 +41,7 @@ def parse_args():
 def main():
     args = parse_args()
     questions = load_jsonl(args.questions)
-    chunks = load_chunks(CHUNKS_FILE)
+    chunks = load_chunks(args.chunks)
     index = build_index(chunks)
 
     rows = []
@@ -71,6 +72,7 @@ def main():
                 "reference_keyword_fraction": round(fraction, 3),
                 "matched_keywords": matches,
                 "context_length_words": len(context.split()),
+                "corpus_path": str(args.chunks),
                 "top_sources": [
                     {"source": source_label(chunk), "score": float(score)}
                     for chunk, score in results
@@ -89,7 +91,7 @@ def main():
     avg_context_length = sum(context_lengths) / len(context_lengths) if context_lengths else 0.0
 
     print("Retrieval evaluation")
-    print(f"questions: {len(questions)} | top_k: {args.top_k} | output: {args.output}")
+    print(f"questions: {len(questions)} | top_k: {args.top_k} | chunks: {args.chunks} | output: {args.output}")
     print(f"answerable hit rate: {hit_rate:.3f}")
     print(f"unanswerable false evidence rate: {false_hit_rate:.3f}")
     print(f"average context length: {avg_context_length:.1f} words")

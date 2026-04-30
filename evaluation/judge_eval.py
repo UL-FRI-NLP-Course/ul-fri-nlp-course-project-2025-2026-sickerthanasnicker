@@ -310,6 +310,18 @@ def main():
     for answer_item in answers:
         question_item = question_map[answer_item["id"]]
         judgement, judge_provider = judge_answer(question_item, answer_item, provider, model, options)
+        passthrough = {
+            key: answer_item[key]
+            for key in (
+                "prompt_id",
+                "prompt_label",
+                "system_prompt",
+                "settings_id",
+                "top_k",
+                "corpus_path",
+            )
+            if key in answer_item
+        }
         rows.append(
             {
                 "id": answer_item["id"],
@@ -324,6 +336,7 @@ def main():
                 "prompt_mode": answer_item.get("prompt_mode", ""),
                 "judge_provider": judge_provider,
                 "judge_model": model,
+                **passthrough,
                 **judgement,
             }
         )

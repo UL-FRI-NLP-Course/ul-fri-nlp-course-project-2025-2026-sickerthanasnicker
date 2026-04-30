@@ -47,6 +47,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Prepare grounded QA JSONL for later fine-tuning.")
     parser.add_argument("--questions", type=Path, default=DEFAULT_QUESTIONS_FILE)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--corpus-chunks",
+        type=Path,
+        default=None,
+        help="Optional normalized chunk JSONL to reuse for retrieval contexts.",
+    )
     parser.add_argument("--top-k", type=int, default=3)
     parser.add_argument("--dev-every", type=int, default=5)
     return parser.parse_args()
@@ -55,7 +61,7 @@ def parse_args():
 def main():
     args = parse_args()
     questions = load_jsonl(args.questions)
-    chunks = load_chunks()
+    chunks = load_chunks(args.corpus_chunks) if args.corpus_chunks else load_chunks()
     index = build_index(chunks)
 
     train = []
@@ -92,7 +98,9 @@ Possible next steps:
 """
     (args.output_dir / "README.md").write_text(readme, encoding="utf-8")
 
+    chunk_source = args.corpus_chunks if args.corpus_chunks else "report/code/data/chunk.jsonl"
     print(f"Saved {len(train)} train and {len(dev)} dev examples to {args.output_dir}")
+    print(f"Retrieval chunks: {chunk_source}")
 
 
 if __name__ == "__main__":

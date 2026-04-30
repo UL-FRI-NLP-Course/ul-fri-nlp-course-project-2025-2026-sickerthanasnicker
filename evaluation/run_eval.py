@@ -9,7 +9,7 @@ from eval_config import (
     load_config,
     load_env,
 )
-from io_utils import load_jsonl, write_jsonl
+from io_utils import append_jsonl, load_jsonl
 from model_providers import chat_model
 from retrieval_shared import build_index, format_context, load_chunks, retrieve, source_label
 from text_utils import content_terms, split_sentences
@@ -155,25 +155,25 @@ def selected_model_configs(args, config):
 
 
 def add_answer_row(rows, item, variant, prompt_mode, context, answer, model_config, provider_used, options, error=None):
-    rows.append(
-        {
-            "id": item["id"],
-            "variant": variant,
-            "question": item["question"],
-            "context": context,
-            "answer": answer,
-            "model_id": model_config["model_id"],
-            "display_name": model_config.get("display_name", model_config["model_id"]),
-            "provider": provider_used,
-            "model": model_config["model"],
-            "prompt_mode": prompt_mode,
-            "temperature": options["temperature"],
-            "top_p": options["top_p"],
-            "max_tokens": options["max_tokens"],
-            "seed": options["seed"],
-            "error": error or "",
-        }
-    )
+    row = {
+        "id": item["id"],
+        "variant": variant,
+        "question": item["question"],
+        "context": context,
+        "answer": answer,
+        "model_id": model_config["model_id"],
+        "display_name": model_config.get("display_name", model_config["model_id"]),
+        "provider": provider_used,
+        "model": model_config["model"],
+        "prompt_mode": prompt_mode,
+        "temperature": options["temperature"],
+        "top_p": options["top_p"],
+        "max_tokens": options["max_tokens"],
+        "seed": options["seed"],
+        "error": error or "",
+    }
+    rows.append(row)
+    return row
 
 
 def add_raw_rag_prompt_row(rows, item, context, options):
@@ -240,6 +240,8 @@ def main():
     index = build_index(chunks)
     model_configs = selected_model_configs(args, config)
     rows = []
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text("", encoding="utf-8")
     include_raw_rag_prompt = (
         config.get("include_raw_rag_prompt", True)
         if args.raw_rag_prompt is None
@@ -253,6 +255,7 @@ def main():
         retrieved[item["id"]] = (results, context)
         if include_raw_rag_prompt:
             add_raw_rag_prompt_row(rows, item, context, options)
+            append_jsonl(args.output, rows[-1])
 
     for model_config in model_configs:
         for item in questions:
@@ -280,6 +283,7 @@ def main():
                 options,
                 baseline_error,
             )
+            append_jsonl(args.output, rows[-1])
 
             rag_messages = build_rag_messages(question, context)
             rag_answer, rag_provider, rag_error = call_answer_model(
@@ -303,8 +307,8 @@ def main():
                 options,
                 rag_error,
             )
+            append_jsonl(args.output, rows[-1])
 
-    write_jsonl(args.output, rows)
     print(f"Saved {len(rows)} answers to {args.output}")
     print(
         f"Questions: {len(questions)} | models: {len(model_configs)} | "

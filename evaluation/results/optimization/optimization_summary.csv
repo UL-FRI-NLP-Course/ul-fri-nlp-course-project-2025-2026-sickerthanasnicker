@@ -1,0 +1,25 @@
+model_id,model_label,variant,prompt_id,settings_id,n,correctness,grounding,completeness,clarity,hallucination,refusal_accuracy
+offline-webui-mistral-7b,offline mistral:7b,baseline,ambiguity_aware_v1,deterministic,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-mistral-7b,offline mistral:7b,baseline,ambiguity_aware_v1,focused,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-mistral-7b,offline mistral:7b,baseline,citation_first_v1,deterministic,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-mistral-7b,offline mistral:7b,baseline,citation_first_v1,focused,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-mistral-7b,offline mistral:7b,baseline,strict_grounded_v1,deterministic,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-mistral-7b,offline mistral:7b,baseline,strict_grounded_v1,focused,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-mistral-7b,offline mistral:7b,rag,ambiguity_aware_v1,deterministic,2,1.5,5.0,1.5,5.0,3.0,0.0
+offline-webui-mistral-7b,offline mistral:7b,rag,ambiguity_aware_v1,focused,2,1.5,5.0,1.5,5.0,3.0,0.0
+offline-webui-mistral-7b,offline mistral:7b,rag,citation_first_v1,deterministic,2,1.5,5.0,1.5,5.0,3.0,0.0
+offline-webui-mistral-7b,offline mistral:7b,rag,citation_first_v1,focused,2,1.5,5.0,1.5,5.0,3.0,0.0
+offline-webui-mistral-7b,offline mistral:7b,rag,strict_grounded_v1,deterministic,2,1.5,5.0,1.5,5.0,3.0,0.0
+offline-webui-mistral-7b,offline mistral:7b,rag,strict_grounded_v1,focused,2,1.5,5.0,1.5,5.0,3.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,baseline,ambiguity_aware_v1,deterministic,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,baseline,ambiguity_aware_v1,focused,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,baseline,citation_first_v1,deterministic,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,baseline,citation_first_v1,focused,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,baseline,strict_grounded_v1,deterministic,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,baseline,strict_grounded_v1,focused,2,1.0,0.0,1.0,5.0,4.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,rag,ambiguity_aware_v1,deterministic,2,1.5,5.0,1.5,5.0,3.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,rag,ambiguity_aware_v1,focused,2,1.5,5.0,1.5,5.0,3.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,rag,citation_first_v1,deterministic,2,1.5,5.0,1.5,5.0,3.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,rag,citation_first_v1,focused,2,1.5,5.0,1.5,5.0,3.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,rag,strict_grounded_v1,deterministic,2,1.5,5.0,1.5,5.0,3.0,0.0
+offline-webui-qwen3-coder-30b-a3b,offline qwen3-Coder30B-A3B-Instruct,rag,strict_grounded_v1,focused,2,1.5,5.0,1.5,5.0,3.0,0.0

@@ -1,0 +1,65 @@
+{
+  "description": "Correctness optimization experiments for the Slovenian employment-law RAG assistant.",
+  "retrieval": {
+    "top_k": 3,
+    "corpus_chunks": "data/coleslaw_employment_chunks.jsonl"
+  },
+  "models": [
+    {
+      "model_id": "webui-qwen3-coder-30b-a3b",
+      "provider": "openwebui",
+      "model": "hf.co/byteshape/Qwen3-Coder-30B-A3B-Instruct-GGUF:latest",
+      "display_name": "qwen3-Coder30B-A3B-Instruct",
+      "role": "best_expected",
+      "enabled": true
+    },
+    {
+      "model_id": "webui-mistral-7b",
+      "provider": "openwebui",
+      "model": "mistral:7b",
+      "display_name": "mistral:7b",
+      "role": "peft_candidate",
+      "enabled": true
+    }
+  ],
+  "prompts": [
+    {
+      "prompt_id": "strict_grounded_v1",
+      "label": "Strict grounded employment-law assistant",
+      "system": "Si slovenski pravni asistent za delovno pravo. Odgovarjaj kratko, pravno natančno in samo na podlagi podanega konteksta. Če kontekst ne vsebuje zanesljivega odgovora, jasno povej: \"Iz podanega konteksta ni mogoče zanesljivo odgovoriti.\" Ne dodajaj pravil iz splošnega znanja."
+    },
+    {
+      "prompt_id": "citation_first_v1",
+      "label": "Grounded answer with source discipline",
+      "system": "Odgovarjaš na vprašanja iz slovenskega delovnega prava. Najprej preveri, ali je odgovor neposredno podprt v kontekstu. Če je, odgovori jedrnato in omeni relevantni vir ali člen, kadar je naveden. Če odgovor ni podprt, zavrni odgovor brez ugibanja."
+    },
+    {
+      "prompt_id": "ambiguity_aware_v1",
+      "label": "Ambiguity-aware legal assistant",
+      "system": "Si asistent za slovensko delovno pravo. Uporabi samo podani kontekst. Pri nejasnih vprašanjih najprej povej, kaj manjka za zanesljiv odgovor, nato navedi samo pravila, ki so razvidna iz konteksta. Pri vprašanjih izven konteksta zavrni odgovor."
+    }
+  ],
+  "generation_settings": [
+    {
+      "settings_id": "deterministic",
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "max_tokens": 500,
+      "seed": 42
+    },
+    {
+      "settings_id": "focused",
+      "temperature": 0.1,
+      "top_p": 0.9,
+      "max_tokens": 500,
+      "seed": 42
+    }
+  ],
+  "webui_export": {
+    "model_id": "ul-fri-nlp-course-project-optimized",
+    "name": "UL FRI NLP Course Project Optimized",
+    "base_model_id": "mistral:7b",
+    "prompt_id": "strict_grounded_v1",
+    "settings_id": "deterministic"
+  }
+}

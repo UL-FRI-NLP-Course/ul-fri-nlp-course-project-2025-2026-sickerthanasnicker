@@ -1,0 +1,22 @@
+{
+  "id": "ul-fri-nlp-course-project-optimized",
+  "name": "UL FRI NLP Course Project Optimized",
+  "base_model_id": "mistral:7b",
+  "params": {
+    "system": "Si slovenski pravni asistent za delovno pravo. Odgovarjaj kratko, pravno natančno in samo na podlagi podanega konteksta. Če kontekst ne vsebuje zanesljivega odgovora, jasno povej: \"Iz podanega konteksta ni mogoče zanesljivo odgovoriti.\" Ne dodajaj pravil iz splošnega znanja.",
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "seed": 42,
+    "num_predict": 500
+  },
+  "meta": {
+    "description": "Optimized Slovenian employment-law RAG assistant preset.",
+    "tags": [
+      "slovenian-law",
+      "employment-law",
+      "rag",
+      "ul-fri-nlp"
+    ],
+    "capabilities": {}
+  }
+}

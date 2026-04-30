@@ -30,6 +30,7 @@ The pipeline is designed to demonstrate four things:
 - `judge_eval.py`: scores answers and prints aggregate results.
 - `visualize_results.py`: creates charts and a Markdown report.
 - `fine_tuning/prepare_dataset.py`: prepares grounded QA JSONL for later fine-tuning.
+- `optimizations/`: separate correctness-improvement experiments for prompt sweeps, COLESLAW preprocessing, PEFT data prep, and Open WebUI preset export.
 
 Generated outputs are written to `evaluation/results/`.
 
@@ -194,3 +195,20 @@ This creates:
 - `evaluation/fine_tuning/data/dev.jsonl`
 
 This step does not run expensive fine-tuning. It creates chat-style examples that can later be used for PEFT/LoRA experiments or for an Ollama Modelfile/system-prompt-tuned model.
+
+## Correctness Optimization Track
+
+Optimization experiments are kept separate from the main evaluation outputs:
+
+```bash
+python evaluation/optimizations/prepare_corpus.py --limit 500
+python evaluation/optimizations/run_prompt_sweep.py --limit 2 --provider offline
+python evaluation/judge_eval.py \
+  --answers evaluation/results/optimization/prompt_sweep_answers.jsonl \
+  --output evaluation/results/optimization/judgements.jsonl
+python evaluation/optimizations/summarize_optimization.py
+python evaluation/optimizations/prepare_peft_dataset.py
+python evaluation/optimizations/export_webui_model.py
+```
+
+See `evaluation/optimizations/README.md` for the full workflow. The queued vote-score metric plan is saved in `evaluation/backlog/vote_score_metric.md`.

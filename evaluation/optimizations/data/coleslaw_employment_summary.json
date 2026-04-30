@@ -1,0 +1,42 @@
+{
+  "zip": "/home/tibor/Repos/ul-fri-nlp-course-project-2025-2026-sickerthanasnicker/corpus/COLESLAW.zip",
+  "output": "/home/tibor/Repos/ul-fri-nlp-course-project-2025-2026-sickerthanasnicker/evaluation/optimizations/data/coleslaw_employment_chunks.jsonl",
+  "records_scanned": 5000,
+  "records_matched": 115,
+  "chunks_written": 20,
+  "chunk_words": 180,
+  "overlap_words": 40,
+  "min_record_score": 4,
+  "min_chunk_score": 1,
+  "files_seen": {
+    "COLESLAW 1.0/PISRS/drugi-splosni-in-posamicni-akti.jsonl": 5000
+  },
+  "strong_employment_terms": [
+    "delovno razmerje",
+    "delovnih razmerjih",
+    "zakon o delovnih razmerjih",
+    "zdr-1",
+    "pogodba o zaposlitvi",
+    "pogodbe o zaposlitvi",
+    "odpovedni rok",
+    "letni dopust",
+    "minimalna plača",
+    "nadurno delo",
+    "poskusno delo",
+    "kolektivna pogodba"
+  ],
+  "weak_employment_terms": [
+    "delavca",
+    "delavec",
+    "delavci",
+    "delodajalec",
+    "delodajalca",
+    "zaposlitev",
+    "zaposlitvi",
+    "odpoved",
+    "odpravnina",
+    "dopust",
+    "plača",
+    "bolniška"
+  ]
+}

@@ -15,6 +15,13 @@ def write_jsonl(path, rows):
             fp.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
+def append_jsonl(path, row):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "a", encoding="utf-8") as fp:
+        fp.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+
 def write_json(path, data):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
