@@ -14,6 +14,7 @@ from common import (
 from eval_config import load_env
 from io_utils import append_jsonl, write_jsonl
 from model_providers import chat_model
+from progress_utils import Progress
 from retrieval_eval import keyword_hit
 from retrieval_shared import CHUNKS_FILE, build_index, format_context, load_chunks, retrieve, source_label
 from run_eval import offline_answer
@@ -148,6 +149,7 @@ def parse_args():
         default=None,
         help="Override provider for selected configured models; use offline for smoke tests.",
     )
+    parser.add_argument("--quiet", action="store_true", help="Disable per-step progress output.")
     return parser.parse_args()
 
 
@@ -164,21 +166,40 @@ def main():
     index = build_index(chunks)
     retrieved = {}
     retrieval_rows = []
-    for item in questions:
+    retrieval_progress = Progress(len(questions), "optimization_retrieval") if not args.quiet else None
+    for idx, item in enumerate(questions, start=1):
         results = retrieve(item["question"], index, chunks, top_k)
         context = format_context(results)
         retrieved[item["id"]] = (results, context)
         retrieval_rows.append(make_retrieval_row(item, results, context, top_k, args.threshold, corpus_path))
+        if retrieval_progress:
+            retrieval_progress.log(idx, f"question={item['id']}")
 
     write_jsonl(args.retrieval_output, retrieval_rows)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text("", encoding="utf-8")
 
     row_count = 0
-    for model_config in models:
-        for prompt in prompts:
-            for settings in settings_list:
-                for item in questions:
+    total_calls = len(models) * len(prompts) * len(settings_list) * len(questions) * 2
+    progress = Progress(total_calls, "optimization_generation") if not args.quiet else None
+    for model_index, model_config in enumerate(models, start=1):
+        if not args.quiet:
+            print(
+                f"[optimization_model] {model_index}/{len(models)} "
+                f"{model_config['model_id']} ({model_config['provider']} / {model_config['model']})",
+                flush=True,
+            )
+        for prompt_index, prompt in enumerate(prompts, start=1):
+            if not args.quiet:
+                print(f"[optimization_prompt] {prompt_index}/{len(prompts)} {prompt['prompt_id']}", flush=True)
+            for settings_index, settings in enumerate(settings_list, start=1):
+                if not args.quiet:
+                    print(
+                        f"[optimization_settings] {settings_index}/{len(settings_list)} "
+                        f"{settings['settings_id']} temp={settings['temperature']} top_p={settings['top_p']}",
+                        flush=True,
+                    )
+                for question_index, item in enumerate(questions, start=1):
                     results, context = retrieved[item["id"]]
                     for variant in ("baseline", "rag"):
                         active_context = "" if variant == "baseline" else context
@@ -208,6 +229,15 @@ def main():
                         )
                         append_jsonl(args.output, row)
                         row_count += 1
+                        if progress:
+                            progress.log(
+                                row_count,
+                                (
+                                    f"model={model_config['model_id']} prompt={prompt['prompt_id']} "
+                                    f"settings={settings['settings_id']} question={question_index}/{len(questions)} "
+                                    f"id={item['id']} variant={variant}"
+                                ),
+                            )
 
     print(f"Saved {row_count} optimization answers to {args.output}")
     print(f"Saved {len(retrieval_rows)} retrieval rows to {args.retrieval_output}")

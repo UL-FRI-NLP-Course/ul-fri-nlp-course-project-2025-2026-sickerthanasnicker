@@ -1,6 +1,6 @@
 # Queued Plan: Vote Score Metric
 
-Status: queued after the correctness optimization track.
+Status: implemented in `evaluation/vote_eval.py`.
 
 This plan is compatible with the optimization work and should consume existing answer files without rerunning answer generation.
 
@@ -10,7 +10,7 @@ Add a separately runnable metric where each voter model sees a fresh shared cont
 
 ## Proposed Script
 
-Create `evaluation/vote_eval.py`.
+Implemented as `evaluation/vote_eval.py`.
 
 Inputs:
 
@@ -44,7 +44,7 @@ Outputs:
 
 ## Visualization
 
-Extend `evaluation/visualize_results.py` with an optional `--vote-summary` argument and add charts for:
+Implemented: `evaluation/visualize_results.py` accepts `--vote-summary` and adds charts for:
 
 - vote score by model;
 - self-bias by model;
@@ -68,4 +68,3 @@ python evaluation/vote_eval.py \
   --answers evaluation/results/arena_answers.jsonl \
   --output evaluation/results/vote_eval.jsonl
 ```
-

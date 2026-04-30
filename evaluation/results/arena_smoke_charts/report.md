@@ -20,6 +20,26 @@
 - Unanswerable false evidence rate: 0.250
 - Average context length: 176.3 words
 
+## Vote Score
+
+| candidate_model_id | candidate_display_name | variant | n_votes | normalized_vote_score | vote_score_by_other_models | self_vote_score | self_bias |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| webui-llama3 | llama3:latest | rag | 4 | 0.0 | 0.0 | 0.0 | 0.0 |
+| webui-mistral-7b | mistral:7b | rag | 4 | 0.3333 | 0.3333 | 0.3333 | 0.0 |
+| webui-qwen2.5-coder-7b | qwen2.5-coder:7b | rag | 4 | 1.0 | 1.0 | 1.0 | 0.0 |
+| webui-qwen3-coder-30b-a3b | qwen3-Coder30B-A3B-Instruct | rag | 4 | 0.6667 | 0.6667 | 0.6667 | 0.0 |
+
+![Vote score](vote_score.png)
+
+SVG: [vote_score.svg](vote_score.svg)
+JPG: [vote_score.jpg](vote_score.jpg)
+
+![Self-vote bias](self_vote_bias.png)
+
+SVG: [self_vote_bias.svg](self_vote_bias.svg)
+JPG: [self_vote_bias.jpg](self_vote_bias.jpg)
+
+
 ## Charts
 
 ![Summary scores](summary_scores.png)

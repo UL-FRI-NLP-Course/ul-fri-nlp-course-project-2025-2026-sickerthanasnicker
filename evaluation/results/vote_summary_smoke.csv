@@ -1,0 +1,5 @@
+candidate_id,candidate_model_id,candidate_display_name,variant,n_votes,vote_score_mean,normalized_vote_score,vote_score_by_other_models,self_vote_score,self_bias,rank_mean,rank_by_other_models,self_rank_mean,self_rank_delta
+webui-llama3,webui-llama3,llama3:latest,rag,4,0.0,0.0,0.0,0.0,0.0,4.0,4.0,4.0,0.0
+webui-mistral-7b,webui-mistral-7b,mistral:7b,rag,4,0.3333,0.3333,0.3333,0.3333,0.0,3.0,3.0,3.0,0.0
+webui-qwen2.5-coder-7b,webui-qwen2.5-coder-7b,qwen2.5-coder:7b,rag,4,1.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,0.0
+webui-qwen3-coder-30b-a3b,webui-qwen3-coder-30b-a3b,qwen3-Coder30B-A3B-Instruct,rag,4,0.6667,0.6667,0.6667,0.6667,0.0,2.0,2.0,2.0,0.0

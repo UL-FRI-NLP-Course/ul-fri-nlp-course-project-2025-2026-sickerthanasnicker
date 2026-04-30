@@ -8,6 +8,7 @@ if str(EVALUATION_DIR) not in sys.path:
     sys.path.insert(0, str(EVALUATION_DIR))
 
 from io_utils import load_jsonl, write_jsonl
+from progress_utils import Progress
 from retrieval_shared import build_index, format_context, load_chunks, retrieve
 
 
@@ -55,6 +56,7 @@ def parse_args():
     )
     parser.add_argument("--top-k", type=int, default=3)
     parser.add_argument("--dev-every", type=int, default=5)
+    parser.add_argument("--quiet", action="store_true", help="Disable data-prep progress output.")
     return parser.parse_args()
 
 
@@ -66,6 +68,7 @@ def main():
 
     train = []
     dev = []
+    progress = Progress(len(questions), "fine_tuning_examples") if not args.quiet else None
     for idx, item in enumerate(questions, start=1):
         results = retrieve(item["question"], index, chunks, args.top_k)
         example = make_example(item, format_context(results))
@@ -73,6 +76,8 @@ def main():
             dev.append(example)
         else:
             train.append(example)
+        if progress:
+            progress.log(idx, f"question={item['id']}")
 
     write_jsonl(args.output_dir / "train.jsonl", train)
     write_jsonl(args.output_dir / "dev.jsonl", dev)

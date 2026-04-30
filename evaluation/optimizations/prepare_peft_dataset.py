@@ -4,6 +4,7 @@ from pathlib import Path
 from common import EVALUATION_DIR, load_optimization_config, load_questions, prompt_by_id, resolve_optimization_path
 
 from io_utils import write_jsonl
+from progress_utils import Progress
 from retrieval_shared import build_index, format_context, load_chunks, retrieve
 from text_utils import split_sentences
 
@@ -92,6 +93,8 @@ def parse_args():
     parser.add_argument("--dev-every", type=int, default=5)
     parser.add_argument("--max-corpus-examples", type=int, default=80)
     parser.add_argument("--max-answer-words", type=int, default=90)
+    parser.add_argument("--progress-every", type=int, default=10)
+    parser.add_argument("--quiet", action="store_true", help="Disable data-prep progress output.")
     return parser.parse_args()
 
 
@@ -112,12 +115,19 @@ def main():
     questions = load_questions(args.questions)
     examples = []
 
-    for item in questions:
+    question_progress = Progress(len(questions), "peft_question_examples") if not args.quiet else None
+    for idx, item in enumerate(questions, start=1):
         results = retrieve(item["question"], index, chunks, top_k)
         examples.append(qa_example(item, format_context(results), prompt["system"]))
+        if question_progress:
+            question_progress.log(idx, f"question={item['id']}")
 
-    for idx, chunk in enumerate(chunks[: args.max_corpus_examples], start=1):
+    selected_chunks = chunks[: args.max_corpus_examples]
+    corpus_progress = Progress(len(selected_chunks), "peft_corpus_examples", every=args.progress_every) if not args.quiet else None
+    for idx, chunk in enumerate(selected_chunks, start=1):
         examples.append(corpus_example(chunk, idx, prompt["system"], args.max_answer_words))
+        if corpus_progress:
+            corpus_progress.log(idx, f"chunk={chunk.get('id', idx)}")
 
     train, dev = split_train_dev(examples, args.dev_every)
     write_jsonl(args.train_output, train)

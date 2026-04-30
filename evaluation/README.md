@@ -28,6 +28,7 @@ The pipeline is designed to demonstrate four things:
 - `run_eval.py`: runs baseline/RAG answer generation.
 - `retrieval_eval.py`: evaluates retrieval independently.
 - `judge_eval.py`: scores answers and prints aggregate results.
+- `vote_eval.py`: ranks existing answers with anonymized model voting and self-bias metrics.
 - `visualize_results.py`: creates charts and a Markdown report.
 - `fine_tuning/prepare_dataset.py`: prepares grounded QA JSONL for later fine-tuning.
 - `optimizations/`: separate correctness-improvement experiments for prompt sweeps, COLESLAW preprocessing, PEFT data prep, and Open WebUI preset export.
@@ -105,6 +106,8 @@ Run arena comparison from `config.json`:
 python evaluation/run_eval.py --arena
 ```
 
+The answer-generation, retrieval, judging, optimization, and vote scripts print CLI progress by default, including current model, question id, variant, and completed item count. Add `--quiet` to suppress progress logs.
+
 Judge answers:
 
 ```bash
@@ -117,6 +120,17 @@ Generate charts and a report:
 python evaluation/visualize_results.py
 ```
 
+Run anonymized vote evaluation over an existing arena answer file:
+
+```bash
+python evaluation/vote_eval.py \
+  --answers evaluation/results/arena_answers.jsonl \
+  --output evaluation/results/vote_eval.jsonl \
+  --summary-output evaluation/results/vote_summary.csv
+
+python evaluation/visualize_results.py --vote-summary evaluation/results/vote_summary.csv
+```
+
 Outputs:
 
 - `evaluation/results/answers.jsonl`
@@ -126,6 +140,8 @@ Outputs:
 - `evaluation/results/hallucination_by_model.png`
 - `evaluation/results/refusal_accuracy.png`
 - `evaluation/results/retrieval_quality.png`
+- `evaluation/results/vote_eval.jsonl`
+- `evaluation/results/vote_summary.csv`
 - `evaluation/results/report.md`
 
 ## Arena Models

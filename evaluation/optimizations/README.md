@@ -18,6 +18,15 @@ Outputs:
 
 These normalized chunks can be reused for retrieval experiments and fine-tuning data preparation.
 
+For a bounded fuller local preparation run with progress:
+
+```bash
+python evaluation/optimizations/prepare_corpus.py \
+  --limit 500 \
+  --max-records 50000 \
+  --progress-every 5000
+```
+
 ## 2. Run Prompt And Parameter Sweep
 
 Smoke test without live model calls:
@@ -31,6 +40,8 @@ Run configured Open WebUI models:
 ```bash
 python evaluation/optimizations/run_prompt_sweep.py --limit 2
 ```
+
+The sweep prints current model, prompt, parameter set, question id, variant, and total progress. Use `--quiet` only when logging is too noisy.
 
 To reduce runtime, filter to one model, prompt, or parameter set:
 
@@ -81,6 +92,12 @@ Outputs:
 
 Default PEFT target is Mistral 7B because it is the local model most likely to benefit from task-specific adaptation. On the discovered local hardware, full training should be done in Colab/Kaggle or another GPU environment with current `torch`, `transformers`, `datasets`, `peft`, `trl`, and `accelerate`.
 
+The current prepared dataset can be regenerated with more corpus examples:
+
+```bash
+python evaluation/optimizations/prepare_peft_dataset.py --max-corpus-examples 200
+```
+
 ## 5. Export Open WebUI Preset
 
 This creates files for a usable Open WebUI model/preset. It does not mutate Open WebUI by default.
@@ -99,4 +116,3 @@ If your Open WebUI instance exposes the model creation API and your API key has 
 ```bash
 python evaluation/optimizations/export_webui_model.py --create
 ```
-

@@ -8,6 +8,7 @@ from pathlib import Path
 from common import PROJECT_ROOT, resolve_optimization_path
 
 from io_utils import write_json, write_jsonl
+from progress_utils import Progress
 
 
 DEFAULT_ZIP = PROJECT_ROOT / "corpus" / "COLESLAW.zip"
@@ -159,6 +160,8 @@ def parse_args():
     parser.add_argument("--overlap-words", type=int, default=40)
     parser.add_argument("--min-record-score", type=int, default=4)
     parser.add_argument("--min-chunk-score", type=int, default=1)
+    parser.add_argument("--progress-every", type=int, default=1000)
+    parser.add_argument("--quiet", action="store_true", help="Disable scan progress output.")
     return parser.parse_args()
 
 
@@ -171,6 +174,7 @@ def main():
     scanned = 0
     matched_records = 0
     files = {}
+    progress = Progress(args.max_records or 0, "coleslaw_scan", every=args.progress_every) if not args.quiet else None
 
     for member_name, line_number, record in iter_jsonl_records(args.zip):
         scanned += 1
@@ -179,6 +183,13 @@ def main():
         if chunks:
             matched_records += 1
             rows.extend(chunks)
+        if progress and args.max_records is not None:
+            progress.log(scanned, f"matched_records={matched_records} chunks_found={len(rows)}")
+        elif not args.quiet and args.progress_every and scanned % args.progress_every == 0:
+            print(
+                f"[coleslaw_scan] scanned={scanned} matched_records={matched_records} chunks_found={len(rows)}",
+                flush=True,
+            )
         if args.max_records is not None and scanned >= args.max_records:
             break
 

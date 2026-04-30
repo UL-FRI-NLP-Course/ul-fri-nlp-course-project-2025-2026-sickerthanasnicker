@@ -13,6 +13,7 @@ from io_utils import load_jsonl
 
 DEFAULT_JUDGEMENTS_FILE = Path(__file__).with_name("results") / "judgements.jsonl"
 DEFAULT_RETRIEVAL_FILE = Path(__file__).with_name("results") / "retrieval.jsonl"
+DEFAULT_VOTE_SUMMARY_FILE = Path(__file__).with_name("results") / "vote_summary.csv"
 DEFAULT_OUTPUT_DIR = Path(__file__).with_name("results")
 
 METRICS = ["correctness", "grounding", "completeness", "clarity", "hallucination"]
@@ -142,6 +143,47 @@ def save_retrieval(summary, output_dir):
     plt.close(fig)
 
 
+def load_csv_rows(path):
+    if not path or not Path(path).exists():
+        return []
+    with open(path, encoding="utf-8", newline="") as fp:
+        return list(csv.DictReader(fp))
+
+
+def save_vote_score(vote_rows, output_dir):
+    if not vote_rows:
+        return
+    labels_list = [f"{row['candidate_display_name']}\n{row['variant']}" for row in vote_rows]
+    values = [float(row["normalized_vote_score"]) for row in vote_rows]
+    fig, ax = plt.subplots(figsize=(max(9, len(vote_rows) * 1.2), 5))
+    ax.bar(labels_list, values, color="#6f8fbf")
+    ax.set_ylim(0, 1)
+    ax.set_ylabel("Normalized vote score (0-1)")
+    ax.set_title("Anonymized Vote Score")
+    ax.tick_params(axis="x", rotation=35)
+    fig.tight_layout()
+    save_figure(fig, output_dir / "vote_score")
+    plt.close(fig)
+
+
+def save_self_bias(vote_rows, output_dir):
+    rows = [row for row in vote_rows if row.get("self_bias") not in ("", None)]
+    if not rows:
+        return
+    labels_list = [f"{row['candidate_display_name']}\n{row['variant']}" for row in rows]
+    values = [float(row["self_bias"]) for row in rows]
+    colors = ["#b94a48" if value > 0 else "#5f9b5f" for value in values]
+    fig, ax = plt.subplots(figsize=(max(9, len(rows) * 1.2), 5))
+    ax.bar(labels_list, values, color=colors)
+    ax.axhline(0, color="#333333", linewidth=0.8)
+    ax.set_ylabel("Self score - other-model score")
+    ax.set_title("Self-Vote Bias")
+    ax.tick_params(axis="x", rotation=35)
+    fig.tight_layout()
+    save_figure(fig, output_dir / "self_vote_bias")
+    plt.close(fig)
+
+
 def save_figure(fig, path_without_suffix):
     fig.savefig(path_without_suffix.with_suffix(".png"), dpi=160, facecolor="white")
     fig.savefig(path_without_suffix.with_suffix(".jpg"), dpi=160, facecolor="white")
@@ -188,7 +230,37 @@ def markdown_table(rows, columns):
     return "\n".join(lines)
 
 
-def save_report(summary, retrieval, output_dir):
+def vote_markdown(vote_rows):
+    if not vote_rows:
+        return ""
+    columns = [
+        "candidate_model_id",
+        "candidate_display_name",
+        "variant",
+        "n_votes",
+        "normalized_vote_score",
+        "vote_score_by_other_models",
+        "self_vote_score",
+        "self_bias",
+    ]
+    return f"""## Vote Score
+
+{markdown_table(vote_rows, columns)}
+
+![Vote score](vote_score.png)
+
+SVG: [vote_score.svg](vote_score.svg)
+JPG: [vote_score.jpg](vote_score.jpg)
+
+![Self-vote bias](self_vote_bias.png)
+
+SVG: [self_vote_bias.svg](self_vote_bias.svg)
+JPG: [self_vote_bias.jpg](self_vote_bias.jpg)
+
+"""
+
+
+def save_report(summary, retrieval, output_dir, vote_rows=None):
     columns = [
         "model_id",
         "model_label",
@@ -213,6 +285,7 @@ def save_report(summary, retrieval, output_dir):
 - Unanswerable false evidence rate: {retrieval['unanswerable_false_evidence_rate']:.3f}
 - Average context length: {retrieval['average_context_length_words']:.1f} words
 
+{vote_markdown(vote_rows or [])}
 ## Charts
 
 ![Summary scores](summary_scores.png)
@@ -247,6 +320,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Visualize evaluation results.")
     parser.add_argument("--judgements", type=Path, default=DEFAULT_JUDGEMENTS_FILE)
     parser.add_argument("--retrieval", type=Path, default=DEFAULT_RETRIEVAL_FILE)
+    parser.add_argument("--vote-summary", type=Path, default=DEFAULT_VOTE_SUMMARY_FILE)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     return parser.parse_args()
 
@@ -256,6 +330,7 @@ def main():
     args.output_dir.mkdir(parents=True, exist_ok=True)
     judgements = load_jsonl(args.judgements)
     retrieval_rows = load_jsonl(args.retrieval)
+    vote_rows = load_csv_rows(args.vote_summary)
 
     answer_summary = grouped_judgement_summary(judgements)
     retrieval = retrieval_summary(retrieval_rows)
@@ -264,8 +339,10 @@ def main():
     save_hallucination(answer_summary, args.output_dir)
     save_refusal(answer_summary, args.output_dir)
     save_retrieval(retrieval, args.output_dir)
+    save_vote_score(vote_rows, args.output_dir)
+    save_self_bias(vote_rows, args.output_dir)
     save_csv(answer_summary, retrieval, args.output_dir)
-    save_report(answer_summary, retrieval, args.output_dir)
+    save_report(answer_summary, retrieval, args.output_dir, vote_rows)
 
     print(f"Saved charts and report to {args.output_dir}")
 

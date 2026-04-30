@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 
 from io_utils import load_jsonl, write_jsonl
+from progress_utils import Progress
 from retrieval_shared import (
     CHUNKS_FILE,
     build_index,
@@ -35,6 +36,7 @@ def parse_args():
     parser.add_argument("--chunks", type=Path, default=CHUNKS_FILE)
     parser.add_argument("--top-k", type=int, default=3)
     parser.add_argument("--threshold", type=float, default=0.35)
+    parser.add_argument("--quiet", action="store_true", help="Disable per-question progress output.")
     return parser.parse_args()
 
 
@@ -49,7 +51,8 @@ def main():
     unanswerable_false_hits = []
     context_lengths = []
 
-    for item in questions:
+    progress = Progress(len(questions), "retrieval_eval") if not args.quiet else None
+    for idx, item in enumerate(questions, start=1):
         results = retrieve(item["question"], index, chunks, args.top_k)
         context = format_context(results)
         context_lengths.append(len(context.split()))
@@ -79,6 +82,8 @@ def main():
                 ],
             }
         )
+        if progress:
+            progress.log(idx, f"question={item['id']}")
 
     write_jsonl(args.output, rows)
 

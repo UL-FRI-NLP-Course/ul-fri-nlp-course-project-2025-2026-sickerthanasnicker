@@ -11,6 +11,7 @@ from eval_config import (
 )
 from io_utils import append_jsonl, load_jsonl
 from model_providers import chat_model
+from progress_utils import Progress
 from retrieval_shared import build_index, format_context, load_chunks, retrieve, source_label
 from text_utils import content_terms, split_sentences
 
@@ -224,6 +225,7 @@ def parse_args():
     parser.add_argument("--top-p", type=float, default=None)
     parser.add_argument("--max-tokens", type=int, default=None)
     parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--quiet", action="store_true", help="Disable per-step progress output.")
     parser.set_defaults(_config=config)
     return parser.parse_args()
 
@@ -249,16 +251,28 @@ def main():
     )
 
     retrieved = {}
-    for item in questions:
+    retrieval_progress = Progress(len(questions), "retrieval") if not args.quiet else None
+    for idx, item in enumerate(questions, start=1):
         results = retrieve(item["question"], index, chunks, args.top_k)
         context = format_context(results)
         retrieved[item["id"]] = (results, context)
         if include_raw_rag_prompt:
             add_raw_rag_prompt_row(rows, item, context, options)
             append_jsonl(args.output, rows[-1])
+        if retrieval_progress:
+            retrieval_progress.log(idx, f"question={item['id']}")
 
-    for model_config in model_configs:
-        for item in questions:
+    total_model_calls = len(model_configs) * len(questions) * 2
+    generation_progress = Progress(total_model_calls, "answer_generation") if not args.quiet else None
+    completed_calls = 0
+    for model_index, model_config in enumerate(model_configs, start=1):
+        if not args.quiet:
+            print(
+                f"[model] {model_index}/{len(model_configs)} "
+                f"{model_config['model_id']} ({model_config['provider']} / {model_config['model']})",
+                flush=True,
+            )
+        for question_index, item in enumerate(questions, start=1):
             question = item["question"]
             results, context = retrieved[item["id"]]
             baseline_messages = build_baseline_messages(question)
@@ -284,6 +298,12 @@ def main():
                 baseline_error,
             )
             append_jsonl(args.output, rows[-1])
+            completed_calls += 1
+            if generation_progress:
+                generation_progress.log(
+                    completed_calls,
+                    f"model={model_config['model_id']} question={question_index}/{len(questions)} id={item['id']} variant=baseline",
+                )
 
             rag_messages = build_rag_messages(question, context)
             rag_answer, rag_provider, rag_error = call_answer_model(
@@ -308,6 +328,12 @@ def main():
                 rag_error,
             )
             append_jsonl(args.output, rows[-1])
+            completed_calls += 1
+            if generation_progress:
+                generation_progress.log(
+                    completed_calls,
+                    f"model={model_config['model_id']} question={question_index}/{len(questions)} id={item['id']} variant=rag",
+                )
 
     print(f"Saved {len(rows)} answers to {args.output}")
     print(

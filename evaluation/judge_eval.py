@@ -13,6 +13,7 @@ from eval_config import (
 )
 from io_utils import load_jsonl, write_jsonl
 from model_providers import chat_model
+from progress_utils import Progress
 from text_utils import content_terms
 
 
@@ -292,6 +293,7 @@ def parse_args():
     parser.add_argument("--top-p", type=float, default=None)
     parser.add_argument("--max-tokens", type=int, default=None)
     parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--quiet", action="store_true", help="Disable per-answer progress output.")
     parser.set_defaults(_config=config)
     return parser.parse_args()
 
@@ -307,7 +309,8 @@ def main():
     answers = load_jsonl(args.answers)
 
     rows = []
-    for answer_item in answers:
+    progress = Progress(len(answers), "judge") if not args.quiet else None
+    for idx, answer_item in enumerate(answers, start=1):
         question_item = question_map[answer_item["id"]]
         judgement, judge_provider = judge_answer(question_item, answer_item, provider, model, options)
         passthrough = {
@@ -340,6 +343,14 @@ def main():
                 **judgement,
             }
         )
+        if progress:
+            progress.log(
+                idx,
+                (
+                    f"judge={provider}/{model} answer_model={answer_item.get('model_id', answer_item.get('model', ''))} "
+                    f"id={answer_item['id']} variant={answer_item['variant']}"
+                ),
+            )
 
     write_jsonl(args.output, rows)
     print(f"Saved {len(rows)} judgements to {args.output}")
