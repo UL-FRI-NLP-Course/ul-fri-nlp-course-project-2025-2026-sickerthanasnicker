@@ -318,6 +318,7 @@ def main():
                 "question": answer_item["question"],
                 "answer": answer_item["answer"],
                 "model_id": answer_item.get("model_id", answer_item.get("model", "")),
+                "display_name": answer_item.get("display_name", answer_item.get("model_id", answer_item.get("model", ""))),
                 "provider": answer_item.get("provider", ""),
                 "model": answer_item.get("model", ""),
                 "prompt_mode": answer_item.get("prompt_mode", ""),

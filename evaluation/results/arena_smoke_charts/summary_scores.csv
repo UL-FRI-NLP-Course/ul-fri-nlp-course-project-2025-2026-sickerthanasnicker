@@ -1,0 +1,10 @@
+model_id,model_label,variant,n,correctness,grounding,completeness,clarity,hallucination,refusal_accuracy
+raw-rag-prompt,raw RAG prompt,raw_rag_prompt,1,1.0,5.0,1.0,3.0,0.0,0.0
+webui-llama3,llama3:latest,baseline,1,1.0,0.0,1.0,5.0,4.0,0.0
+webui-llama3,llama3:latest,rag,1,3.0,2.0,3.0,5.0,2.0,0.0
+webui-mistral-7b,mistral:7b,baseline,1,2.0,0.0,2.0,5.0,4.0,0.0
+webui-mistral-7b,mistral:7b,rag,1,3.0,4.0,3.0,5.0,2.0,0.0
+webui-qwen2.5-coder-7b,qwen2.5-coder:7b,baseline,1,2.0,0.0,2.0,5.0,4.0,0.0
+webui-qwen2.5-coder-7b,qwen2.5-coder:7b,rag,1,3.0,5.0,3.0,5.0,2.0,0.0
+webui-qwen3-coder-30b-a3b,qwen3-Coder30B-A3B-Instruct,baseline,1,3.0,0.0,3.0,5.0,2.0,0.0
+webui-qwen3-coder-30b-a3b,qwen3-Coder30B-A3B-Instruct,rag,1,3.0,4.0,3.0,5.0,2.0,0.0

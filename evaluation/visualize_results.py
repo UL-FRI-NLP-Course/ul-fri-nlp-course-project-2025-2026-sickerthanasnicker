@@ -26,7 +26,12 @@ def grouped_judgement_summary(rows):
 
     summary = []
     for (model_id, variant), items in sorted(groups.items()):
-        item = {"model_id": model_id, "variant": variant, "n": len(items)}
+        item = {
+            "model_id": model_id,
+            "model_label": items[0].get("display_name") or model_id,
+            "variant": variant,
+            "n": len(items),
+        }
         for metric in METRICS:
             item[metric] = sum(float(row[metric]) for row in items) / len(items)
         unanswerable = [row for row in items if row["type"] == "unanswerable"]
@@ -65,7 +70,7 @@ def retrieval_summary(rows):
 
 
 def labels(summary):
-    return [f"{row['model_id']}\n{row['variant']}" for row in summary]
+    return [f"{row.get('model_label', row['model_id'])}\n{row['variant']}" for row in summary]
 
 
 def save_summary_scores(summary, output_dir):
@@ -146,6 +151,7 @@ def save_figure(fig, path_without_suffix):
 def save_csv(summary, retrieval, output_dir):
     columns = [
         "model_id",
+        "model_label",
         "variant",
         "n",
         "correctness",
@@ -185,6 +191,7 @@ def markdown_table(rows, columns):
 def save_report(summary, retrieval, output_dir):
     columns = [
         "model_id",
+        "model_label",
         "variant",
         "n",
         "correctness",

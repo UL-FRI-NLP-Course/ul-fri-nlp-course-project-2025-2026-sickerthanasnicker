@@ -129,11 +129,16 @@ Outputs:
 
 ## Arena Models
 
-Default arena models in `config.json`:
+Default enabled arena models in `config.json` use Open WebUI:
 
-- `ollama-llama3`: `ollama / llama3:latest`
-- `ollama-mistral`: `ollama / mistral:7b`
-- `webui-project`: `openwebui / ul-fri-nlp-course-project-eal`
+- `webui-mistral-7b`: `openwebui / mistral:7b`
+- `webui-qwen2.5-coder-7b`: `openwebui / qwen2.5-coder:7b`
+- `webui-qwen3-coder-30b-a3b`: `openwebui / hf.co/byteshape/Qwen3-Coder-30B-A3B-Instruct-GGUF:latest`
+- `webui-llama3`: `openwebui / llama3:latest`
+
+The requested `gpt-5.4-mini` and `gpt-5.5` entries are also written in `config.json`, but disabled by default because the current Open WebUI `/api/models` response does not expose them and direct calls returned HTTP 400. Enable them only after they appear in `python evaluation/list_models.py --provider openwebui`.
+
+`config.json` also includes `include_raw_rag_prompt: true`, which adds a retrieval-only `raw_rag_prompt` baseline containing the exact prompt/context that would be sent to a model.
 
 Each generated answer keeps the required fields:
 

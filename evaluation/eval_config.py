@@ -20,23 +20,36 @@ DEFAULT_CONFIG = {
         "seed": 42,
         "top_k": 3,
     },
+    "include_raw_rag_prompt": True,
     "arena_models": [
         {
-            "model_id": "ollama-llama3",
-            "provider": "ollama",
-            "model": "llama3:latest",
-            "enabled": True,
-        },
-        {
-            "model_id": "ollama-mistral",
-            "provider": "ollama",
-            "model": "mistral:7b",
-            "enabled": True,
-        },
-        {
-            "model_id": "webui-project",
+            "model_id": "webui-mistral-7b",
             "provider": "openwebui",
-            "model": "ul-fri-nlp-course-project-eal",
+            "model": "mistral:7b",
+            "display_name": "mistral:7b",
+            "requested_alias": "minstral:7b",
+            "enabled": True,
+        },
+        {
+            "model_id": "webui-qwen2.5-coder-7b",
+            "provider": "openwebui",
+            "model": "qwen2.5-coder:7b",
+            "display_name": "qwen2.5-coder:7b",
+            "enabled": True,
+        },
+        {
+            "model_id": "webui-qwen3-coder-30b-a3b",
+            "provider": "openwebui",
+            "model": "hf.co/byteshape/Qwen3-Coder-30B-A3B-Instruct-GGUF:latest",
+            "display_name": "qwen3-Coder30B-A3B-Instruct",
+            "enabled": True,
+        },
+        {
+            "model_id": "webui-llama3",
+            "provider": "openwebui",
+            "model": "llama3:latest",
+            "display_name": "llama3:latest",
+            "requested_alias": "ollama3:latest",
             "enabled": True,
         },
     ],
@@ -80,6 +93,9 @@ def load_config(path=CONFIG_FILE):
     }
     config["arena_models"] = user_config.get(
         "arena_models", DEFAULT_CONFIG["arena_models"]
+    )
+    config["include_raw_rag_prompt"] = user_config.get(
+        "include_raw_rag_prompt", DEFAULT_CONFIG["include_raw_rag_prompt"]
     )
     return config
 

@@ -141,6 +141,7 @@ def single_model_config(args, config):
     model = args.model or get_default_model(config)
     return {
         "model_id": f"{provider}-{model}",
+        "display_name": f"{provider}-{model}",
         "provider": provider,
         "model": model,
         "enabled": True,
@@ -162,6 +163,7 @@ def add_answer_row(rows, item, variant, prompt_mode, context, answer, model_conf
             "context": context,
             "answer": answer,
             "model_id": model_config["model_id"],
+            "display_name": model_config.get("display_name", model_config["model_id"]),
             "provider": provider_used,
             "model": model_config["model"],
             "prompt_mode": prompt_mode,
@@ -171,6 +173,26 @@ def add_answer_row(rows, item, variant, prompt_mode, context, answer, model_conf
             "seed": options["seed"],
             "error": error or "",
         }
+    )
+
+
+def add_raw_rag_prompt_row(rows, item, context, options):
+    raw_prompt = build_rag_messages(item["question"], context)[0]["content"]
+    add_answer_row(
+        rows,
+        item,
+        "raw_rag_prompt",
+        "raw_rag_prompt",
+        context,
+        raw_prompt,
+        {
+            "model_id": "raw-rag-prompt",
+            "display_name": "raw RAG prompt",
+            "provider": "none",
+            "model": "retrieval_prompt",
+        },
+        "none",
+        options,
     )
 
 
@@ -185,6 +207,12 @@ def parse_args():
     parser.add_argument("--top-k", type=int, default=int(defaults.get("top_k", 3)))
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--arena", action="store_true", help="Run all enabled models from evaluation/config.json.")
+    parser.add_argument(
+        "--raw-rag-prompt",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Include the raw RAG prompt as a retrieval-only baseline.",
+    )
     parser.add_argument(
         "--provider",
         choices=["offline", "ollama", "openwebui", "openai"],
@@ -212,10 +240,24 @@ def main():
     index = build_index(chunks)
     model_configs = selected_model_configs(args, config)
     rows = []
+    include_raw_rag_prompt = (
+        config.get("include_raw_rag_prompt", True)
+        if args.raw_rag_prompt is None
+        else args.raw_rag_prompt
+    )
+
+    retrieved = {}
+    for item in questions:
+        results = retrieve(item["question"], index, chunks, args.top_k)
+        context = format_context(results)
+        retrieved[item["id"]] = (results, context)
+        if include_raw_rag_prompt:
+            add_raw_rag_prompt_row(rows, item, context, options)
 
     for model_config in model_configs:
         for item in questions:
             question = item["question"]
+            results, context = retrieved[item["id"]]
             baseline_messages = build_baseline_messages(question)
             baseline_answer, baseline_provider, baseline_error = call_answer_model(
                 model_config,
@@ -239,8 +281,6 @@ def main():
                 baseline_error,
             )
 
-            results = retrieve(question, index, chunks, args.top_k)
-            context = format_context(results)
             rag_messages = build_rag_messages(question, context)
             rag_answer, rag_provider, rag_error = call_answer_model(
                 model_config,
@@ -266,7 +306,10 @@ def main():
 
     write_jsonl(args.output, rows)
     print(f"Saved {len(rows)} answers to {args.output}")
-    print(f"Questions: {len(questions)} | models: {len(model_configs)} | top_k: {args.top_k}")
+    print(
+        f"Questions: {len(questions)} | models: {len(model_configs)} | "
+        f"top_k: {args.top_k} | raw_rag_prompt: {include_raw_rag_prompt}"
+    )
     for model_config in model_configs:
         print(f"- {model_config['model_id']}: {model_config['provider']} / {model_config['model']}")
 
