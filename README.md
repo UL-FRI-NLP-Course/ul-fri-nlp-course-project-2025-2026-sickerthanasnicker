@@ -6,28 +6,46 @@ The planned system is centered around retrieval-augmented generation. Instead of
 
 ## Repository status
 
-At the moment, this repository mainly contains the project report and supporting LaTeX files. The implementation of the assistant, data-processing pipeline, and reproducible training or evaluation workflow will be documented here as they are added to the repository.
+The repository now includes a working BM25 retrieval baseline. The system filters employment law documents, builds a search index, and returns relevant legal passages for a given query. LLM-based answer generation and full COLESLAW corpus integration are planned for the next submission.
 
 ## Project build instructions
 
 Possible package requirements for the current repository contents:
 
-- a TeX Live installation with `latexmk`
-- LaTeX packages commonly bundled in `texlive-latexextra`, `texlive-pictures`, and `texlive-fontsrecommended`
-- Visual Studio Code with the recommended LaTeX extension for the workspace
-
+* a TeX Live installation with `latexmk`
+* LaTeX packages commonly bundled in `texlive-latexextra`, `texlive-pictures`, and `texlive-fontsrecommended`
+* Visual Studio Code with the recommended LaTeX extension for the workspace
 
 The compiled PDF is written to `report/.out/report.pdf`.
 
+To run the retrieval system:
+
+```
+pip install rank-bm25
+python src/rag.py
+```
+
+To build the index from the full COLESLAW corpus:
+
+```
+python src/rag.py --build <path_to_coleslaw>
+```
+
 ## Repository structure
 
-```text
+```
 .
 ├── .vscode/
 ├── .gitignore
 ├── LICENSE
 ├── README.md
-└── report/
+├── report/
+└── src/
+    ├── rag.py
+    └── data/
+        └── chunks.jsonl
 ```
 
-- `report/`: project report and supporting LaTeX files
+* `report/`: project report and supporting LaTeX files
+* `src/rag.py`: BM25 retrieval over employment law corpus
+* `src/data/chunks.jsonl`: sample corpus chunks (ZDR-1)
