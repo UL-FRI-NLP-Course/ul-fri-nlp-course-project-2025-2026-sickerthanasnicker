@@ -180,19 +180,48 @@ def normalize_judgement(data):
     }
 
 
+def enforce_unanswerable_rule(question_item, answer_item, judgement):
+    refused = is_refusal(answer_item.get("answer", ""))
+    judgement["refusal"] = refused
+
+    if question_item["type"] == "unanswerable":
+        if refused:
+            judgement["correctness"] = 5
+            judgement["grounding"] = 5
+            judgement["completeness"] = 5
+            judgement["hallucination"] = 0
+            judgement["reason"] = (
+                judgement.get("reason", "")
+                + " Enforced rule: unanswerable question was correctly refused."
+            ).strip()
+        else:
+            judgement["correctness"] = min(judgement["correctness"], 1)
+            judgement["hallucination"] = max(judgement["hallucination"], 5)
+            judgement["reason"] = (
+                judgement.get("reason", "")
+                + " Enforced rule: unanswerable question was not refused."
+            ).strip()
+
+    return judgement
+
+
 def judge_answer(question_item, answer_item, provider, model, options):
     if provider == "offline":
-        return fallback_judge(question_item, answer_item), "offline"
+        return enforce_unanswerable_rule(
+            question_item,
+            answer_item,
+            fallback_judge(question_item, answer_item),
+        ), "offline"
 
     messages = build_judge_messages(question_item, answer_item)
     try:
         raw = chat_model(provider, model, messages, options)
         judgement = normalize_judgement(parse_json_response(raw))
-        return judgement, provider
+        return enforce_unanswerable_rule(question_item, answer_item, judgement), provider
     except Exception as exc:
         judgement = fallback_judge(question_item, answer_item)
         judgement["reason"] += f" Judge fallback used after {provider} failure: {type(exc).__name__}: {exc}"
-        return judgement, "offline_fallback"
+        return enforce_unanswerable_rule(question_item, answer_item, judgement), "offline_fallback"
 
 
 def summarize(rows):

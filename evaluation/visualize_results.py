@@ -1,7 +1,11 @@
 import argparse
+import csv
 from collections import defaultdict
 from pathlib import Path
 
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from io_utils import load_jsonl
@@ -82,7 +86,7 @@ def save_summary_scores(summary, output_dir):
     ax.set_xticklabels(x_labels, rotation=35, ha="right")
     ax.legend()
     fig.tight_layout()
-    fig.savefig(output_dir / "summary_scores.png", dpi=160)
+    save_figure(fig, output_dir / "summary_scores")
     plt.close(fig)
 
 
@@ -94,7 +98,7 @@ def save_hallucination(summary, output_dir):
     ax.set_title("Hallucination by Model and Variant")
     ax.tick_params(axis="x", rotation=35)
     fig.tight_layout()
-    fig.savefig(output_dir / "hallucination_by_model.png", dpi=160)
+    save_figure(fig, output_dir / "hallucination_by_model")
     plt.close(fig)
 
 
@@ -106,7 +110,7 @@ def save_refusal(summary, output_dir):
     ax.set_title("Refusal Accuracy")
     ax.tick_params(axis="x", rotation=35)
     fig.tight_layout()
-    fig.savefig(output_dir / "refusal_accuracy.png", dpi=160)
+    save_figure(fig, output_dir / "refusal_accuracy")
     plt.close(fig)
 
 
@@ -129,8 +133,38 @@ def save_retrieval(summary, output_dir):
         ha="center",
     )
     fig.tight_layout()
-    fig.savefig(output_dir / "retrieval_quality.png", dpi=160)
+    save_figure(fig, output_dir / "retrieval_quality")
     plt.close(fig)
+
+
+def save_figure(fig, path_without_suffix):
+    fig.savefig(path_without_suffix.with_suffix(".png"), dpi=160, facecolor="white")
+    fig.savefig(path_without_suffix.with_suffix(".jpg"), dpi=160, facecolor="white")
+    fig.savefig(path_without_suffix.with_suffix(".svg"), facecolor="white")
+
+
+def save_csv(summary, retrieval, output_dir):
+    columns = [
+        "model_id",
+        "variant",
+        "n",
+        "correctness",
+        "grounding",
+        "completeness",
+        "clarity",
+        "hallucination",
+        "refusal_accuracy",
+    ]
+    with open(output_dir / "summary_scores.csv", "w", encoding="utf-8", newline="") as fp:
+        writer = csv.DictWriter(fp, fieldnames=columns)
+        writer.writeheader()
+        for row in summary:
+            writer.writerow({column: row[column] for column in columns})
+
+    with open(output_dir / "retrieval_summary.csv", "w", encoding="utf-8", newline="") as fp:
+        writer = csv.DictWriter(fp, fieldnames=list(retrieval.keys()))
+        writer.writeheader()
+        writer.writerow(retrieval)
 
 
 def markdown_table(rows, columns):
@@ -176,11 +210,28 @@ def save_report(summary, retrieval, output_dir):
 
 ![Summary scores](summary_scores.png)
 
+SVG: [summary_scores.svg](summary_scores.svg)
+JPG: [summary_scores.jpg](summary_scores.jpg)
+
 ![Hallucination by model](hallucination_by_model.png)
+
+SVG: [hallucination_by_model.svg](hallucination_by_model.svg)
+JPG: [hallucination_by_model.jpg](hallucination_by_model.jpg)
 
 ![Refusal accuracy](refusal_accuracy.png)
 
+SVG: [refusal_accuracy.svg](refusal_accuracy.svg)
+JPG: [refusal_accuracy.jpg](refusal_accuracy.jpg)
+
 ![Retrieval quality](retrieval_quality.png)
+
+SVG: [retrieval_quality.svg](retrieval_quality.svg)
+JPG: [retrieval_quality.jpg](retrieval_quality.jpg)
+
+CSV tables:
+
+- [summary_scores.csv](summary_scores.csv)
+- [retrieval_summary.csv](retrieval_summary.csv)
 """
     (output_dir / "report.md").write_text(content, encoding="utf-8")
 
@@ -206,6 +257,7 @@ def main():
     save_hallucination(answer_summary, args.output_dir)
     save_refusal(answer_summary, args.output_dir)
     save_retrieval(retrieval, args.output_dir)
+    save_csv(answer_summary, retrieval, args.output_dir)
     save_report(answer_summary, retrieval, args.output_dir)
 
     print(f"Saved charts and report to {args.output_dir}")
