@@ -2,16 +2,18 @@
 
 ## Answer Scores
 
-| model_id | variant | n | correctness | grounding | completeness | clarity | hallucination | refusal_accuracy |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ollama-llama3:latest | baseline | 20 | 4.15 | 4.75 | 4.70 | 4.95 | 1.00 | 0.00 |
-| ollama-llama3:latest | rag | 20 | 3.85 | 4.95 | 4.55 | 4.85 | 0.25 | 0.75 |
+| model_id | model_label | variant | n | correctness | grounding | completeness | clarity | hallucination | refusal_accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ollama-llama3:latest | ollama-llama3:latest | baseline | 20 | 4.00 | 4.70 | 4.55 | 4.90 | 1.00 | 0.00 |
+| ollama-llama3:latest | ollama-llama3:latest | rag | 20 | 4.35 | 4.95 | 4.85 | 4.80 | 0.25 | 0.75 |
+| raw-rag-prompt | raw RAG prompt | raw_rag_prompt | 20 | 4.80 | 5.00 | 4.85 | 4.75 | 0.00 | 1.00 |
 
 ## Retrieval
 
 - Answerable hit rate: 0.875
 - Unanswerable false evidence rate: 0.250
 - Average context length: 176.3 words
+
 
 ## Charts
 
