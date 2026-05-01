@@ -1,4 +1,4 @@
 model_id,model_label,variant,n,correctness,grounding,completeness,clarity,hallucination,refusal_accuracy
-ollama-llama3:latest,ollama-llama3:latest,baseline,20,4.0,4.7,4.55,4.9,1.0,0.0
-ollama-llama3:latest,ollama-llama3:latest,rag,20,4.35,4.95,4.85,4.8,0.25,0.75
-raw-rag-prompt,raw RAG prompt,raw_rag_prompt,20,4.8,5.0,4.85,4.75,0.0,1.0
+ollama-llama3:latest,ollama-llama3:latest,baseline,20,3.8,4.6,4.55,4.75,1.0,0.0
+ollama-llama3:latest,ollama-llama3:latest,rag,20,4.15,5.0,4.55,4.75,0.25,0.75
+raw-rag-prompt,raw RAG prompt,raw_rag_prompt,20,4.8,5.0,4.95,4.8,0.0,1.0
