@@ -98,7 +98,29 @@ The current prepared dataset can be regenerated with more corpus examples:
 python evaluation/optimizations/prepare_peft_dataset.py --max-corpus-examples 200
 ```
 
-## 5. Export Open WebUI Preset
+## 5. Run PEFT Training In A GPU Container
+
+The repo already contains the LoRA trainer and merge step, but the local host is not the right place to build the full HF stack. Use the containerized runtime when you need the real training path:
+
+```bash
+podman build -f evaluation/optimizations/peft/Containerfile -t ul-fri-nlp-peft .
+podman run --rm -it \
+  --device nvidia.com/gpu=all \
+  -v "$PWD:/workspace:Z" \
+  -w /workspace \
+  ul-fri-nlp-peft
+```
+
+Inside the container, the training commands are the same as on the host:
+
+```bash
+python evaluation/optimizations/train_lora.py
+python evaluation/optimizations/merge_lora.py
+```
+
+The container path is the recommended fallback when the host Python or system libraries are incompatible, which is the case on the current machine.
+
+## 6. Export Open WebUI Preset
 
 This creates files for a usable Open WebUI model/preset. It does not mutate Open WebUI by default.
 
@@ -117,7 +139,7 @@ If your Open WebUI instance exposes the model creation API and your API key has 
 python evaluation/optimizations/export_webui_model.py --create
 ```
 
-## 6. Create Local Ollama Model
+## 7. Create Local Ollama Model
 
 Create the local optimized model from `mistral:7b`, the selected system prompt, deterministic parameters, and grounded examples:
 

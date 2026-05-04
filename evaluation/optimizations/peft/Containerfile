@@ -1,0 +1,26 @@
+FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+  PIP_NO_CACHE_DIR=1 \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PATH=/opt/venv/bin:$PATH
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  git \
+  python3.11 \
+  python3.11-dev \
+  python3.11-venv \
+  python3-pip \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN python3.11 -m venv /opt/venv && \
+  pip install --upgrade pip setuptools wheel && \
+  pip install --index-url https://download.pytorch.org/whl/cu124 \
+  torch torchvision torchaudio
+
+WORKDIR /workspace
+
+COPY evaluation/optimizations/requirements-peft.txt /tmp/requirements-peft.txt
+RUN pip install -r /tmp/requirements-peft.txt
+
+CMD ["python", "evaluation/optimizations/train_lora.py"]
