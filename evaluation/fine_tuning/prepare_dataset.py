@@ -10,6 +10,7 @@ if str(EVALUATION_DIR) not in sys.path:
 from io_utils import load_jsonl, write_jsonl
 from progress_utils import Progress
 from retrieval_shared import build_index, format_context, load_chunks, retrieve
+from text_utils import content_terms
 
 
 DEFAULT_QUESTIONS_FILE = EVALUATION_DIR / "questions.jsonl"
@@ -21,8 +22,18 @@ SYSTEM_PROMPT = (
 )
 
 
-def ideal_answer(item):
+def reference_supported(reference, context, threshold=0.35):
+    reference_terms = set(content_terms(reference))
+    if not reference_terms:
+        return False
+    context_terms = set(content_terms(context))
+    return len(reference_terms & context_terms) / len(reference_terms) >= threshold
+
+
+def ideal_answer(item, context):
     if item["type"] == "unanswerable":
+        return "Iz podanega konteksta ni mogoče zanesljivo odgovoriti."
+    if not reference_supported(item["reference"], context):
         return "Iz podanega konteksta ni mogoče zanesljivo odgovoriti."
     return f"Na podlagi podanega konteksta: {item['reference']}"
 
@@ -35,7 +46,7 @@ def make_example(item, context):
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user},
-            {"role": "assistant", "content": ideal_answer(item)},
+            {"role": "assistant", "content": ideal_answer(item, context)},
         ],
         "metadata": {
             "source": "evaluation/questions.jsonl",

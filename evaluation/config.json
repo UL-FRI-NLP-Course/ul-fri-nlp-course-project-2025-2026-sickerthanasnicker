@@ -11,10 +11,18 @@
         "top_k": 3
     },
     "include_raw_rag_prompt": true,
-    "arena_models": [
-        {
-            "model_id": "webui-gpt-5.4-mini",
-            "provider": "openwebui",
+  "arena_models": [
+    {
+      "model_id": "ollama-optimized-employment-law",
+      "provider": "ollama",
+      "model": "ul-fri-nlp-course-project-optimized:latest",
+      "display_name": "optimized employment-law mistral",
+      "enabled": true,
+      "note": "Local Ollama model created from the optimized system prompt and grounded examples."
+    },
+    {
+      "model_id": "webui-gpt-5.4-mini",
+      "provider": "openwebui",
             "model": "gpt-5.4-mini",
             "display_name": "gpt-5.4-mini",
             "enabled": false,

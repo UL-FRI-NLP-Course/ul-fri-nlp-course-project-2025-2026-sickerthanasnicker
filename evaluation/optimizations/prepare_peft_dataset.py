@@ -6,16 +6,44 @@ from common import EVALUATION_DIR, load_optimization_config, load_questions, pro
 from io_utils import write_jsonl
 from progress_utils import Progress
 from retrieval_shared import build_index, format_context, load_chunks, retrieve
-from text_utils import split_sentences
+from text_utils import content_terms, split_sentences
 
 
 DEFAULT_TRAIN = resolve_optimization_path("data/peft_train.jsonl")
 DEFAULT_DEV = resolve_optimization_path("data/peft_dev.jsonl")
 TARGET_MODEL = "mistral-7b"
 
+LEGAL_SUMMARY_TERMS = [
+    "zakon o delovnih razmerjih",
+    "zdr",
+    "pogodba o zaposlitvi",
+    "odpoved pogodbe",
+    "odpovedni rok",
+    "izredna odpoved",
+    "redna odpoved",
+    "letni dopust",
+    "delodajalec",
+    "delavec",
+    "delovno razmerje",
+    "plača",
+    "odpravnina",
+    "poskusno delo",
+    "delovni čas",
+]
 
-def ideal_answer(item):
+
+def reference_supported(reference, context, threshold=0.35):
+    reference_terms = set(content_terms(reference))
+    if not reference_terms:
+        return False
+    context_terms = set(content_terms(context))
+    return len(reference_terms & context_terms) / len(reference_terms) >= threshold
+
+
+def ideal_answer(item, context):
     if item["type"] == "unanswerable":
+        return "Iz podanega konteksta ni mogoče zanesljivo odgovoriti."
+    if not reference_supported(item["reference"], context):
         return "Iz podanega konteksta ni mogoče zanesljivo odgovoriti."
     return f"Na podlagi podanega konteksta: {item['reference']}"
 
@@ -26,7 +54,7 @@ def qa_example(item, context, system_prompt):
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": f"Kontekst:\n{context}\n\nVprašanje: {item['question']}"},
-            {"role": "assistant", "content": ideal_answer(item)},
+            {"role": "assistant", "content": ideal_answer(item, context)},
         ],
         "metadata": {
             "example_source": "evaluation_questions",
@@ -38,7 +66,18 @@ def qa_example(item, context, system_prompt):
 
 def summarize_chunk(text, max_words):
     sentences = split_sentences(text)
-    summary = " ".join(sentences[:2]) if sentences else text
+    if sentences:
+        scored = []
+        for idx, sentence in enumerate(sentences):
+            lowered = sentence.lower()
+            score = sum(1 for term in LEGAL_SUMMARY_TERMS if term in lowered)
+            score += min(3, len(content_terms(sentence)) // 10)
+            scored.append((score, -idx, sentence))
+        scored.sort(reverse=True)
+        selected = [sentence for score, _idx, sentence in scored[:2] if score > 0]
+        summary = " ".join(selected) if selected else sentences[0]
+    else:
+        summary = text
     words = summary.split()
     if len(words) > max_words:
         summary = " ".join(words[:max_words]).rstrip(",.;") + "."

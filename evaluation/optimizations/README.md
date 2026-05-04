@@ -116,3 +116,26 @@ If your Open WebUI instance exposes the model creation API and your API key has 
 ```bash
 python evaluation/optimizations/export_webui_model.py --create
 ```
+
+## 6. Create Local Ollama Model
+
+Create the local optimized model from `mistral:7b`, the selected system prompt, deterministic parameters, and grounded examples:
+
+```bash
+python evaluation/optimizations/create_ollama_model.py
+```
+
+Run it directly:
+
+```bash
+ollama run ul-fri-nlp-course-project-optimized
+```
+
+Evaluate it through the main pipeline:
+
+```bash
+python evaluation/run_eval.py \
+  --provider ollama \
+  --model ul-fri-nlp-course-project-optimized:latest \
+  --output evaluation/results/optimized_ollama_answers.jsonl
+```

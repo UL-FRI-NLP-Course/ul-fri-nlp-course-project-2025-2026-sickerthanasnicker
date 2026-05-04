@@ -148,6 +148,7 @@ Outputs:
 
 Default enabled arena models in `config.json` use Open WebUI:
 
+- `ollama-optimized-employment-law`: `ollama / ul-fri-nlp-course-project-optimized:latest`
 - `webui-mistral-7b`: `openwebui / mistral:7b`
 - `webui-qwen2.5-coder-7b`: `openwebui / qwen2.5-coder:7b`
 - `webui-qwen3-coder-30b-a3b`: `openwebui / hf.co/byteshape/Qwen3-Coder-30B-A3B-Instruct-GGUF:latest`
@@ -228,3 +229,10 @@ python evaluation/optimizations/export_webui_model.py
 ```
 
 See `evaluation/optimizations/README.md` for the full workflow. The queued vote-score metric plan is saved in `evaluation/backlog/vote_score_metric.md`.
+
+Create the local optimized Ollama model:
+
+```bash
+python evaluation/optimizations/create_ollama_model.py
+ollama run ul-fri-nlp-course-project-optimized
+```
