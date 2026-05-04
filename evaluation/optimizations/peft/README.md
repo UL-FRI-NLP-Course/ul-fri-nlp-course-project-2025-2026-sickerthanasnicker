@@ -13,12 +13,14 @@ podman build -f evaluation/optimizations/peft/Containerfile -t ul-fri-nlp-peft .
 Use the host repository as a bind mount so the container can see the prepared datasets and write outputs back into the workspace:
 
 ```bash
-podman run --rm -it \
+docker run --rm -it \
   --device nvidia.com/gpu=all \
   -v "$PWD:/workspace:Z" \
   -w /workspace \
   ul-fri-nlp-peft
 ```
+
+The container starts through `run_peft` and checks that CUDA is visible before it begins training.
 
 ## Training Steps
 
@@ -28,6 +30,16 @@ Inside the container, run:
 python evaluation/optimizations/prepare_peft_dataset.py
 python evaluation/optimizations/train_lora.py
 python evaluation/optimizations/merge_lora.py
+```
+
+Or let the container handle the whole sequence:
+
+```bash
+docker run --rm -it \
+  --device nvidia.com/gpu=all \
+  -v "$PWD:/workspace:Z" \
+  -w /workspace \
+  ul-fri-nlp-peft all
 ```
 
 Then import the merged checkpoint into Ollama with:
