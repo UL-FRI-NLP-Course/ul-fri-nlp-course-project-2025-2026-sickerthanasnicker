@@ -1,0 +1,50 @@
+{
+  "zip": "/home/tibor/Repos/ul-fri-nlp-course-project-2025-2026-sickerthanasnicker/corpus/COLESLAW.zip",
+  "output": "/home/tibor/Repos/ul-fri-nlp-course-project-2025-2026-sickerthanasnicker/evaluation/optimizations/data/coleslaw_employment_chunks.jsonl",
+  "records_scanned": 50000,
+  "records_matched": 7017,
+  "chunks_written": 500,
+  "chunk_words": 180,
+  "overlap_words": 40,
+  "min_record_score": 4,
+  "min_chunk_score": 1,
+  "files_seen": {
+    "COLESLAW 1.0/PISRS/drugi-splosni-in-posamicni-akti.jsonl": 7198,
+    "COLESLAW 1.0/PISRS/evidenca-normodajalcev.jsonl": 20629,
+    "COLESLAW 1.0/PISRS/neveljavni-predpisi.jsonl": 2511,
+    "COLESLAW 1.0/PISRS/obsoletni-in-konzumirani-predpisi.jsonl": 1072,
+    "COLESLAW 1.0/PISRS/predpisi-v-pripravi.jsonl": 127,
+    "COLESLAW 1.0/PISRS/register-predpisov.jsonl": 7375,
+    "COLESLAW 1.0/PISRS/splosni-akti-za-izvrsevanje-javnih-pooblastil.jsonl": 2172,
+    "COLESLAW 1.0/SodnaPraksa/sp_claims.jsonl": 1189,
+    "COLESLAW 1.0/SodnaPraksa/sp_courts.jsonl": 7727
+  },
+  "strong_employment_terms": [
+    "delovno razmerje",
+    "delovnih razmerjih",
+    "zakon o delovnih razmerjih",
+    "zdr-1",
+    "pogodba o zaposlitvi",
+    "pogodbe o zaposlitvi",
+    "odpovedni rok",
+    "letni dopust",
+    "minimalna plača",
+    "nadurno delo",
+    "poskusno delo",
+    "kolektivna pogodba"
+  ],
+  "weak_employment_terms": [
+    "delavca",
+    "delavec",
+    "delavci",
+    "delodajalec",
+    "delodajalca",
+    "zaposlitev",
+    "zaposlitvi",
+    "odpoved",
+    "odpravnina",
+    "dopust",
+    "plača",
+    "bolniška"
+  ]
+}
