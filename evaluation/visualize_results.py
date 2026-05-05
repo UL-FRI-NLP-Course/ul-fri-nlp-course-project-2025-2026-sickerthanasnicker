@@ -16,7 +16,7 @@ DEFAULT_RETRIEVAL_FILE = Path(__file__).with_name("results") / "retrieval.jsonl"
 DEFAULT_VOTE_SUMMARY_FILE = Path(__file__).with_name("results") / "vote_summary.csv"
 DEFAULT_OUTPUT_DIR = Path(__file__).with_name("results")
 
-METRICS = ["correctness", "grounding", "completeness", "clarity", "hallucination"]
+METRICS = ["correctness", "grounding", "completeness", "clarity", "hallucination", "slovenian_score"]
 
 
 def grouped_judgement_summary(rows):

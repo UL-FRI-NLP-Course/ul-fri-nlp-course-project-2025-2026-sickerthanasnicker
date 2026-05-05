@@ -136,3 +136,7 @@ dmypy.json
 # Datasets
 /data/*
 corpus
+# Large model artifacts
+evaluation/optimizations/peft_out/gguf/
+evaluation/optimizations/peft_out/*-merged/
+*.gguf

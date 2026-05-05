@@ -74,6 +74,14 @@
             "display_name": "gemma3:4b-it-q4_K_M (ollama)",
             "enabled": false,
             "note": "Fallback: direct ollama access if OpenWebUI is unavailable."
+        },
+        {
+            "model_id": "ollama-phi35-peft",
+            "provider": "ollama",
+            "model": "ul-fri-nlp-course-project-phi-3.5-mini-instruct-peft:latest",
+            "display_name": "phi-3.5-mini-peft (LoRA fine-tuned)",
+            "enabled": true,
+            "note": "Phi-3.5-mini-instruct fine-tuned with LoRA on Slovenian employment law, quantized Q4_K_M."
         }
     ]
 }

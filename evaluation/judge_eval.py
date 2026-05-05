@@ -14,7 +14,7 @@ from eval_config import (
 from io_utils import load_jsonl, write_jsonl
 from model_providers import chat_model
 from progress_utils import Progress
-from text_utils import content_terms
+from text_utils import content_terms, slovenian_score
 
 
 DEFAULT_QUESTIONS_FILE = Path(__file__).with_name("questions.jsonl")
@@ -234,9 +234,9 @@ def summarize(rows):
     print("Answer evaluation")
     print(
         f"{'model_id':<24} {'variant':<10} {'n':>3} {'correct':>8} {'ground':>8} "
-        f"{'complete':>9} {'clarity':>8} {'halluc':>8} {'refusal':>8}"
+        f"{'complete':>9} {'clarity':>8} {'halluc':>8} {'sl_score':>9} {'refusal':>8}"
     )
-    print("-" * 106)
+    print("-" * 116)
 
     summary = {}
     for (model_id, variant), items in sorted(grouped.items()):
@@ -244,6 +244,9 @@ def summarize(rows):
         avg = {}
         for metric in ("correctness", "grounding", "completeness", "clarity", "hallucination"):
             avg[metric] = sum(item[metric] for item in items) / n if n else 0.0
+        avg["slovenian_score"] = (
+            sum(float(item.get("slovenian_score", 3.0)) for item in items) / n if n else 3.0
+        )
 
         unanswerable = [item for item in items if item["type"] == "unanswerable"]
         refusal_accuracy = (
@@ -257,7 +260,7 @@ def summarize(rows):
             f"{model_id:<24} {variant:<10} {n:>3} {avg['correctness']:>8.2f} "
             f"{avg['grounding']:>8.2f} {avg['completeness']:>9.2f} "
             f"{avg['clarity']:>8.2f} {avg['hallucination']:>8.2f} "
-            f"{refusal_accuracy:>8.2f}"
+            f"{avg['slovenian_score']:>9.2f} {refusal_accuracy:>8.2f}"
         )
 
     print()
@@ -341,6 +344,7 @@ def main():
                 "judge_model": model,
                 **passthrough,
                 **judgement,
+                "slovenian_score": slovenian_score(answer_item.get("answer", "")),
             }
         )
         if progress:
