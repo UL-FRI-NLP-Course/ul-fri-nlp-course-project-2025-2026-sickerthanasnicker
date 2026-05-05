@@ -20,7 +20,7 @@ def require_training_stack():
     return modules
 
 
-def format_messages(example):
+def format_messages_mistral(example):
     lines = []
     for message in example["messages"]:
         role = message["role"]
@@ -34,9 +34,35 @@ def format_messages(example):
     return "".join(lines)
 
 
+def format_messages_gemma(example):
+    lines = ["<bos>"]
+    for message in example["messages"]:
+        role = message["role"]
+        content = message["content"].strip()
+        if role == "system":
+            lines.append(f"<start_of_turn>system\n{content}<end_of_turn>\n")
+        elif role == "user":
+            lines.append(f"<start_of_turn>user\n{content}<end_of_turn>\n")
+        elif role == "assistant":
+            lines.append(f"<start_of_turn>model\n{content}<end_of_turn>\n")
+    return "".join(lines)
+
+
+def get_format_fn(model_id):
+    name = model_id.lower()
+    if "gemma" in name:
+        return format_messages_gemma
+    return format_messages_mistral
+
+
+# Keep legacy name for backwards compat
+def format_messages(example):
+    return format_messages_mistral(example)
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a small LoRA adapter for the Slovenian employment-law assistant.")
-    parser.add_argument("--model", default="TinyLlama/TinyLlama-1.1B-Chat-v1.0", help="Base model (default: TinyLlama 1.1B - fits on 8GB GPU)")
+    parser.add_argument("--model", default="TinyLlama/TinyLlama-1.1B-Chat-v1.0", help="Base model (default: TinyLlama 1.1B - fits on 8GB GPU). For GTX 1080: google/gemma-3-4b-it (needs HF_TOKEN) or TinyLlama.")
     parser.add_argument("--train", type=Path, default=Path("evaluation/optimizations/data/peft_train.jsonl"))
     parser.add_argument("--dev", type=Path, default=Path("evaluation/optimizations/data/peft_dev.jsonl"))
     parser.add_argument("--output-dir", type=Path, default=Path("evaluation/optimizations/peft_out/tinyllama-1.1b-employment-law-lora"))
@@ -108,7 +134,7 @@ def load_model_with_fallback(model_id, quantization_config, cpu_only, no_cpu_off
                 offload_folder=str(offload_folder),
                 offload_state_dict=True,
                 low_cpu_mem_usage=True,
-                torch_dtype=torch.float16,
+                dtype=torch.float16,
                 quantization_config=quantization_config,
                 trust_remote_code=True,
             )
@@ -127,7 +153,7 @@ def load_model_with_fallback(model_id, quantization_config, cpu_only, no_cpu_off
             model = AutoModelForCausalLM.from_pretrained(
                 model_id,
                 device_map=device_map,
-                torch_dtype=dtype,
+                dtype=dtype,
                 quantization_config=quantization_config,
                 low_cpu_mem_usage=True,
                 trust_remote_code=True,
@@ -166,7 +192,7 @@ def main():
 
     quantization_config = None
     model_name = args.model.lower()
-    if "mistral" in model_name and not args.no_4bit:
+    if not args.no_4bit and any(x in model_name for x in ("mistral", "gemma", "llama", "qwen")):
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
@@ -219,7 +245,8 @@ def main():
         "json",
         data_files={"train": str(args.train), "validation": str(args.dev)},
     )
-    dataset = dataset.map(lambda row: {"text": format_messages(row)}, remove_columns=dataset["train"].column_names)
+    fmt = get_format_fn(args.model)
+    dataset = dataset.map(lambda row: {"text": fmt(row)}, remove_columns=dataset["train"].column_names)
 
     model.config.pad_token_id = tokenizer.pad_token_id
     
@@ -239,7 +266,8 @@ def main():
         fp16=True,
         report_to=[],
         optim="adamw_torch",
-        dataloader_pin_memory=False,  # Reduce memory pinning
+        dataloader_pin_memory=False,
+        gradient_checkpointing_kwargs={"use_reentrant": False},
     )
 
     trainer = SFTTrainer(

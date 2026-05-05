@@ -58,6 +58,22 @@
             "display_name": "llama3:latest",
             "requested_alias": "ollama3:latest",
             "enabled": true
+        },
+        {
+            "model_id": "webui-gemma3-4b",
+            "provider": "openwebui",
+            "model": "gemma3:4b-it-q4_K_M",
+            "display_name": "gemma3:4b-it-q4_K_M",
+            "enabled": true,
+            "note": "Google Gemma3 4B quantized - fits comfortably in 8GB VRAM alongside desktop."
+        },
+        {
+            "model_id": "ollama-gemma3-4b",
+            "provider": "ollama",
+            "model": "gemma3:4b-it-q4_K_M",
+            "display_name": "gemma3:4b-it-q4_K_M (ollama)",
+            "enabled": false,
+            "note": "Fallback: direct ollama access if OpenWebUI is unavailable."
         }
     ]
 }
