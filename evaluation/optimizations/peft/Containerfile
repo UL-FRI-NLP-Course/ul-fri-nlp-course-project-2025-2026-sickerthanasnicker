@@ -1,6 +1,11 @@
 FROM docker.io/nvidia/cuda:12.9.1-cudnn-runtime-ubuntu24.04
 
-ENV DEBIAN_FRONTEND=noninteractive \
+# Base image NVIDIA_REQUIRE_CUDA only allows drivers up to 570.x.
+# Driver 580+ causes the runtime to set NVIDIA_VISIBLE_DEVICES=void, hiding all CUDA devices.
+# Override to just require CUDA >= 12.0 so driver 580 (GeForce GTX 1080) is accepted.
+ENV NVIDIA_REQUIRE_CUDA="cuda>=12.0" \
+  NVIDIA_VISIBLE_DEVICES=all \
+  DEBIAN_FRONTEND=noninteractive \
   PIP_NO_CACHE_DIR=1 \
   PYTHONDONTWRITEBYTECODE=1 \
   PATH=/opt/venv/bin:$PATH

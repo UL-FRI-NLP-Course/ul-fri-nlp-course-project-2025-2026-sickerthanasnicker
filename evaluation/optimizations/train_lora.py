@@ -20,11 +20,22 @@ def require_training_stack():
     return modules
 
 
-def format_messages_mistral(example):
+def get_format_fn(tokenizer):
+    """Return a formatting function using the tokenizer's own chat template."""
+    def format_fn(example):
+        return tokenizer.apply_chat_template(
+            example["messages"],
+            tokenize=False,
+            add_generation_prompt=False,
+        )
+    return format_fn
+
+
+# Legacy fallback (Mistral format) kept for scripts that import directly
+def format_messages(example):
     lines = []
     for message in example["messages"]:
-        role = message["role"]
-        content = message["content"].strip()
+        role, content = message["role"], message["content"].strip()
         if role == "system":
             lines.append(f"<s>[INST] {content}\n")
         elif role == "user":
@@ -32,32 +43,6 @@ def format_messages_mistral(example):
         elif role == "assistant":
             lines.append(f" {content}</s>")
     return "".join(lines)
-
-
-def format_messages_gemma(example):
-    lines = ["<bos>"]
-    for message in example["messages"]:
-        role = message["role"]
-        content = message["content"].strip()
-        if role == "system":
-            lines.append(f"<start_of_turn>system\n{content}<end_of_turn>\n")
-        elif role == "user":
-            lines.append(f"<start_of_turn>user\n{content}<end_of_turn>\n")
-        elif role == "assistant":
-            lines.append(f"<start_of_turn>model\n{content}<end_of_turn>\n")
-    return "".join(lines)
-
-
-def get_format_fn(model_id):
-    name = model_id.lower()
-    if "gemma" in name:
-        return format_messages_gemma
-    return format_messages_mistral
-
-
-# Keep legacy name for backwards compat
-def format_messages(example):
-    return format_messages_mistral(example)
 
 
 def parse_args():
@@ -99,78 +84,94 @@ def read_available_ram_gib():
 
 
 def load_model_with_fallback(model_id, quantization_config, cpu_only, no_cpu_offload, offload_folder):
-    """Load model with RAM-backed CPU offload when available, then fall back to direct loads."""
+    """Load model with progressive fallback. Returns (model, device, is_quantized)."""
     import torch
     from transformers import AutoModelForCausalLM
 
-    device_mapping_attempts = []
+    def _load(label, **kwargs):
+        try:
+            model = AutoModelForCausalLM.from_pretrained(model_id, low_cpu_mem_usage=True, trust_remote_code=True, **kwargs)
+            print(f"✓ {label}", file=sys.stderr)
+            return model
+        except (ValueError, RuntimeError, TypeError, OSError) as exc:
+            print(f"✗ {label} failed: {str(exc)[:150]}", file=sys.stderr)
+            return None
 
-    if cpu_only:
-        print("CPU-only mode requested.", file=sys.stderr)
-        device_mapping_attempts = [(None, torch.float32)]
-    elif torch.cuda.is_available():
-        print(f"GPU: {torch.cuda.get_device_name(0)} ({torch.cuda.get_device_properties(0).total_memory / 1e9:.1f}GB)", file=sys.stderr)
-        device_mapping_attempts.append(("cuda", torch.float16))
-        device_mapping_attempts.append((None, torch.float32))
-    else:
-        print("No GPU detected, using CPU.", file=sys.stderr)
-        device_mapping_attempts = [(None, torch.float32)]
+    if cpu_only or not torch.cuda.is_available():
+        reason = "CPU-only requested" if cpu_only else "no GPU"
+        print(f"{reason}, loading float32 on CPU...", file=sys.stderr)
+        model = _load("CPU float32", dtype=torch.float32)
+        if model:
+            return model, "cpu", False
+        raise SystemExit(2)
 
-    if quantization_config is not None and not cpu_only and not no_cpu_offload:
-        free_bytes = 0
-        if torch.cuda.is_available():
-            free_bytes, _ = torch.cuda.mem_get_info()
-        gpu_budget_gib = max(2, int((free_bytes / 1024**3) - 1)) if free_bytes else 2
-        cpu_budget_gib = max(8, int((read_available_ram_gib() or 16) - 2))
+    gpu_count = torch.cuda.device_count()
+    gpu_budgets = {}
+    gpu_budgets_with_cpu = {}
+    cpu_gib = max(8, int((read_available_ram_gib() or 32) * 0.5))
+    for i in range(gpu_count):
+        free_bytes, total_bytes = torch.cuda.mem_get_info(i)
+        free_gib = free_bytes / 1024**3
+        # tight budget: leave 2.5 GiB headroom per GPU for activations/gradients
+        tight = max(1, int(free_gib - 2.5))
+        gpu_budgets[i] = f"{tight}GiB"
+        gpu_budgets_with_cpu[i] = f"{tight}GiB"
         print(
-            f"Using auto device map with budgets: gpu={gpu_budget_gib}GiB cpu={cpu_budget_gib}GiB offload={offload_folder}",
+            f"GPU {i}: {torch.cuda.get_device_name(i)} "
+            f"({total_bytes/1e9:.1f}GB total, {free_gib:.1f}GB free, budget={tight}GiB)",
             file=sys.stderr,
         )
-        try:
-            model = AutoModelForCausalLM.from_pretrained(
-                model_id,
-                device_map="auto",
-                max_memory={0: f"{gpu_budget_gib}GiB", "cpu": f"{cpu_budget_gib}GiB"},
-                offload_folder=str(offload_folder),
-                offload_state_dict=True,
-                low_cpu_mem_usage=True,
-                dtype=torch.float16,
-                quantization_config=quantization_config,
-                trust_remote_code=True,
-            )
-            print("✓ Loaded with RAM-backed offload", file=sys.stderr)
-            return model, "auto-offload"
-        except (ValueError, RuntimeError, TypeError, OSError) as exc:
-            print(f"✗ Offload load failed: {str(exc)[:100]}", file=sys.stderr)
+    gpu_budgets_with_cpu["cpu"] = f"{cpu_gib}GiB"
 
-    last_error = None
-    for device_map, dtype in device_mapping_attempts:
-        try:
-            device_desc = device_map or "cpu"
-            dtype_str = str(dtype).split('.')[-1].rstrip("'")
-            print(f"Loading on {device_desc} with {dtype_str}...", file=sys.stderr)
+    offload_folder.mkdir(parents=True, exist_ok=True)
 
-            model = AutoModelForCausalLM.from_pretrained(
-                model_id,
-                device_map=device_map,
-                dtype=dtype,
-                quantization_config=quantization_config,
-                low_cpu_mem_usage=True,
-                trust_remote_code=True,
-            )
-            print(f"✓ Loaded on {device_desc}", file=sys.stderr)
-            return model, device_map or "cpu"
-        except (ValueError, RuntimeError, TypeError, OSError) as exc:
-            last_error = exc
-            err_msg = str(exc)[:100]
-            print(f"✗ Failed: {err_msg}", file=sys.stderr)
-            continue
+    # 1. 4-bit quantized, GPU-only (bitsandbytes cannot split quantized layers to CPU)
+    if quantization_config is not None:
+        model = _load(
+            f"4-bit quantized across {gpu_count} GPU(s)",
+            device_map="auto",
+            max_memory=gpu_budgets,
+            dtype=torch.float16,
+            quantization_config=quantization_config,
+        )
+        if model:
+            return model, "auto", True
 
-    print(f"Failed to load model: {last_error}", file=sys.stderr)
+    # 2. float16, GPU + CPU overflow (no quantization; accelerate handles offload transparently)
+    model = _load(
+        f"float16 across {gpu_count} GPU(s) + CPU overflow",
+        device_map="auto",
+        max_memory=gpu_budgets_with_cpu,
+        dtype=torch.float16,
+        offload_folder=str(offload_folder),
+        offload_state_dict=True,
+    )
+    if model:
+        return model, "auto-cpu", False
+
+    # 3. float16, GPU-only (no CPU budget)
+    model = _load(
+        f"float16 across {gpu_count} GPU(s) only",
+        device_map="auto",
+        max_memory=gpu_budgets,
+        dtype=torch.float16,
+    )
+    if model:
+        return model, "auto", False
+
+    # 4. CPU float32 (slow but guaranteed)
+    print("All GPU strategies failed, loading float32 on CPU (slow)...", file=sys.stderr)
+    model = _load("CPU float32", dtype=torch.float32)
+    if model:
+        return model, "cpu", False
+
     raise SystemExit(2)
 
 
 def main():
+    import os
+    os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+
     args = parse_args()
     try:
         require_training_stack()
@@ -191,8 +192,7 @@ def main():
     args.offload_folder.mkdir(parents=True, exist_ok=True)
 
     quantization_config = None
-    model_name = args.model.lower()
-    if not args.no_4bit and any(x in model_name for x in ("mistral", "gemma", "llama", "qwen")):
+    if not args.no_4bit:
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
@@ -201,31 +201,27 @@ def main():
         )
 
     if torch.cuda.is_available():
-        free_bytes, total_bytes = torch.cuda.mem_get_info()
-        print(
-            f"CUDA memory before load: {free_bytes / 1024**3:.2f} GiB free / {total_bytes / 1024**3:.2f} GiB total",
-            file=sys.stderr,
-        )
+        for i in range(torch.cuda.device_count()):
+            free_bytes, total_bytes = torch.cuda.mem_get_info(i)
+            print(
+                f"GPU {i} before load: {free_bytes / 1024**3:.2f} GiB free / {total_bytes / 1024**3:.2f} GiB total",
+                file=sys.stderr,
+            )
         torch.cuda.empty_cache()
 
-    model, device_used = load_model_with_fallback(
+    model, device_used, is_quantized = load_model_with_fallback(
         args.model,
         quantization_config,
         cpu_only=args.cpu_only,
         no_cpu_offload=args.no_cpu_offload,
         offload_folder=args.offload_folder,
     )
-    
-    # Enable gradient checkpointing to reduce memory usage
-    if hasattr(model, "gradient_checkpointing"):
-        model.gradient_checkpointing_enable()
-        print("✓ Enabled gradient checkpointing", file=sys.stderr)
 
     if hasattr(model, "config"):
         model.config.use_cache = False
-    
-    if quantization_config is not None:
-        model = prepare_model_for_kbit_training(model)
+
+    if is_quantized:
+        model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
         print("✓ Prepared for k-bit training", file=sys.stderr)
 
     lora_config = LoraConfig(
@@ -245,25 +241,25 @@ def main():
         "json",
         data_files={"train": str(args.train), "validation": str(args.dev)},
     )
-    fmt = get_format_fn(args.model)
+    fmt = get_format_fn(tokenizer)
     dataset = dataset.map(lambda row: {"text": fmt(row)}, remove_columns=dataset["train"].column_names)
 
     model.config.pad_token_id = tokenizer.pad_token_id
-    
-    import os
-    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
-    
+
+    # fp16 AMP conflicts with models that have bf16 internal params (e.g. Phi-3.5).
+    # For 4-bit QLoRA, bitsandbytes manages precision internally; no AMP needed.
+    use_fp16 = device_used != "cpu" and torch.cuda.is_available() and not is_quantized
     training_args = TrainingArguments(
         output_dir=str(args.output_dir),
         num_train_epochs=args.epochs,
         per_device_train_batch_size=args.batch_size,
-        per_device_eval_batch_size=1,  # Minimal eval batch size for memory
+        per_device_eval_batch_size=1,
         gradient_accumulation_steps=args.grad_accum,
         learning_rate=args.learning_rate,
         logging_steps=5,
         save_strategy="epoch",
-        eval_strategy="no",  # Disable evaluation to save memory
-        fp16=True,
+        eval_strategy="no",
+        fp16=use_fp16,
         report_to=[],
         optim="adamw_torch",
         dataloader_pin_memory=False,
