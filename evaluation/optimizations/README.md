@@ -17,6 +17,7 @@ Outputs:
 - `evaluation/optimizations/data/coleslaw_employment_summary.json`
 
 These normalized chunks can be reused for retrieval experiments and fine-tuning data preparation.
+The current extraction is useful as case-law and secondary context support, but it should not be treated as the primary RAG corpus because it is dominated by `SodnaPraksa/sp_courts.jsonl` and one sector-specific collective agreement.
 
 For a bounded fuller local preparation run with progress:
 
@@ -26,6 +27,24 @@ python evaluation/optimizations/prepare_corpus.py \
   --max-records 50000 \
   --progress-every 5000
 ```
+
+## 1a. Monitor Official Sources
+
+Official primary and interpretation sources are tracked in:
+
+- `evaluation/optimizations/official_sources.json`
+
+Run the monitor:
+
+```bash
+python evaluation/optimizations/monitor_official_sources.py
+```
+
+Output:
+
+- `evaluation/results/optimization/official_source_monitor.json`
+
+The monitor checks PISRS register matches and GOV.SI/IRSD/eUprava/SPOT/ESS source availability. Use this before rebuilding the official RAG corpus or reporting current-law results.
 
 ## 2. Run Prompt And Parameter Sweep
 
@@ -48,7 +67,7 @@ To reduce runtime, filter to one model, prompt, or parameter set:
 ```bash
 python evaluation/optimizations/run_prompt_sweep.py \
   --model-id webui-mistral-7b \
-  --prompt-id strict_grounded_v1 \
+  --prompt-id strict_legal_rag_sl_v2 \
   --settings-id deterministic
 ```
 

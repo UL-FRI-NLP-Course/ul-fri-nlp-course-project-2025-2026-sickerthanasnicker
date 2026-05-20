@@ -20,6 +20,26 @@
       "display_name": "mistral:7b",
       "role": "peft_candidate",
       "enabled": true
+    },
+    {
+      "model_id": "webui-gams-1b-chat",
+      "provider": "openwebui",
+      "model": "cjvt/GaMS-1B-Chat",
+      "display_name": "GaMS-1B-Chat",
+      "hf_model_id": "cjvt/GaMS-1B-Chat",
+      "role": "recommended_cpu_slovenian_candidate",
+      "enabled": false,
+      "notes": "Enable after serving this Hugging Face model through Open WebUI or another compatible local endpoint. This is the preferred CPU-friendly GaMS candidate for Slovenian RAG answers."
+    },
+    {
+      "model_id": "webui-gams-9b",
+      "provider": "openwebui",
+      "model": "cjvt/GaMS-9B",
+      "display_name": "GaMS-9B",
+      "hf_model_id": "cjvt/GaMS-9B",
+      "role": "higher_quality_slovenian_candidate",
+      "enabled": false,
+      "notes": "Use only if adequate RAM/VRAM is available; it is likely too heavy for the current CPU-limited workflow."
     }
   ],
   "prompts": [
@@ -37,6 +57,11 @@
       "prompt_id": "ambiguity_aware_v1",
       "label": "Ambiguity-aware legal assistant",
       "system": "Si asistent za slovensko delovno pravo. Uporabi samo podani kontekst. Pri nejasnih vprašanjih najprej povej, kaj manjka za zanesljiv odgovor, nato navedi samo pravila, ki so razvidna iz konteksta. Pri vprašanjih izven konteksta zavrni odgovor."
+    },
+    {
+      "prompt_id": "strict_legal_rag_sl_v2",
+      "label": "Strict Slovenian employment-law RAG assistant",
+      "system": "Si slovenski pravni asistent za slovensko delovno pravo. Odgovarjaj izključno v slovenščini in samo na podlagi podanega konteksta. Pred odgovorom preveri: (1) ali vprašanje spada v slovensko delovno pravo, (2) ali kontekst vsebuje veljaven in relevanten vir, (3) ali je odgovor podprt z navedenim členom, uradno razlago ali sodno prakso. Prednost imajo veljavni predpisi PISRS, nato uradne razlage GOV.SI/MDDSZ/IRSD, sodna praksa pa je samo sekundarna opora. Če vprašanje ni iz tega področja ali kontekst ni zadosten, jasno zavrni: \"Iz podanega konteksta ni mogoče zanesljivo odgovoriti na vprašanje iz slovenskega delovnega prava.\" Ne ugibaj, ne dodajaj pravil iz splošnega znanja in ne mešaj tujih pravnih ureditev. Pri podprtem odgovoru navedi kratek sklep, relevantni člen ali vir in morebitne pogoje oziroma izjeme."
     }
   ],
   "generation_settings": [
@@ -58,8 +83,14 @@
   "webui_export": {
     "model_id": "ul-fri-nlp-course-project-optimized",
     "name": "UL FRI NLP Course Project Optimized",
-    "base_model_id": "mistral:7b",
-    "prompt_id": "strict_grounded_v1",
+    "base_model_id": "cjvt/GaMS-1B-Chat",
+    "prompt_id": "strict_legal_rag_sl_v2",
     "settings_id": "deterministic"
+  },
+  "recommended_model": {
+    "primary_cpu_candidate": "cjvt/GaMS-1B-Chat",
+    "quality_candidate_if_resources_allow": "cjvt/GaMS-9B",
+    "current_local_fallback": "mistral:7b",
+    "approach": "RAG-only prompt and retrieval optimization; no fine-tuning by default on this CPU-limited machine."
   }
 }

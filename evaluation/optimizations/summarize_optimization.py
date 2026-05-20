@@ -3,15 +3,20 @@ import csv
 from collections import defaultdict
 from pathlib import Path
 
-import matplotlib
+try:
+    import matplotlib
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    HAS_MATPLOTLIB = True
+except ModuleNotFoundError:
+    HAS_MATPLOTLIB = False
+    plt = None
 
 from common import EVALUATION_DIR
 
 from io_utils import load_jsonl
-from visualize_results import markdown_table, retrieval_summary
 
 
 DEFAULT_JUDGEMENTS = EVALUATION_DIR / "results" / "optimization" / "judgements.jsonl"
@@ -19,6 +24,46 @@ DEFAULT_RETRIEVAL = EVALUATION_DIR / "results" / "optimization" / "retrieval.jso
 DEFAULT_OUTPUT_DIR = EVALUATION_DIR / "results" / "optimization"
 
 METRICS = ["correctness", "grounding", "completeness", "clarity", "hallucination"]
+
+
+def markdown_table(rows, columns):
+    header = "| " + " | ".join(columns) + " |"
+    sep = "| " + " | ".join("---" for _ in columns) + " |"
+    lines = [header, sep]
+    for row in rows:
+        values = []
+        for column in columns:
+            value = row[column]
+            if isinstance(value, float):
+                value = f"{value:.2f}"
+            values.append(str(value))
+        lines.append("| " + " | ".join(values) + " |")
+    return "\n".join(lines)
+
+
+def retrieval_summary(rows):
+    answerable = [row for row in rows if row["type"] != "unanswerable"]
+    unanswerable = [row for row in rows if row["type"] == "unanswerable"]
+    hit_rate = (
+        sum(1 for row in answerable if row["hit"]) / len(answerable)
+        if answerable
+        else 0.0
+    )
+    false_evidence = (
+        sum(1 for row in unanswerable if row["reference_keyword_fraction"] >= 0.35) / len(unanswerable)
+        if unanswerable
+        else 0.0
+    )
+    avg_context = (
+        sum(float(row["context_length_words"]) for row in rows) / len(rows)
+        if rows
+        else 0.0
+    )
+    return {
+        "answerable_hit_rate": hit_rate,
+        "unanswerable_false_evidence_rate": false_evidence,
+        "average_context_length_words": avg_context,
+    }
 
 
 def group_summary(rows):
@@ -105,6 +150,17 @@ def write_retrieval_csv(retrieval, output_dir):
         writer.writerow(retrieval)
 
 
+def chart_section():
+    if not HAS_MATPLOTLIB:
+        return "Charts were skipped because `matplotlib` is not installed in this environment.\n"
+    return """![Correctness](optimization_correctness.png)
+
+![Hallucination](optimization_hallucination.png)
+
+![Refusal accuracy](optimization_refusal_accuracy.png)
+"""
+
+
 def write_report(summary, retrieval, output_dir):
     columns = [
         "model_id",
@@ -144,11 +200,7 @@ These results are separate from the main reproducible evaluation. They compare s
 
 ## Charts
 
-![Correctness](optimization_correctness.png)
-
-![Hallucination](optimization_hallucination.png)
-
-![Refusal accuracy](optimization_refusal_accuracy.png)
+{chart_section()}
 
 CSV tables:
 
@@ -174,9 +226,12 @@ def main():
     summary = group_summary(judgements)
     retrieval = retrieval_summary(retrieval_rows)
 
-    save_bar(summary, "correctness", args.output_dir, "optimization_correctness", "Optimization Correctness", "Average correctness (0-5)", "#4f81bd")
-    save_bar(summary, "hallucination", args.output_dir, "optimization_hallucination", "Optimization Hallucination", "Average hallucination (0-5, lower is better)", "#b94a48")
-    save_bar(summary, "refusal_accuracy", args.output_dir, "optimization_refusal_accuracy", "Optimization Refusal Accuracy", "Refusal accuracy", "#5f9b5f")
+    if HAS_MATPLOTLIB:
+        save_bar(summary, "correctness", args.output_dir, "optimization_correctness", "Optimization Correctness", "Average correctness (0-5)", "#4f81bd")
+        save_bar(summary, "hallucination", args.output_dir, "optimization_hallucination", "Optimization Hallucination", "Average hallucination (0-5, lower is better)", "#b94a48")
+        save_bar(summary, "refusal_accuracy", args.output_dir, "optimization_refusal_accuracy", "Optimization Refusal Accuracy", "Refusal accuracy", "#5f9b5f")
+    else:
+        print("matplotlib is not installed; skipping optimization charts.")
     write_summary_csv(summary, args.output_dir)
     write_retrieval_csv(retrieval, args.output_dir)
     write_report(summary, retrieval, args.output_dir)

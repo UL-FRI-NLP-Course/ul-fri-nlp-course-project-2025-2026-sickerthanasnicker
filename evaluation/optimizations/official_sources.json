@@ -1,0 +1,241 @@
+{
+  "description": "Official source seed manifest for the Slovenian employment-law RAG corpus.",
+  "retrieval_policy": [
+    "Use PISRS as the canonical source for statutes and regulations.",
+    "Use GOV.SI, MDDSZ, IRSD, eUprava, SPOT, ESS, and podatki.gov.si only as official explanations or operational guidance.",
+    "Use sodnapraksa.si only as secondary case-law support; do not let case law override a current statute.",
+    "Exclude private legal portals, blogs, forums, and unofficial summaries from the grounded answer corpus."
+  ],
+  "pisrs_collections": [
+    "Register predpisov",
+    "Neuradna prečiščena besedila"
+  ],
+  "pisrs": [
+    {
+      "id": "zdr_1",
+      "short_name": "ZDR-1",
+      "title": "Zakon o delovnih razmerjih",
+      "preferred_zunanji_id": "ZAKO5944",
+      "query": "Zakon o delovnih razmerjih",
+      "kind": "primary_law",
+      "priority": "core",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO5944",
+      "topics": ["pogodba o zaposlitvi", "odpoved", "letni dopust", "delovni čas", "plačilo za delo", "varstvo pravic"]
+    },
+    {
+      "id": "zminp",
+      "short_name": "ZMinP",
+      "title": "Zakon o minimalni plači",
+      "preferred_zunanji_id": "ZAKO5861",
+      "query": "Zakon o minimalni plači",
+      "kind": "primary_law",
+      "priority": "core",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO5861",
+      "topics": ["minimalna plača", "dodatki", "usklajevanje minimalne plače"]
+    },
+    {
+      "id": "zepdsv",
+      "short_name": "ZEPDSV",
+      "title": "Zakon o evidencah na področju dela in socialne varnosti",
+      "preferred_zunanji_id": "ZAKO4400",
+      "query": "Zakon o evidencah na področju dela in socialne varnosti",
+      "kind": "primary_law",
+      "priority": "core",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO4400",
+      "topics": ["evidenca delovnega časa", "hramba evidence", "vpogled delavca"]
+    },
+    {
+      "id": "zutd",
+      "short_name": "ZUTD",
+      "title": "Zakon o urejanju trga dela",
+      "preferred_zunanji_id": "ZAKO5840",
+      "query": "Zakon o urejanju trga dela",
+      "kind": "primary_law",
+      "priority": "supporting",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO5840",
+      "topics": ["brezposelnost", "denarno nadomestilo", "ukrepi trga dela"]
+    },
+    {
+      "id": "zvzd_1",
+      "short_name": "ZVZD-1",
+      "title": "Zakon o varnosti in zdravju pri delu",
+      "preferred_zunanji_id": "ZAKO5537",
+      "query": "Zakon o varnosti in zdravju pri delu",
+      "kind": "primary_law",
+      "priority": "core",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO5537",
+      "topics": ["varnost in zdravje pri delu", "ocena tveganja", "obveznosti delodajalca"]
+    },
+    {
+      "id": "zid_1",
+      "short_name": "ZID-1",
+      "title": "Zakon o inšpekciji dela",
+      "preferred_zunanji_id": "ZAKO6711",
+      "query": "Zakon o inšpekciji dela",
+      "kind": "primary_law",
+      "priority": "supporting",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO6711",
+      "topics": ["inšpekcijski nadzor", "posredovanje v sporih", "ukrepi inšpektorja"]
+    },
+    {
+      "id": "zkolp",
+      "short_name": "ZKolP",
+      "title": "Zakon o kolektivnih pogodbah",
+      "preferred_zunanji_id": "ZAKO4337",
+      "query": "Zakon o kolektivnih pogodbah",
+      "kind": "primary_law",
+      "priority": "supporting",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO4337",
+      "topics": ["kolektivne pogodbe", "kolektivna delovna razmerja"]
+    },
+    {
+      "id": "zsd_u",
+      "short_name": "ZSDU",
+      "title": "Zakon o sodelovanju delavcev pri upravljanju",
+      "preferred_zunanji_id": "ZAKO282",
+      "query": "Zakon o sodelovanju delavcev pri upravljanju",
+      "kind": "primary_law",
+      "priority": "supporting",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO282",
+      "topics": ["sodelovanje delavcev", "svet delavcev"]
+    },
+    {
+      "id": "zrsin",
+      "short_name": "ZRSin",
+      "title": "Zakon o reprezentativnosti sindikatov",
+      "preferred_zunanji_id": "ZAKO262",
+      "query": "Zakon o reprezentativnosti sindikatov",
+      "kind": "primary_law",
+      "priority": "supporting",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO262",
+      "topics": ["sindikati", "reprezentativnost"]
+    },
+    {
+      "id": "zpdpd",
+      "short_name": "ZPDPD",
+      "title": "Zakon o praznikih in dela prostih dnevih v Republiki Sloveniji",
+      "preferred_zunanji_id": "ZAKO865",
+      "query": "Zakon o praznikih in dela prostih dnevih",
+      "kind": "primary_law",
+      "priority": "supporting",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO865",
+      "topics": ["prazniki", "dela prosti dnevi"]
+    },
+    {
+      "id": "zzsdt",
+      "short_name": "ZZSDT",
+      "title": "Zakon o zaposlovanju, samozaposlovanju in delu tujcev",
+      "preferred_zunanji_id": "ZAKO6655",
+      "query": "Zakon o zaposlovanju, samozaposlovanju in delu tujcev",
+      "kind": "primary_law",
+      "priority": "supporting",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO6655",
+      "topics": ["tuji delavci", "dovoljenja", "zaposlovanje tujcev"]
+    },
+    {
+      "id": "zju_1",
+      "short_name": "ZJU-1",
+      "title": "Zakon o javnih uslužbencih",
+      "preferred_zunanji_id": "ZAKO8830",
+      "query": "Zakon o javnih uslužbencih",
+      "kind": "primary_law",
+      "priority": "optional_public_sector",
+      "url": "https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO8830",
+      "topics": ["javni uslužbenci", "javni sektor", "pravice iz delovnega razmerja"]
+    }
+  ],
+  "government_interpretations": [
+    {
+      "id": "gov_delovna_razmerja",
+      "title": "Delovna razmerja | GOV.SI",
+      "url": "https://www.gov.si/teme/delovna-razmerja/",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_interpretation",
+      "priority": "core",
+      "topics": ["ZDR-1", "pogosta vprašanja", "inšpekcijski nadzor", "evidence delovnega časa", "kolektivna delovna razmerja"]
+    },
+    {
+      "id": "gov_minimalna_placa",
+      "title": "Minimalna plača | GOV.SI",
+      "url": "https://www.gov.si/teme/minimalna-placa/",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_interpretation",
+      "priority": "core",
+      "topics": ["minimalna plača", "višina minimalne plače", "dodatki"]
+    },
+    {
+      "id": "gov_minimalna_placa_2026",
+      "title": "Določen znesek minimalne plače za 2026 | GOV.SI",
+      "url": "https://www.gov.si/novice/2026-01-28-dolocen-znesek-minimalne-place-za-2026/",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_news",
+      "priority": "current_amount",
+      "topics": ["minimalna plača 2026"]
+    },
+    {
+      "id": "gov_vzd_obveznosti",
+      "title": "Obveznosti delodajalcev, pravice in dolžnosti delavcev ter samozaposlenih oseb | GOV.SI",
+      "url": "https://www.gov.si/teme/obveznosti-delodajalcev-pravice-in-dolznosti-delavcev-ter-samozaposlenih-oseb/",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_interpretation",
+      "priority": "core",
+      "topics": ["varnost in zdravje pri delu", "obveznosti delodajalcev", "pravice delavcev"]
+    },
+    {
+      "id": "irsd_o_inspektoratu",
+      "title": "O Inšpektoratu za delo | GOV.SI",
+      "url": "https://www.gov.si/drzavni-organi/organi-v-sestavi/inspektorat-za-delo/o-inspektoratu/",
+      "owner": "Inšpektorat Republike Slovenije za delo",
+      "kind": "official_institution_page",
+      "priority": "supporting",
+      "topics": ["nadzor delovnih razmerij", "IRSD", "inšpekcija dela"]
+    },
+    {
+      "id": "mddsz_stalisca_zdr_1",
+      "title": "Stališča strokovne delovne skupine za spremljanje izvajanja ZDR-1",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Delovna-razmerja/Stalisca-StrDS-ZDR-1.pdf",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_interpretation_pdf",
+      "priority": "supporting",
+      "topics": ["strokovna stališča", "ZDR-1", "razlaga"]
+    },
+    {
+      "id": "euprava_pravice_delovno_razmerje",
+      "title": "Pravice iz delovnega razmerja | eUprava",
+      "url": "https://e-uprava.gov.si/podrocja/delo-upokojitev/delo/pravice-iz-delovnega-razmerja?lang=si",
+      "owner": "eUprava",
+      "kind": "official_interpretation",
+      "priority": "supporting",
+      "topics": ["pravice delavcev", "napoteni delavci"]
+    },
+    {
+      "id": "spot_delovno_razmerje",
+      "title": "Delovno razmerje | SPOT",
+      "url": "https://spot.gov.si/sl/poslovanje/zaposlovanje-in-delovno-razmerje/delovno-razmerje",
+      "owner": "SPOT",
+      "kind": "official_business_guidance",
+      "priority": "supporting",
+      "topics": ["zaposlovanje", "pogodba o zaposlitvi", "delodajalci"]
+    },
+    {
+      "id": "ess_prenehanje",
+      "title": "Prenehanje delovnega razmerja | Zavod RS za zaposlovanje",
+      "url": "https://www.ess.gov.si/iskalci-zaposlitve/koraki-ob-izgubi-zaposlitve/denarno-nadomestilo/prenehanje-delovnega-razmerja/",
+      "owner": "Zavod Republike Slovenije za zaposlovanje",
+      "kind": "official_operational_guidance",
+      "priority": "supporting",
+      "topics": ["prenehanje delovnega razmerja", "denarno nadomestilo", "brezposelnost"]
+    }
+  ],
+  "case_law": [
+    {
+      "id": "sodnapraksa_index",
+      "title": "Iskalnik sodne prakse",
+      "url": "https://www.sodnapraksa.si/",
+      "owner": "Vrhovno sodišče Republike Slovenije",
+      "kind": "official_case_law_index",
+      "priority": "demo_support",
+      "topics": ["Vrhovno sodišče", "Višje delovno in socialno sodišče", "delovno pravo", "ZDR-1"]
+    }
+  ]
+}

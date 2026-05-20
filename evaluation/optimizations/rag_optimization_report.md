@@ -1,0 +1,173 @@
+# RAG Optimization Report
+
+Date: 2026-05-20
+
+## Scope Decision
+
+The project should use one main approach: retrieval-augmented generation (RAG). This matches the lab recommendation, keeps the system understandable, and avoids expensive fine-tuning on a CPU-limited machine. Fine-tuning remains a later option only if prompt and retrieval optimization stop improving grounded correctness.
+
+The assistant must answer only Slovenian employment-law questions, in Slovenian, and must refuse questions outside that scope or questions not supported by retrieved sources.
+
+## Current Corpus Audit
+
+The repository currently has two different RAG corpora:
+
+| Corpus | Size | Main content | Current retrieval result |
+| --- | ---: | --- | --- |
+| `report/code/data/chunk.jsonl` | 15 chunks | Curated ZDR-1/ZMinP snippets | Answerable hit rate `0.938`, false evidence rate `0.000`, average context `191.8` words |
+| `evaluation/optimizations/data/coleslaw_employment_chunks.jsonl` | 500 chunks | 398 `sp_courts`, 96 journalist collective agreement chunks, 6 constitutional-decision chunks | Answerable hit rate `0.500`, false evidence rate `0.250`, average context `557.2` words |
+
+Conclusion: the curated corpus is small but much safer for the current test set. The COLESLAW extraction is useful for a demo case-law index, but it should not be the primary legal source because it over-retrieves old case law and sector-specific collective-agreement text.
+
+I also corrected stale gold data in the curated corpus and evaluation set:
+
+- annual leave is acquired when the employment relationship is concluded, with proportional leave if employment lasts less than the full calendar year;
+- severance under ZDR-1 Article 108 uses service-length tiers, not an age-over-55 shortcut;
+- ordinary non-work-related sick leave is employer-funded up to 20 working days per absence, not 30;
+- sickness is not a blanket prohibition on every termination, but can affect the date employment ends after notice.
+
+## Official Source Monitoring
+
+Added:
+
+- `evaluation/optimizations/official_sources.json`
+- `evaluation/optimizations/monitor_official_sources.py`
+- `evaluation/results/optimization/official_source_monitor.json`
+
+Run:
+
+```bash
+python evaluation/optimizations/monitor_official_sources.py
+```
+
+The current snapshot found `12/12` PISRS sources, `9/9` government interpretation sources, and `1/1` official case-law source reachable.
+
+Primary source policy:
+
+1. PISRS statutes and consolidated texts are canonical.
+2. GOV.SI, MDDSZ, IRSD, eUprava, SPOT, and ESS pages are official explanations.
+3. `sodnapraksa.si` is secondary support for examples and legal interpretation, not the first source for statutory answers.
+
+Core official sources now tracked:
+
+- ZDR-1, `ZAKO5944`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO5944
+- ZMinP, `ZAKO5861`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO5861
+- ZEPDSV, `ZAKO4400`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO4400
+- ZUTD, `ZAKO5840`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO5840
+- ZVZD-1, `ZAKO5537`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO5537
+- ZID-1, `ZAKO6711`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO6711
+- ZKolP, `ZAKO4337`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO4337
+- ZSDU, `ZAKO282`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO282
+- ZRSin, `ZAKO262`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO262
+- ZPDPD, `ZAKO865`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO865
+- ZZSDT, `ZAKO6655`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO6655
+- ZJU-1, `ZAKO8830`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO8830
+
+## Prompt Optimization
+
+Added `strict_legal_rag_sl_v2` to `evaluation/optimizations/config.json` and exported it to Open WebUI preset files.
+
+The prompt enforces:
+
+- Slovenian-only answers;
+- Slovenian employment-law scope check;
+- use only retrieved context;
+- source priority: PISRS first, official government interpretations second, case law third;
+- refusal for unsupported or out-of-domain questions;
+- no foreign-law mixing or general-knowledge guessing.
+
+This is currently the highest-value optimization because the model can be changed later while retaining the same retrieval and refusal behavior.
+
+## Model Choice
+
+Hugging Face search found these relevant GaMS models:
+
+- `cjvt/GaMS-1B-Chat`: Slovenian chat model, about 1.54B parameters, Apache-2.0, CPU-friendly candidate.
+- `cjvt/GaMS-9B`: stronger Slovenian/Balkan-language candidate based on Gemma 2 9B, likely too heavy for this CPU-limited setup.
+
+Recommendation:
+
+1. Use `cjvt/GaMS-1B-Chat` as the preferred GaMS answer generator once served through Open WebUI or a compatible local endpoint.
+2. Keep `mistral:7b` as the current local fallback if GaMS is not yet runnable.
+3. Do not fine-tune now. Spend effort on official-source ingestion, chunking, metadata, citation checks, and refusal tests.
+
+## Evaluation Criteria
+
+### Retrieval Metrics
+
+Answerable hit rate:
+
+- measured over factual and ambiguous answerable questions;
+- a retrieval is a hit when the fraction of reference content terms found in the retrieved context is at least `0.35`;
+- higher is better.
+
+Unanswerable false evidence rate:
+
+- measured over out-of-domain questions;
+- a false evidence hit occurs when retrieved context overlaps enough with the reference refusal terms to look spuriously relevant;
+- lower is better.
+
+Average context length:
+
+- number of context words retrieved per question;
+- lower is better only if correctness is preserved, because short context reduces distraction and CPU inference cost.
+
+Source-priority accuracy:
+
+- planned metric;
+- answer is correct only if primary-law questions retrieve PISRS before case law or guidance;
+- measured as the fraction of top-1/top-3 contexts whose `source_type` matches expected priority.
+
+Freshness:
+
+- planned metric;
+- each answer should cite a monitored source whose current status is reachable and, for PISRS register matches, `Veljaven predpis`;
+- measured from `official_source_monitor.json`.
+
+### Answer Metrics
+
+Correctness, grounding, completeness, clarity:
+
+- scored `0-5` by `evaluation/judge_eval.py`;
+- online judge can be used, but offline fallback exists for repeatable smoke tests.
+
+Hallucination:
+
+- scored `0-5`, where `0` means no hallucination;
+- strict refusal should reduce this fastest.
+
+Refusal accuracy:
+
+- measured only on unanswerable questions;
+- correct if the model refuses instead of answering.
+
+Citation precision:
+
+- planned manual/LLM-assisted metric;
+- cited source is counted correct only if it directly supports the claim.
+
+Article exactness:
+
+- planned metric for statute questions;
+- exact if the answer cites the expected article or a legally equivalent provision.
+
+Temporal correctness:
+
+- planned metric for values that change, such as minimum wage;
+- answer must state the effective date and cite an official current source.
+
+## What Works Best So Far
+
+Best current approach: strict RAG over curated, verified primary-law chunks, with deterministic generation and refusal-first prompting.
+
+What does not work well yet: using the current 500-chunk COLESLAW extraction as the main corpus. It retrieves too much case law and an old sector-specific collective agreement, which weakens statutory question answering.
+
+Offline prompt-smoke result for `strict_legal_rag_sl_v2` over the current COLESLAW optimization corpus: RAG improved fallback correctness from `0.70` to `1.85`, reduced hallucination from `4.20` to `1.80`, and reached `1.00` refusal accuracy on unanswerable questions. This validates the refusal prompt direction, but the low correctness confirms that the corpus, not the prompt alone, is the main bottleneck.
+
+Next highest-impact RAG work:
+
+1. Build a primary-law chunk corpus from the tracked PISRS sources with metadata: law, article, validity status, source URL, NPB version.
+2. Add official GOV.SI/IRSD/MDDSZ explanatory pages as a separate lower-priority index.
+3. Keep COLESLAW/sodnapraksa as a tertiary case-law demo index.
+4. Add retrieval reranking that prefers `primary_law > official_interpretation > case_law`.
+5. Expand the evaluation set with current-law questions and explicit out-of-scope refusal cases.
