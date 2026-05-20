@@ -28,7 +28,7 @@ I also corrected stale gold data in the curated corpus and evaluation set:
 
 ## Official Source Monitoring
 
-Added:
+Added and updated:
 
 - `evaluation/optimizations/official_sources.json`
 - `evaluation/optimizations/monitor_official_sources.py`
@@ -40,7 +40,7 @@ Run:
 python evaluation/optimizations/monitor_official_sources.py
 ```
 
-The current snapshot found `12/12` PISRS sources, `9/9` government interpretation sources, and `1/1` official case-law source reachable.
+The current snapshot found `12/12` PISRS sources, `17/17` government and official interpretation sources, and `1/1` official case-law source reachable.
 
 Primary source policy:
 
@@ -62,6 +62,14 @@ Core official sources now tracked:
 - ZPDPD, `ZAKO865`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO865
 - ZZSDT, `ZAKO6655`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO6655
 - ZJU-1, `ZAKO8830`: https://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO8830
+
+Additional monitored official support sources:
+
+- GOV.SI employment hub: https://www.gov.si/teme/delovna-razmerja/
+- GOV.SI ZDR-1 expert group page: https://www.gov.si/zbirke/delovna-telesa/strokovna-delovna-skupina-za-spremljanje-izvajanja-zdr-1/
+- GOV.SI FAQ DOCX files for service of termination, annual leave and holiday allowance, fixed-term employment, winter allowance, and REK-O collective-agreement reporting.
+- OPSI evidence of collective agreements: https://podatki.gov.si/dataset/evidenca-kolektivnih-pogodb?resource_id=5e1048b0-1c94-4848-9be0-4666c4e134d0
+- eUprava, SPOT, ESS, IRSD, and GOV.SI minimum-wage pages listed in the source manifest.
 
 ## Prompt Optimization
 
@@ -114,13 +122,13 @@ Average context length:
 
 Source-priority accuracy:
 
-- planned metric;
+- manual/planned metric;
 - answer is correct only if primary-law questions retrieve PISRS before case law or guidance;
 - measured as the fraction of top-1/top-3 contexts whose `source_type` matches expected priority.
 
 Freshness:
 
-- planned metric;
+- implemented at source level through `official_source_monitor.json`, planned at per-answer citation level;
 - each answer should cite a monitored source whose current status is reachable and, for PISRS register matches, `Veljaven predpis`;
 - measured from `official_source_monitor.json`.
 
@@ -161,6 +169,10 @@ Temporal correctness:
 Best current approach: strict RAG over curated, verified primary-law chunks, with deterministic generation and refusal-first prompting.
 
 What does not work well yet: using the current 500-chunk COLESLAW extraction as the main corpus. It retrieves too much case law and an old sector-specific collective agreement, which weakens statutory question answering.
+
+Historical answer and fine-tuning artifacts that were generated before the latest corpus corrections should be treated as stale unless they are regenerated in the current run. The final claims use the corrected questions, corrected curated chunks, retrieval summaries, offline smoke tests, and official source monitor snapshot.
+
+Regenerated offline smoke result for the corrected curated corpus: RAG improved fallback correctness from `0.70` to `3.20`, reduced hallucination from `4.20` to `0.85`, and reached `1.00` refusal accuracy on unanswerable questions.
 
 Offline prompt-smoke result for `strict_legal_rag_sl_v2` over the current COLESLAW optimization corpus: RAG improved fallback correctness from `0.70` to `1.85`, reduced hallucination from `4.20` to `1.80`, and reached `1.00` refusal accuracy on unanswerable questions. This validates the refusal prompt direction, but the low correctness confirms that the corpus, not the prompt alone, is the main bottleneck.
 

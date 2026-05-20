@@ -288,7 +288,7 @@ def summarize_votes(vote_rows, summary_output):
     ]
     summary_output.parent.mkdir(parents=True, exist_ok=True)
     with open(summary_output, "w", encoding="utf-8", newline="") as fp:
-        writer = csv.DictWriter(fp, fieldnames=columns)
+        writer = csv.DictWriter(fp, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         for key in sorted(totals):
             candidate_id_value, candidate_model_id, variant = key

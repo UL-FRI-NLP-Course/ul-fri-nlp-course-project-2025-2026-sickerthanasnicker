@@ -155,6 +155,51 @@
       "topics": ["ZDR-1", "pogosta vprašanja", "inšpekcijski nadzor", "evidence delovnega časa", "kolektivna delovna razmerja"]
     },
     {
+      "id": "gov_zdr_1_expert_group",
+      "title": "Strokovna delovna skupina za spremljanje izvajanja ZDR-1 | GOV.SI",
+      "url": "https://www.gov.si/zbirke/delovna-telesa/strokovna-delovna-skupina-za-spremljanje-izvajanja-zdr-1/",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_interpretation_index",
+      "priority": "core",
+      "topics": ["ZDR-1", "strokovna stališča", "uradna pojasnila", "razlaga"]
+    },
+    {
+      "id": "gov_faq_vrocanje_odpovedi",
+      "title": "Vročanje odpovedi pogodbe o zaposlitvi | GOV.SI",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Druge-oblike-dela-dokumenti/Vrocanje-odpovedi-pogodbe-o-zaposlitvi.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_faq_docx",
+      "priority": "supporting",
+      "topics": ["vročanje odpovedi", "odpoved pogodbe o zaposlitvi", "ZDR-1"]
+    },
+    {
+      "id": "gov_faq_letni_dopust_regres",
+      "title": "Letni dopust in regres | GOV.SI",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Druge-oblike-dela-dokumenti/Letni-dopust-in-regres.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_faq_docx",
+      "priority": "supporting",
+      "topics": ["letni dopust", "regres", "sorazmerni dopust", "ZDR-1"]
+    },
+    {
+      "id": "gov_faq_dolocen_cas",
+      "title": "Pogodba o zaposlitvi za določen čas PVO | GOV.SI",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Druge-oblike-dela-dokumenti/Pogodba-o-zaposlitvi-za-dolocen-cas_PVO.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_faq_docx",
+      "priority": "supporting",
+      "topics": ["pogodba za določen čas", "prenos v okviru podjetja", "ZDR-1"]
+    },
+    {
+      "id": "gov_faq_zimski_regres",
+      "title": "Zimski regres | GOV.SI",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Delovna-razmerja/Zimski-regres.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_faq_docx",
+      "priority": "supporting",
+      "topics": ["zimski regres", "plačilo za delo", "ZDR-1"]
+    },
+    {
       "id": "gov_minimalna_placa",
       "title": "Minimalna plača | GOV.SI",
       "url": "https://www.gov.si/teme/minimalna-placa/",
@@ -200,6 +245,15 @@
       "topics": ["strokovna stališča", "ZDR-1", "razlaga"]
     },
     {
+      "id": "mddsz_stalisca_zdr_1_docx",
+      "title": "Stališča Strokovne delovne skupini ZDR-1",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Delovna-razmerja/Stalisca-Strokovne-delovne-skupini-ZDR-1.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_interpretation_docx",
+      "priority": "supporting",
+      "topics": ["strokovna stališča", "ZDR-1", "razlaga"]
+    },
+    {
       "id": "euprava_pravice_delovno_razmerje",
       "title": "Pravice iz delovnega razmerja | eUprava",
       "url": "https://e-uprava.gov.si/podrocja/delo-upokojitev/delo/pravice-iz-delovnega-razmerja?lang=si",
@@ -225,6 +279,24 @@
       "kind": "official_operational_guidance",
       "priority": "supporting",
       "topics": ["prenehanje delovnega razmerja", "denarno nadomestilo", "brezposelnost"]
+    },
+    {
+      "id": "opsi_evidenca_kolektivnih_pogodb",
+      "title": "Evidenca kolektivnih pogodb | OPSI",
+      "url": "https://podatki.gov.si/dataset/evidenca-kolektivnih-pogodb?resource_id=5e1048b0-1c94-4848-9be0-4666c4e134d0",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_open_data_registry",
+      "priority": "supporting",
+      "topics": ["kolektivne pogodbe", "evidenca", "ZKolP"]
+    },
+    {
+      "id": "gov_reko_kolektivne_pogodbe",
+      "title": "Dodatna pojasnila pravil za izpolnjevanje REK-O obrazca | GOV.SI",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Delovna-razmerja/Dodatna-pojasnila-pravil-za-izpolnjevanje-REK-O-obrazca.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_interpretation_docx",
+      "priority": "supporting",
+      "topics": ["kolektivne pogodbe", "REK-O", "plača"]
     }
   ],
   "case_law": [

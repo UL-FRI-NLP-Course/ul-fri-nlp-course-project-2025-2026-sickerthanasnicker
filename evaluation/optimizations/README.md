@@ -44,7 +44,7 @@ Output:
 
 - `evaluation/results/optimization/official_source_monitor.json`
 
-The monitor checks PISRS register matches and GOV.SI/IRSD/eUprava/SPOT/ESS source availability. Use this before rebuilding the official RAG corpus or reporting current-law results.
+The monitor checks PISRS register matches and GOV.SI/MDDSZ/IRSD/eUprava/SPOT/ESS/OPSI source availability, including selected DOCX/PDF explanation files. The current final-submission snapshot reports 12/12 PISRS sources, 17/17 government/official interpretation sources, and 1/1 case-law source reachable. Use this before rebuilding the official RAG corpus or reporting current-law results.
 
 ## 2. Run Prompt And Parameter Sweep
 
@@ -98,7 +98,7 @@ Outputs:
 
 ## 4. Prepare PEFT Dataset
 
-This does not run training. It prepares chat-style JSONL for later LoRA/PEFT.
+This does not run training. It prepares chat-style JSONL for later LoRA/PEFT. For the final submission this is exploratory only and is not part of the selected approach; regenerate the data before using it because the final model choice is RAG-only.
 
 ```bash
 python evaluation/optimizations/prepare_peft_dataset.py

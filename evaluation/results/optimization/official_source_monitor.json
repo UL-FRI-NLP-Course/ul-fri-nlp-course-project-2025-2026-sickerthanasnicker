@@ -1,12 +1,12 @@
 {
-  "retrieved_at": "2026-05-20T18:21:32+00:00",
+  "retrieved_at": "2026-05-20T18:55:49+00:00",
   "manifest": "/home/tibor/Repos/ul-fri-nlp-course-project-2025-2026-sickerthanasnicker/evaluation/optimizations/official_sources.json",
   "pisrs_filter_url": "https://pisrs.si/api/filter/filter",
   "summary": {
     "pisrs_sources": 12,
     "pisrs_status_ok": 12,
-    "government_sources": 9,
-    "government_status_ok": 9,
+    "government_sources": 17,
+    "government_status_ok": 17,
     "case_law_sources": 1,
     "case_law_status_ok": 1
   },
@@ -1289,6 +1289,81 @@
       }
     },
     {
+      "id": "gov_zdr_1_expert_group",
+      "title": "Strokovna delovna skupina za spremljanje izvajanja ZDR-1 | GOV.SI",
+      "url": "https://www.gov.si/zbirke/delovna-telesa/strokovna-delovna-skupina-za-spremljanje-izvajanja-zdr-1/",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_interpretation_index",
+      "priority": "core",
+      "status_ok": true,
+      "http": {
+        "ok": true,
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "last_modified": ""
+      }
+    },
+    {
+      "id": "gov_faq_vrocanje_odpovedi",
+      "title": "Vročanje odpovedi pogodbe o zaposlitvi | GOV.SI",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Druge-oblike-dela-dokumenti/Vrocanje-odpovedi-pogodbe-o-zaposlitvi.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_faq_docx",
+      "priority": "supporting",
+      "status_ok": true,
+      "http": {
+        "ok": true,
+        "status": 200,
+        "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "last_modified": "Thu, 17 Sep 2020 10:54:31 GMT"
+      }
+    },
+    {
+      "id": "gov_faq_letni_dopust_regres",
+      "title": "Letni dopust in regres | GOV.SI",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Druge-oblike-dela-dokumenti/Letni-dopust-in-regres.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_faq_docx",
+      "priority": "supporting",
+      "status_ok": true,
+      "http": {
+        "ok": true,
+        "status": 200,
+        "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "last_modified": "Thu, 17 Sep 2020 10:54:31 GMT"
+      }
+    },
+    {
+      "id": "gov_faq_dolocen_cas",
+      "title": "Pogodba o zaposlitvi za določen čas PVO | GOV.SI",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Druge-oblike-dela-dokumenti/Pogodba-o-zaposlitvi-za-dolocen-cas_PVO.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_faq_docx",
+      "priority": "supporting",
+      "status_ok": true,
+      "http": {
+        "ok": true,
+        "status": 200,
+        "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "last_modified": "Thu, 17 Sep 2020 10:54:31 GMT"
+      }
+    },
+    {
+      "id": "gov_faq_zimski_regres",
+      "title": "Zimski regres | GOV.SI",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Delovna-razmerja/Zimski-regres.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_faq_docx",
+      "priority": "supporting",
+      "status_ok": true,
+      "http": {
+        "ok": true,
+        "status": 200,
+        "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "last_modified": "Fri, 06 Mar 2026 12:05:26 GMT"
+      }
+    },
+    {
       "id": "gov_minimalna_placa",
       "title": "Minimalna plača | GOV.SI",
       "url": "https://www.gov.si/teme/minimalna-placa/",
@@ -1364,6 +1439,21 @@
       }
     },
     {
+      "id": "mddsz_stalisca_zdr_1_docx",
+      "title": "Stališča Strokovne delovne skupini ZDR-1",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Delovna-razmerja/Stalisca-Strokovne-delovne-skupini-ZDR-1.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_interpretation_docx",
+      "priority": "supporting",
+      "status_ok": true,
+      "http": {
+        "ok": true,
+        "status": 200,
+        "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "last_modified": "Tue, 22 Sep 2020 08:49:08 GMT"
+      }
+    },
+    {
       "id": "euprava_pravice_delovno_razmerje",
       "title": "Pravice iz delovnega razmerja | eUprava",
       "url": "https://e-uprava.gov.si/podrocja/delo-upokojitev/delo/pravice-iz-delovnega-razmerja?lang=si",
@@ -1406,6 +1496,36 @@
         "status": 200,
         "content_type": "text/html; charset=utf-8",
         "last_modified": ""
+      }
+    },
+    {
+      "id": "opsi_evidenca_kolektivnih_pogodb",
+      "title": "Evidenca kolektivnih pogodb | OPSI",
+      "url": "https://podatki.gov.si/dataset/evidenca-kolektivnih-pogodb?resource_id=5e1048b0-1c94-4848-9be0-4666c4e134d0",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_open_data_registry",
+      "priority": "supporting",
+      "status_ok": true,
+      "http": {
+        "ok": true,
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "last_modified": ""
+      }
+    },
+    {
+      "id": "gov_reko_kolektivne_pogodbe",
+      "title": "Dodatna pojasnila pravil za izpolnjevanje REK-O obrazca | GOV.SI",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Delovna-razmerja/Dodatna-pojasnila-pravil-za-izpolnjevanje-REK-O-obrazca.docx",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_interpretation_docx",
+      "priority": "supporting",
+      "status_ok": true,
+      "http": {
+        "ok": true,
+        "status": 200,
+        "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "last_modified": "Thu, 17 Oct 2024 05:26:15 GMT"
       }
     }
   ],

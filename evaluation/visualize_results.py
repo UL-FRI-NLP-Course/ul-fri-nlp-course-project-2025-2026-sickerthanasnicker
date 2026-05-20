@@ -3,10 +3,16 @@ import csv
 from collections import defaultdict
 from pathlib import Path
 
-import matplotlib
+try:
+    import matplotlib
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    HAS_MATPLOTLIB = True
+except ModuleNotFoundError:
+    HAS_MATPLOTLIB = False
+    plt = None
 
 from io_utils import load_jsonl
 
@@ -204,13 +210,13 @@ def save_csv(summary, retrieval, output_dir):
         "refusal_accuracy",
     ]
     with open(output_dir / "summary_scores.csv", "w", encoding="utf-8", newline="") as fp:
-        writer = csv.DictWriter(fp, fieldnames=columns)
+        writer = csv.DictWriter(fp, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         for row in summary:
             writer.writerow({column: row[column] for column in columns})
 
     with open(output_dir / "retrieval_summary.csv", "w", encoding="utf-8", newline="") as fp:
-        writer = csv.DictWriter(fp, fieldnames=list(retrieval.keys()))
+        writer = csv.DictWriter(fp, fieldnames=list(retrieval.keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerow(retrieval)
 
@@ -243,6 +249,14 @@ def vote_markdown(vote_rows):
         "self_vote_score",
         "self_bias",
     ]
+    if not HAS_MATPLOTLIB:
+        return f"""## Vote Score
+
+{markdown_table(vote_rows, columns)}
+
+Vote charts were skipped because `matplotlib` is not installed in this environment.
+
+"""
     return f"""## Vote Score
 
 {markdown_table(vote_rows, columns)}
@@ -257,6 +271,31 @@ JPG: [vote_score.jpg](vote_score.jpg)
 SVG: [self_vote_bias.svg](self_vote_bias.svg)
 JPG: [self_vote_bias.jpg](self_vote_bias.jpg)
 
+"""
+
+
+def chart_markdown():
+    if not HAS_MATPLOTLIB:
+        return "Charts were skipped because `matplotlib` is not installed in this environment.\n"
+    return """![Summary scores](summary_scores.png)
+
+SVG: [summary_scores.svg](summary_scores.svg)
+JPG: [summary_scores.jpg](summary_scores.jpg)
+
+![Hallucination by model](hallucination_by_model.png)
+
+SVG: [hallucination_by_model.svg](hallucination_by_model.svg)
+JPG: [hallucination_by_model.jpg](hallucination_by_model.jpg)
+
+![Refusal accuracy](refusal_accuracy.png)
+
+SVG: [refusal_accuracy.svg](refusal_accuracy.svg)
+JPG: [refusal_accuracy.jpg](refusal_accuracy.jpg)
+
+![Retrieval quality](retrieval_quality.png)
+
+SVG: [retrieval_quality.svg](retrieval_quality.svg)
+JPG: [retrieval_quality.jpg](retrieval_quality.jpg)
 """
 
 
@@ -288,25 +327,7 @@ def save_report(summary, retrieval, output_dir, vote_rows=None):
 {vote_markdown(vote_rows or [])}
 ## Charts
 
-![Summary scores](summary_scores.png)
-
-SVG: [summary_scores.svg](summary_scores.svg)
-JPG: [summary_scores.jpg](summary_scores.jpg)
-
-![Hallucination by model](hallucination_by_model.png)
-
-SVG: [hallucination_by_model.svg](hallucination_by_model.svg)
-JPG: [hallucination_by_model.jpg](hallucination_by_model.jpg)
-
-![Refusal accuracy](refusal_accuracy.png)
-
-SVG: [refusal_accuracy.svg](refusal_accuracy.svg)
-JPG: [refusal_accuracy.jpg](refusal_accuracy.jpg)
-
-![Retrieval quality](retrieval_quality.png)
-
-SVG: [retrieval_quality.svg](retrieval_quality.svg)
-JPG: [retrieval_quality.jpg](retrieval_quality.jpg)
+{chart_markdown()}
 
 CSV tables:
 
@@ -335,16 +356,19 @@ def main():
     answer_summary = grouped_judgement_summary(judgements)
     retrieval = retrieval_summary(retrieval_rows)
 
-    save_summary_scores(answer_summary, args.output_dir)
-    save_hallucination(answer_summary, args.output_dir)
-    save_refusal(answer_summary, args.output_dir)
-    save_retrieval(retrieval, args.output_dir)
-    save_vote_score(vote_rows, args.output_dir)
-    save_self_bias(vote_rows, args.output_dir)
+    if HAS_MATPLOTLIB:
+        save_summary_scores(answer_summary, args.output_dir)
+        save_hallucination(answer_summary, args.output_dir)
+        save_refusal(answer_summary, args.output_dir)
+        save_retrieval(retrieval, args.output_dir)
+        save_vote_score(vote_rows, args.output_dir)
+        save_self_bias(vote_rows, args.output_dir)
+    else:
+        print("matplotlib is not installed; skipping charts.")
     save_csv(answer_summary, retrieval, args.output_dir)
     save_report(answer_summary, retrieval, args.output_dir, vote_rows)
 
-    print(f"Saved charts and report to {args.output_dir}")
+    print(f"Saved evaluation report to {args.output_dir}")
 
 
 if __name__ == "__main__":

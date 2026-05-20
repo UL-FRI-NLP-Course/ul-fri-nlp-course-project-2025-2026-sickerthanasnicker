@@ -137,7 +137,7 @@ def write_summary_csv(summary, output_dir):
         "refusal_accuracy",
     ]
     with open(output_dir / "optimization_summary.csv", "w", encoding="utf-8", newline="") as fp:
-        writer = csv.DictWriter(fp, fieldnames=columns)
+        writer = csv.DictWriter(fp, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         for row in summary:
             writer.writerow({column: row[column] for column in columns})
@@ -145,7 +145,7 @@ def write_summary_csv(summary, output_dir):
 
 def write_retrieval_csv(retrieval, output_dir):
     with open(output_dir / "optimization_retrieval_summary.csv", "w", encoding="utf-8", newline="") as fp:
-        writer = csv.DictWriter(fp, fieldnames=list(retrieval.keys()))
+        writer = csv.DictWriter(fp, fieldnames=list(retrieval.keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerow(retrieval)
 
