@@ -21,7 +21,7 @@ We built a retrieval-augmented generation assistant for Slovenian employment-law
 The final system intentionally uses one main approach, RAG, because the target machine is CPU-limited and legal correctness depends more on current official sources than on model memorization.
 The assistant retrieves curated legal passages, applies a strict Slovenian system prompt, cites the retrieved source, and refuses unsupported or out-of-domain questions.
 We evaluated retrieval separately from generation, monitored official source availability, and compared a curated primary-law corpus with a larger COLESLAW-derived extraction.
-The best current setup is strict RAG over verified primary-law chunks: normalized BM25 retrieval reaches 1.000 answerable hit rate with 0.000 false-evidence rate on unanswerable questions.
+The best current setup is strict RAG over verified primary-law chunks: normalized BM25 retrieval reaches 1.000 answerable Hit@3 with 0.000 false-evidence rate on unanswerable questions.
 }
 
 \begin{document}
@@ -66,7 +66,7 @@ Fine-tuning data preparation exists only as an exploratory artifact; it is not u
 
 \section*{Evaluation}
 We evaluate retrieval and answer quality separately.
-Retrieval metrics are answerable hit rate, false-evidence rate for unanswerable questions, and average context length.
+Retrieval metrics are answerable Hit@3, false-evidence rate for unanswerable questions, and average context length.
 Answer metrics are correctness, grounding, completeness, clarity, hallucination, and refusal accuracy.
 The judge has an offline fallback so that the repository remains reproducible when no local model server is available.
 
@@ -76,7 +76,7 @@ The judge has an offline fallback so that the repository remains reproducible wh
 \small
 \begin{tabular}{lccc}
 \toprule
-\textbf{Configuration} & \textbf{Hit} & \textbf{False ev.} & \textbf{Ctx. words} \\
+\textbf{Configuration} & \textbf{Hit@3} & \textbf{False ev.} & \textbf{Ctx. words} \\
 \midrule
 \textbf{Curated RAG} & \textbf{1.000} & \textbf{0.000} & \textbf{189.9} \\
 COLESLAW sample & 0.813 & 0.000 & 555.3 \\
@@ -105,6 +105,7 @@ The curated legal chunks retrieve the expected law for nearly all answerable que
 The larger COLESLAW extraction improves breadth, but even after token normalization it retrieves too much case law for statutory questions.
 The strict prompt improves refusal and hallucination behavior on the curated corpus.
 On the COLESLAW optimization sample, strict RAG still improved offline correctness from 0.70 to 1.95 and reduced hallucination from 4.20 to 2.10, but the lower score confirms that prompting cannot compensate for weak retrieval context.
+A manual Open WebUI spot-check of eight final-model answers found six correct or appropriately refused answers, with failures on one sick-pay question and one ambiguous dismissal question; the appendix records the exact labels and shows that citation discipline still needs improvement.
 
 \section*{Limitations and Future Work}
 The project does not yet implement a production standalone app; the app design is documented separately and recommends a PWA before Tauri or Flutter.

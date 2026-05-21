@@ -43,10 +43,10 @@ This file maps the course instructions in `instructions/Natural language process
 | If RAG: document chunking | Complete | `report/report.tex`, `README.md`, `report/code/rag.py` | Current curated chunks are compact legal passages; future app plan calls for article-level chunks. |
 | If RAG: document retrieval mechanism | Complete | `report/report.tex`, `evaluation/retrieval_eval.py`, `evaluation/retrieval_shared.py`, `report/code/rag.py` | Normalized BM25 with a simple lexical fallback for CPU reproducibility. |
 | If RAG: document prompt guardrails | Complete | `evaluation/optimizations/config.json`, `evaluation/optimizations/rag_optimization_report.md` | Selected prompt is `strict_legal_rag_sl_v2`. |
-| Evaluation: retrieval accuracy / relevance | Complete | `evaluation/retrieval_eval.py`, `evaluation/results/retrieval_summary.csv` | Measures hit rate, false evidence, and context length. |
+| Evaluation: retrieval accuracy / relevance | Complete | `evaluation/retrieval_eval.py`, `evaluation/results/retrieval_summary.csv`, `evaluation/manual_eval_appendix.md` | Main metric is answerable Hit@3 plus false evidence and context length; Hit@1 is documented as a stricter diagnostic. |
 | Evaluation: factual consistency | Complete | `evaluation/judge_eval.py`, `evaluation/results/summary_scores.csv` | Primary current result uses live LLM-as-judge with remote `llama3:latest`; offline fallback uses reference/context overlap. |
 | Evaluation: tone and safe handling | Complete | `evaluation/questions.jsonl`, `evaluation/judge_eval.py` | Includes ambiguous and unanswerable questions; refusal accuracy is reported. |
-| Human-centric metrics | Partial | `evaluation/questions.jsonl`, `evaluation/optimizations/rag_optimization_report.md` | Manual legal review is planned but not performed by a qualified reviewer in this repo. |
+| Human-centric metrics | Partial, improved | `evaluation/manual_eval_appendix.md`, `evaluation/results/manual_openwebui_eval_answers.jsonl`, `evaluation/results/manual_openwebui_eval_judgements.jsonl` | Added manual spot-check of 8 final Open WebUI answers; still not a qualified legal-expert review. |
 | Architecture, challenges, workflow insights | Complete | `report/report.tex`, `app_plan.md` | Report explains corpus-size vs corpus-quality tradeoff and CPU constraints. |
 
 ## High-Score Criteria
@@ -79,7 +79,7 @@ This file maps the course instructions in `instructions/Natural language process
 | No fine-tuning in final approach | CPU-limited machine; lab recommendation to choose one main approach; legal truth depends on current sources. | Keep PEFT scripts/data as future-only; optimize retrieval, prompt, and source freshness first. |
 | No standalone app implementation | Requested scope was to plan the app, not implement it yet; course priority is NLP pipeline and evaluation. | `app_plan.md` gives PWA/Tauri/Flutter comparison and implementation phases. |
 | COLESLAW extraction is not primary final corpus | The sampled extraction over-retrieves case law and old collective-agreement material. | Use curated primary-law chunks now; keep COLESLAW for case-law demo and future tertiary index. |
-| No qualified human legal review included | Repository cannot substitute for legal expert validation. | Evaluation includes refusal/grounding tests; final assistant is informational and source-grounded only. |
+| No qualified human legal review included | Repository cannot substitute for legal expert validation. | Added non-expert manual spot-check appendix; final assistant remains informational and source-grounded only. |
 | Live GaMS run not performed | `cjvt/GaMS-1B-Chat` was not present in the discovered Ollama/Open WebUI model list on 2026-05-21. | Keep GaMS as preferred Slovenian candidate; use `ul-fri-nlp-course-project-optimized:latest` as the best currently runnable model. |
 | Some discovered models disabled in default arena | `qwen2.5-coder:7b` was available but too slow for routine smoke evaluation. | Disabled it by default and documented the reason; direct Ollama arena still covers optimized, Mistral, Llama 3, and Gemma 3 4B. |
 
@@ -94,6 +94,7 @@ This file maps the course instructions in `instructions/Natural language process
 - [x] Live optimized-model evaluation was regenerated through remote Ollama.
 - [x] Final optimized chatbot was registered and smoke-tested in Open WebUI.
 - [x] Evaluation charts were regenerated from `.venv`.
+- [x] Manual Open WebUI spot-check appendix added.
 - [x] Fine-tuning artifacts are marked exploratory/stale for final claims.
 - [x] Standalone app is planned, not implemented.
 - [x] Deviations are documented and justified.

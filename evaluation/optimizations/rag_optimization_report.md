@@ -14,8 +14,8 @@ The repository currently has two different RAG corpora:
 
 | Corpus | Size | Main content | Current retrieval result |
 | --- | ---: | --- | --- |
-| `report/code/data/chunk.jsonl` | 15 chunks | Curated ZDR-1/ZMinP snippets | Answerable hit rate `1.000`, false evidence rate `0.000`, average context `189.9` words |
-| `evaluation/optimizations/data/coleslaw_employment_chunks.jsonl` | 500 chunks | 398 `sp_courts`, 96 journalist collective agreement chunks, 6 constitutional-decision chunks | Answerable hit rate `0.813`, false evidence rate `0.000`, average context `555.3` words |
+| `report/code/data/chunk.jsonl` | 15 chunks | Curated ZDR-1/ZMinP snippets | Answerable Hit@3 `1.000`, false evidence rate `0.000`, average context `189.9` words |
+| `evaluation/optimizations/data/coleslaw_employment_chunks.jsonl` | 500 chunks | 398 `sp_courts`, 96 journalist collective agreement chunks, 6 constitutional-decision chunks | Answerable Hit@3 `0.813`, false evidence rate `0.000`, average context `555.3` words |
 
 Conclusion: the curated corpus is small but much safer for the current test set. The COLESLAW extraction is useful for a demo case-law index, but it should not be the primary legal source because it over-retrieves old case law and sector-specific collective-agreement text.
 
@@ -180,7 +180,11 @@ What does not work well yet: using the current 500-chunk COLESLAW extraction as 
 
 Historical answer and fine-tuning artifacts that were generated before the latest corpus corrections should be treated as stale unless they are regenerated in the current run. The final claims use the corrected questions, corrected curated chunks, normalized BM25 retrieval summaries, live optimized-model judgements, offline diagnostic smoke tests, and official source monitor snapshot.
 
-Regenerated live optimized-model result for the corrected curated corpus, judged by remote `llama3:latest`: RAG improved correctness from `3.55` to `4.30`, reduced hallucination from `0.75` to `0.00`, and reached `1.00` refusal accuracy on unanswerable questions. Normalized BM25 retrieval reached `1.000` answerable hit rate and `0.000` false-evidence rate.
+Regenerated live optimized-model result for the corrected curated corpus, judged by remote `llama3:latest`: RAG improved correctness from `3.55` to `4.30`, reduced hallucination from `0.75` to `0.00`, and reached `1.00` refusal accuracy on unanswerable questions. Normalized BM25 retrieval reached `1.000` answerable Hit@3 and `0.000` false-evidence rate.
+
+Strict top-1 retrieval is weaker: `python evaluation/retrieval_eval.py --quiet --top-k 1 --output /tmp/retrieval_top1.jsonl` reports answerable Hit@1 `0.938`. In the current repository state the failing top-1 item is `q015` ("Ali me lahko odpustijo?"), while `q011` ("Kakšne so omejitve nadurnega dela?") retrieves `ZDR-1, čl. 143` at rank 1. The final report therefore uses `Hit@3` explicitly rather than an ambiguous "hit rate" label.
+
+Manual final Open WebUI spot-check: `evaluation/manual_eval_appendix.md` reviews eight answers from `ul-fri-slovenian-employment-law-rag-openwebui`. It found `6/8` correct or appropriately refused answers, `3/6` fully supported citations among non-refusal answers, and correct refusal for both reviewed out-of-domain questions. The two substantive failures are `q012` (sick-pay question after the first 20 working days) and `q015` (ambiguous dismissal question answered too broadly instead of asking for facts or refusing).
 
 Offline prompt-smoke result for `strict_legal_rag_sl_v2` over the current COLESLAW optimization corpus: RAG improved fallback correctness from `0.70` to `1.95`, reduced hallucination from `4.20` to `2.10`, and reached `1.00` refusal accuracy on unanswerable questions. This validates the refusal prompt direction, but the low correctness confirms that the corpus, not the prompt alone, is the main bottleneck.
 

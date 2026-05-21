@@ -55,7 +55,12 @@ Evaluate retrieval on the curated RAG corpus:
 
 ```bash
 python evaluation/retrieval_eval.py
+python evaluation/retrieval_eval.py --quiet --top-k 1 --output /tmp/retrieval_top1.jsonl
 ```
+
+The main reported retrieval number is Hit@3. The top-1 command is a stricter
+diagnostic and is documented separately when it exposes ambiguous-question
+weaknesses.
 
 Run deterministic offline generation and judging smoke tests:
 
@@ -64,6 +69,11 @@ python evaluation/run_eval.py --provider offline
 python evaluation/judge_eval.py --provider offline
 python evaluation/visualize_results.py
 ```
+
+Manual spot-check evidence for the final Open WebUI model is in
+`evaluation/manual_eval_appendix.md`, with raw outputs in
+`evaluation/results/manual_openwebui_eval_answers.jsonl` and manual labels in
+`evaluation/results/manual_openwebui_eval_judgements.jsonl`.
 
 Run the optimization prompt sweep without live model calls:
 

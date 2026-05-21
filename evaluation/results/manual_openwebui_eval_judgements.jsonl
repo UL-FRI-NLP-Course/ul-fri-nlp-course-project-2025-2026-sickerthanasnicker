@@ -1,0 +1,8 @@
+{"id": "q001", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correctly gives 20 working days and cites ZDR-1; extra leave-detail text is more verbose than needed."}
+{"id": "q003", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correctly gives 15 days for less than one year and cites Article 94."}
+{"id": "q006", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correct tiered severance formula with ZDR-1 Article 108 citation."}
+{"id": "q011", "correctness": "correct", "citation_ok": "no", "refusal_ok": "n/a", "note": "Overtime limits are correct, but the final answer omits the explicit ZDR-1 Article 143 citation."}
+{"id": "q012", "correctness": "incorrect", "citation_ok": "no", "refusal_ok": "n/a", "note": "The question asks who pays after the first 20 working days; the answer repeats only that the employer pays the first 20 days."}
+{"id": "q015", "correctness": "incorrect", "citation_ok": "no", "refusal_ok": "no", "note": "The question is underspecified; the model should ask for context or refuse. It instead gives a broad answer and overstates the severance implication."}
+{"id": "q017", "correctness": "correct", "citation_ok": "n/a", "refusal_ok": "yes", "note": "Correctly refuses a VAT question as outside Slovenian employment law."}
+{"id": "q020", "correctness": "correct", "citation_ok": "n/a", "refusal_ok": "yes", "note": "Correctly refuses company-formation guidance as outside scope."}
