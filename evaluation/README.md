@@ -159,6 +159,24 @@ Default enabled arena models in `config.json` use the remote/local Ollama API ex
 
 `config.json` also includes `include_raw_rag_prompt: true`, which adds a retrieval-only `raw_rag_prompt` baseline containing the exact prompt/context that would be sent to a model.
 
+## Final Open WebUI Model
+
+The final deployed Open WebUI option is:
+
+- id: `ul-fri-slovenian-employment-law-rag-openwebui`
+- display name: `UL FRI Slovenian Employment Law RAG`
+- base model: `ul-fri-nlp-course-project-optimized:latest`
+- prompt: `strict_legal_rag_sl_v2`
+- settings: temperature `0.0`, top-p `1.0`, max output `500`
+
+Refresh it with:
+
+```bash
+python evaluation/optimizations/create_ollama_model.py --skip-create --register-openwebui --smoke-openwebui
+```
+
+The companion Ollama-only model is `ul-fri-slovenian-employment-law-rag:latest`.
+
 Each generated answer keeps the required fields:
 
 ```json

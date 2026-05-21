@@ -184,6 +184,21 @@ Regenerated live optimized-model result for the corrected curated corpus, judged
 
 Offline prompt-smoke result for `strict_legal_rag_sl_v2` over the current COLESLAW optimization corpus: RAG improved fallback correctness from `0.70` to `1.95`, reduced hallucination from `4.20` to `2.10`, and reached `1.00` refusal accuracy on unanswerable questions. This validates the refusal prompt direction, but the low correctness confirms that the corpus, not the prompt alone, is the main bottleneck.
 
+## Final Open WebUI Deployment
+
+The finalized Open WebUI picker option is `ul-fri-slovenian-employment-law-rag-openwebui`, displayed as "UL FRI Slovenian Employment Law RAG".
+It uses:
+
+- base chat model: `ul-fri-nlp-course-project-optimized:latest`;
+- selected prompt: `strict_legal_rag_sl_v2`;
+- deterministic settings: temperature `0.0`, top-p `1.0`, max output `500`, context window `4096`;
+- public read access in Open WebUI;
+- strict refusal for unsupported, out-of-domain, or context-free questions.
+
+The companion Ollama model `ul-fri-slovenian-employment-law-rag:latest` was also created from the same prompt/settings.
+Open WebUI's live chat registry did not immediately expose that newly created Ollama tag through `/api/models`, so the Open WebUI wrapper intentionally points at the already verified base model and stores the optimized system prompt/settings at the Open WebUI model level.
+Smoke evidence is stored in `evaluation/results/openwebui_final_model_smoke.json`.
+
 Next highest-impact RAG work:
 
 1. Build a primary-law chunk corpus from the tracked PISRS sources with metadata: law, article, validity status, source URL, NPB version.

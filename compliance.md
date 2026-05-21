@@ -13,6 +13,7 @@ This file maps the course instructions in `instructions/Natural language process
 | Reproducible repository | Complete | `README.md`, `requirements.txt`, `evaluation/README.md` | Live LLM calls were verified through remote Ollama/Open WebUI aliases; offline smoke mode remains available. |
 | Corpus and source curation | Complete | `report/code/data/chunk.jsonl`, `evaluation/optimizations/official_sources.json` | Official source manifest uses PISRS, GOV.SI, MDDSZ, IRSD, eUprava, SPOT, ESS, OPSI, and sodnapraksa.si. |
 | Evaluation | Complete | `evaluation/questions.jsonl`, `evaluation/results/`, `evaluation/optimizations/rag_optimization_report.md` | Retrieval and answer metrics are separated; stale historical artifacts are documented. |
+| Open WebUI deployment | Complete | `evaluation/optimizations/create_ollama_model.py`, `evaluation/results/openwebui_final_model_smoke.json` | Final picker option is `ul-fri-slovenian-employment-law-rag-openwebui`, with strict prompt and deterministic settings. |
 | Standalone app | Planned, not implemented | `app_plan.md` | Intentionally not implemented for this submission; user requested plan only. |
 | Fine-tuning | Exploratory only | `evaluation/fine_tuning/data/README.md`, `evaluation/optimizations/requirements-peft.txt` | Deviation: no fine-tuning because of CPU limits and lab recommendation to choose one approach. |
 
@@ -91,6 +92,7 @@ This file maps the course instructions in `instructions/Natural language process
 - [x] Official source manifest is JSON-valid.
 - [x] Official source monitor was regenerated.
 - [x] Live optimized-model evaluation was regenerated through remote Ollama.
+- [x] Final optimized chatbot was registered and smoke-tested in Open WebUI.
 - [x] Evaluation charts were regenerated from `.venv`.
 - [x] Fine-tuning artifacts are marked exploratory/stale for final claims.
 - [x] Standalone app is planned, not implemented.

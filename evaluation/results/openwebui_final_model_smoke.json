@@ -1,0 +1,16 @@
+{
+  "retrieved_at": "2026-05-21T00:47:27+00:00",
+  "openwebui_model_id": "ul-fri-slovenian-employment-law-rag-openwebui",
+  "ollama_model_id": "ul-fri-slovenian-employment-law-rag:latest",
+  "openwebui_model_available": true,
+  "ollama_model_available": true,
+  "settings": {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "max_tokens": 300,
+    "seed": 42
+  },
+  "question": "Koliko znaša minimalni letni dopust za delavca, ki dela pet dni na teden?",
+  "context": "[1] Vir: ZDR-1, čl. 159; Letni dopust v posameznem koledarskem letu ne sme biti krajši kot štiri tedne. Za delavca, ki dela pet dni na teden, to pomeni najmanj 20 delovnih dni.",
+  "answer": "Iz podanega konteksta je jasno, da se vprašanje nanaša na slovensko delovno pravo in da je vir veljaven in relevanten. Odgovor: Minimalni letni dopust za delavca, ki dela pet dni na teden, znaša 20 delovnih dni (ZDR-1, čl. 159)."
+}

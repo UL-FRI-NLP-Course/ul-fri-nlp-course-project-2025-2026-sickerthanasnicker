@@ -2,19 +2,27 @@
 
 This folder contains the generated Ollama Modelfile for the optimized Slovenian employment-law assistant.
 
-Create or refresh the local Ollama model:
+Create or refresh the evaluated Ollama wrapper model:
 
 ```bash
-python evaluation/optimizations/create_ollama_model.py
+python evaluation/optimizations/create_ollama_model.py --verify
 ```
 
 Run it:
 
 ```bash
-ollama run ul-fri-nlp-course-project-optimized
+ollama run ul-fri-slovenian-employment-law-rag
 ```
 
-This model is an Ollama prompt/config model based on `mistral:7b`. It is immediately usable locally and uses the optimized system prompt plus a few grounded examples from the prepared training data.
+This model is an Ollama prompt/config model based on the best evaluated runnable base, `ul-fri-nlp-course-project-optimized:latest`. It uses the selected `strict_legal_rag_sl_v2` system prompt and deterministic generation settings.
+
+Register or refresh the final Open WebUI picker option:
+
+```bash
+python evaluation/optimizations/create_ollama_model.py --skip-create --register-openwebui --smoke-openwebui
+```
+
+The Open WebUI model id is `ul-fri-slovenian-employment-law-rag-openwebui`, displayed as "UL FRI Slovenian Employment Law RAG". The wrapper points at `ul-fri-nlp-course-project-optimized:latest`, because that base model is already present in Open WebUI's chat registry; the separate Ollama model `ul-fri-slovenian-employment-law-rag:latest` is also created for local Ollama use.
 
 For real weight fine-tuning, use:
 

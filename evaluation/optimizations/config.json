@@ -81,16 +81,18 @@
     }
   ],
   "webui_export": {
-    "model_id": "ul-fri-nlp-course-project-optimized",
-    "name": "UL FRI NLP Course Project Optimized",
-    "base_model_id": "cjvt/GaMS-1B-Chat",
+    "model_id": "ul-fri-slovenian-employment-law-rag",
+    "name": "UL FRI Slovenian Employment Law RAG",
+    "base_model_id": "ul-fri-nlp-course-project-optimized:latest",
     "prompt_id": "strict_legal_rag_sl_v2",
-    "settings_id": "deterministic"
+    "settings_id": "deterministic",
+    "notes": "Final Open WebUI/Ollama option created after evaluation. It wraps the best currently runnable evaluated model with the strict Slovenian employment-law RAG system prompt and deterministic settings."
   },
   "recommended_model": {
     "primary_cpu_candidate": "cjvt/GaMS-1B-Chat",
     "quality_candidate_if_resources_allow": "cjvt/GaMS-9B",
-    "current_local_fallback": "mistral:7b",
+    "current_best_runnable_model": "ul-fri-nlp-course-project-optimized:latest",
+    "final_openwebui_option": "ul-fri-slovenian-employment-law-rag:latest",
     "approach": "RAG-only prompt and retrieval optimization; no fine-tuning by default on this CPU-limited machine."
   }
 }
