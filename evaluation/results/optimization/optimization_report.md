@@ -6,24 +6,28 @@ These results are separate from the main reproducible evaluation. They compare s
 
 | model_id | variant | prompt_id | settings_id | n | correctness | grounding | completeness | clarity | hallucination | refusal_accuracy |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| offline-webui-mistral-7b | rag | strict_legal_rag_sl_v2 | deterministic | 20 | 1.85 | 4.25 | 1.85 | 5.00 | 1.80 | 1.00 |
+| offline-webui-mistral-7b | rag | strict_legal_rag_sl_v2 | deterministic | 20 | 1.95 | 4.85 | 1.95 | 5.00 | 2.10 | 1.00 |
 
 ## Full Summary
 
 | model_id | variant | prompt_id | settings_id | n | correctness | grounding | completeness | clarity | hallucination | refusal_accuracy |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | offline-webui-mistral-7b | baseline | strict_legal_rag_sl_v2 | deterministic | 20 | 0.70 | 0.20 | 0.70 | 5.00 | 4.20 | 0.00 |
-| offline-webui-mistral-7b | rag | strict_legal_rag_sl_v2 | deterministic | 20 | 1.85 | 4.25 | 1.85 | 5.00 | 1.80 | 1.00 |
+| offline-webui-mistral-7b | rag | strict_legal_rag_sl_v2 | deterministic | 20 | 1.95 | 4.85 | 1.95 | 5.00 | 2.10 | 1.00 |
 
 ## Retrieval
 
-- Answerable hit rate: 0.500
-- Unanswerable false evidence rate: 0.250
-- Average context length: 557.2 words
+- Answerable hit rate: 0.812
+- Unanswerable false evidence rate: 0.000
+- Average context length: 555.3 words
 
 ## Charts
 
-Charts were skipped because `matplotlib` is not installed in this environment.
+![Correctness](optimization_correctness.png)
+
+![Hallucination](optimization_hallucination.png)
+
+![Refusal accuracy](optimization_refusal_accuracy.png)
 
 
 CSV tables:

@@ -4,9 +4,15 @@
 
 | model_id | model_label | variant | n | correctness | grounding | completeness | clarity | hallucination | refusal_accuracy |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ollama-ul-fri-nlp-course-project-optimized:latest | ollama-ul-fri-nlp-course-project-optimized:latest | baseline | 20 | 3.55 | 4.75 | 4.50 | 4.65 | 0.75 | 0.50 |
-| ollama-ul-fri-nlp-course-project-optimized:latest | ollama-ul-fri-nlp-course-project-optimized:latest | rag | 20 | 4.30 | 4.95 | 4.50 | 4.70 | 0.00 | 1.00 |
-| raw-rag-prompt | raw RAG prompt | raw_rag_prompt | 20 | 5.00 | 5.00 | 5.00 | 4.65 | 0.00 | 1.00 |
+| ollama-gemma3-4b | gemma3:4b | baseline | 5 | 4.20 | 4.40 | 5.00 | 4.40 | 1.00 | 0.00 |
+| ollama-gemma3-4b | gemma3:4b | rag | 5 | 5.00 | 5.00 | 5.00 | 5.00 | 0.00 | 0.00 |
+| ollama-llama3 | llama3:latest | baseline | 5 | 4.20 | 4.40 | 4.80 | 5.00 | 0.00 | 0.00 |
+| ollama-llama3 | llama3:latest | rag | 5 | 5.00 | 5.00 | 5.00 | 5.00 | 0.00 | 0.00 |
+| ollama-mistral-7b | mistral:7b | baseline | 5 | 4.20 | 5.00 | 4.80 | 4.40 | 0.00 | 0.00 |
+| ollama-mistral-7b | mistral:7b | rag | 5 | 5.00 | 5.00 | 5.00 | 4.80 | 0.00 | 0.00 |
+| ollama-optimized-employment-law | optimized employment-law mistral | baseline | 5 | 4.40 | 5.00 | 4.40 | 4.80 | 0.00 | 0.00 |
+| ollama-optimized-employment-law | optimized employment-law mistral | rag | 5 | 5.00 | 5.00 | 5.00 | 4.80 | 0.00 | 0.00 |
+| raw-rag-prompt | raw RAG prompt | raw_rag_prompt | 5 | 5.00 | 5.00 | 5.00 | 5.00 | 0.00 | 0.00 |
 
 ## Retrieval
 

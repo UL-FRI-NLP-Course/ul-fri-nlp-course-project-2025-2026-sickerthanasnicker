@@ -1,3 +1,3 @@
 model_id,model_label,variant,prompt_id,settings_id,n,correctness,grounding,completeness,clarity,hallucination,refusal_accuracy
 offline-webui-mistral-7b,offline mistral:7b,baseline,strict_legal_rag_sl_v2,deterministic,20,0.7,0.2,0.7,5.0,4.2,0.0
-offline-webui-mistral-7b,offline mistral:7b,rag,strict_legal_rag_sl_v2,deterministic,20,1.85,4.25,1.85,5.0,1.8,1.0
+offline-webui-mistral-7b,offline mistral:7b,rag,strict_legal_rag_sl_v2,deterministic,20,1.95,4.85,1.95,5.0,2.1,1.0

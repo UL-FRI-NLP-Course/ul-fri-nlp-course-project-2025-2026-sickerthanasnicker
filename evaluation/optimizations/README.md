@@ -54,7 +54,7 @@ Smoke test without live model calls:
 python evaluation/optimizations/run_prompt_sweep.py --limit 2 --provider offline
 ```
 
-Run configured Open WebUI models:
+Run configured live models:
 
 ```bash
 python evaluation/optimizations/run_prompt_sweep.py --limit 2

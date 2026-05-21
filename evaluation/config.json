@@ -37,27 +37,36 @@
             "note": "Requested model, but it is not currently exposed by the configured Open WebUI /api/models endpoint."
         },
         {
-            "model_id": "webui-mistral-7b",
-            "provider": "openwebui",
+            "model_id": "ollama-mistral-7b",
+            "provider": "ollama",
             "model": "mistral:7b",
             "display_name": "mistral:7b",
             "requested_alias": "minstral:7b",
             "enabled": true
         },
         {
-            "model_id": "webui-qwen2.5-coder-7b",
-            "provider": "openwebui",
+            "model_id": "ollama-qwen2.5-coder-7b",
+            "provider": "ollama",
             "model": "qwen2.5-coder:7b",
             "display_name": "qwen2.5-coder:7b",
-            "enabled": true
+            "enabled": false,
+            "note": "Available on the remote Ollama host but disabled by default because the smoke suite was too slow for routine reproducible evaluation."
         },
         {
-            "model_id": "webui-llama3",
-            "provider": "openwebui",
+            "model_id": "ollama-llama3",
+            "provider": "ollama",
             "model": "llama3:latest",
             "display_name": "llama3:latest",
             "requested_alias": "ollama3:latest",
             "enabled": true
+        },
+        {
+            "model_id": "ollama-gemma3-4b",
+            "provider": "ollama",
+            "model": "gemma3:4b",
+            "display_name": "gemma3:4b",
+            "enabled": true,
+            "note": "Small direct-Ollama arena candidate available on the remote tunneled Ollama host."
         }
     ]
 }

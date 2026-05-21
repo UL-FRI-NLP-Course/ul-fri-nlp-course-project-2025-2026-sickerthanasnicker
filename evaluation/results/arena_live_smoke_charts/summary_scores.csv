@@ -1,0 +1,10 @@
+model_id,model_label,variant,n,correctness,grounding,completeness,clarity,hallucination,refusal_accuracy
+ollama-gemma3-4b,gemma3:4b,baseline,5,4.2,4.4,5.0,4.4,1.0,0.0
+ollama-gemma3-4b,gemma3:4b,rag,5,5.0,5.0,5.0,5.0,0.0,0.0
+ollama-llama3,llama3:latest,baseline,5,4.2,4.4,4.8,5.0,0.0,0.0
+ollama-llama3,llama3:latest,rag,5,5.0,5.0,5.0,5.0,0.0,0.0
+ollama-mistral-7b,mistral:7b,baseline,5,4.2,5.0,4.8,4.4,0.0,0.0
+ollama-mistral-7b,mistral:7b,rag,5,5.0,5.0,5.0,4.8,0.0,0.0
+ollama-optimized-employment-law,optimized employment-law mistral,baseline,5,4.4,5.0,4.4,4.8,0.0,0.0
+ollama-optimized-employment-law,optimized employment-law mistral,rag,5,5.0,5.0,5.0,4.8,0.0,0.0
+raw-rag-prompt,raw RAG prompt,raw_rag_prompt,5,5.0,5.0,5.0,5.0,0.0,0.0

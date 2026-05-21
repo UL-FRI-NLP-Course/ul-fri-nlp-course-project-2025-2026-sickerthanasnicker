@@ -1,6 +1,6 @@
 # Compliance With NLP 2026 Project Instructions
 
-Date: 2026-05-20
+Date: 2026-05-21
 
 This file maps the course instructions in `instructions/Natural language processing 2026.pdf` to the repository evidence for the final Slovenian employment-law RAG assistant.
 
@@ -10,7 +10,7 @@ This file maps the course instructions in `instructions/Natural language process
 | --- | --- | --- | --- |
 | Final solution | Complete | `report/code/rag.py`, `evaluation/`, `evaluation/optimizations/config.json` | Final solution is RAG-only with strict prompt and official-source monitoring. |
 | Final report | Complete | `report/report.tex` | Rewritten as final report; no placeholder abstract or initial-report wording remains. |
-| Reproducible repository | Complete | `README.md`, `requirements.txt`, `evaluation/README.md` | Live LLM calls require local Ollama/Open WebUI; offline smoke mode is provided. |
+| Reproducible repository | Complete | `README.md`, `requirements.txt`, `evaluation/README.md` | Live LLM calls were verified through remote Ollama/Open WebUI aliases; offline smoke mode remains available. |
 | Corpus and source curation | Complete | `report/code/data/chunk.jsonl`, `evaluation/optimizations/official_sources.json` | Official source manifest uses PISRS, GOV.SI, MDDSZ, IRSD, eUprava, SPOT, ESS, OPSI, and sodnapraksa.si. |
 | Evaluation | Complete | `evaluation/questions.jsonl`, `evaluation/results/`, `evaluation/optimizations/rag_optimization_report.md` | Retrieval and answer metrics are separated; stale historical artifacts are documented. |
 | Standalone app | Planned, not implemented | `app_plan.md` | Intentionally not implemented for this submission; user requested plan only. |
@@ -28,7 +28,7 @@ This file maps the course instructions in `instructions/Natural language process
 | Submission 2: implement at least one solution | Complete | `report/code/rag.py`, `evaluation/run_eval.py`, `evaluation/retrieval_eval.py` | Implemented lexical RAG with baseline/RAG evaluation. |
 | Submission 2: include analysis and future directions | Complete | `report/report.tex`, `evaluation/optimizations/rag_optimization_report.md`, `app_plan.md` | Includes limitations, source-priority findings, and app roadmap. |
 | Submission 3: final report and final solution | Complete | `report/report.tex`, `README.md`, `evaluation/` | Final report is concise and evidence-driven. |
-| Submission 3: fully reproducible repository | Complete with live-model caveat | `README.md`, `requirements.txt`, `evaluation/config.example.env` | Offline mode is reproducible; live GaMS/Ollama/Open WebUI depends on local model availability. |
+| Submission 3: fully reproducible repository | Complete with model-availability caveat | `README.md`, `requirements.txt`, `evaluation/config.example.env` | Remote Ollama/Open WebUI was verified; GaMS still depends on being served locally. |
 | Pass condition: final solution/report worth 80% | Complete | `report/report.tex`, `compliance.md` | This file documents evidence for each required item. |
 | Peer review worth 20% | External | N/A | Peer review is outside repository implementation. |
 
@@ -40,10 +40,10 @@ This file maps the course instructions in `instructions/Natural language process
 | Compare prompt engineering, RAG, fine-tuning | Complete | `report/report.tex`, `evaluation/optimizations/rag_optimization_report.md` | Decision: RAG-only for final work; fine-tuning deferred. |
 | Data curation and domain definition | Complete | `evaluation/optimizations/official_sources.json`, `evaluation/questions.jsonl` | Domain limited to Slovenian employment law. |
 | If RAG: document chunking | Complete | `report/report.tex`, `README.md`, `report/code/rag.py` | Current curated chunks are compact legal passages; future app plan calls for article-level chunks. |
-| If RAG: document retrieval mechanism | Complete | `report/report.tex`, `evaluation/retrieval_eval.py`, `evaluation/retrieval_shared.py` | BM25 with simple lexical fallback for CPU reproducibility. |
+| If RAG: document retrieval mechanism | Complete | `report/report.tex`, `evaluation/retrieval_eval.py`, `evaluation/retrieval_shared.py`, `report/code/rag.py` | Normalized BM25 with a simple lexical fallback for CPU reproducibility. |
 | If RAG: document prompt guardrails | Complete | `evaluation/optimizations/config.json`, `evaluation/optimizations/rag_optimization_report.md` | Selected prompt is `strict_legal_rag_sl_v2`. |
 | Evaluation: retrieval accuracy / relevance | Complete | `evaluation/retrieval_eval.py`, `evaluation/results/retrieval_summary.csv` | Measures hit rate, false evidence, and context length. |
-| Evaluation: factual consistency | Complete | `evaluation/judge_eval.py`, `evaluation/results/summary_scores.csv` | Offline fallback uses reference/context overlap; live judge can be run where available. |
+| Evaluation: factual consistency | Complete | `evaluation/judge_eval.py`, `evaluation/results/summary_scores.csv` | Primary current result uses live LLM-as-judge with remote `llama3:latest`; offline fallback uses reference/context overlap. |
 | Evaluation: tone and safe handling | Complete | `evaluation/questions.jsonl`, `evaluation/judge_eval.py` | Includes ambiguous and unanswerable questions; refusal accuracy is reported. |
 | Human-centric metrics | Partial | `evaluation/questions.jsonl`, `evaluation/optimizations/rag_optimization_report.md` | Manual legal review is planned but not performed by a qualified reviewer in this repo. |
 | Architecture, challenges, workflow insights | Complete | `report/report.tex`, `app_plan.md` | Report explains corpus-size vs corpus-quality tradeoff and CPU constraints. |
@@ -55,7 +55,7 @@ This file maps the course instructions in `instructions/Natural language process
 | Clear and runnable repository | Complete | `README.md`, `requirements.txt` | Commands are aligned with current files. |
 | Well-organized report | Complete | `report/report.tex` | Report focuses on final RAG solution, results, limitations, and future work. |
 | Results discussed, not only shown | Complete | `report/report.tex`, `evaluation/optimizations/rag_optimization_report.md` | Discusses why curated corpus beats larger COLESLAW sample. |
-| Readable tables/figures that add value | Complete with dependency caveat | `report/report.tex`, `evaluation/results/report.md`, `evaluation/results/*.png`, `evaluation/results/optimization/*.png` | Final report uses compact tables. Chart regeneration requires `matplotlib`; the current minimal environment skipped charts but still regenerated CSV/Markdown reports. |
+| Readable tables/figures that add value | Complete | `report/report.tex`, `evaluation/results/report.md`, `evaluation/results/*.png`, `evaluation/results/optimization/*.png`, `evaluation/results/arena_live_smoke_charts/*.png` | `matplotlib` is installed in `.venv`; charts, CSVs, and Markdown reports regenerate. |
 | Sensible measures | Complete | `evaluation/retrieval_eval.py`, `evaluation/judge_eval.py` | Separates retrieval failures from generation failures. |
 | Show where algorithm works and fails | Complete | `report/report.tex`, `evaluation/optimizations/rag_optimization_report.md` | Works on curated statutory chunks; fails on noisy case-law-heavy extraction. |
 | Justify differences in approaches | Complete | `report/report.tex`, `evaluation/optimizations/rag_optimization_report.md` | RAG vs fine-tuning vs prompt-only documented. |
@@ -79,9 +79,8 @@ This file maps the course instructions in `instructions/Natural language process
 | No standalone app implementation | Requested scope was to plan the app, not implement it yet; course priority is NLP pipeline and evaluation. | `app_plan.md` gives PWA/Tauri/Flutter comparison and implementation phases. |
 | COLESLAW extraction is not primary final corpus | The sampled extraction over-retrieves case law and old collective-agreement material. | Use curated primary-law chunks now; keep COLESLAW for case-law demo and future tertiary index. |
 | No qualified human legal review included | Repository cannot substitute for legal expert validation. | Evaluation includes refusal/grounding tests; final assistant is informational and source-grounded only. |
-| Live GaMS run not guaranteed | GaMS must be served through local Open WebUI/Ollama-compatible endpoint; current machine may be CPU constrained. | Recommend `cjvt/GaMS-1B-Chat`; keep offline smoke tests and current fallback configuration. |
-| Live Ollama run not performed in this environment | `ollama list` returned `command not found` on 2026-05-20. | Regenerated deterministic offline answer/judge artifacts and documented how to rerun live evaluation when Ollama/Open WebUI is available. |
-| Chart regeneration skipped in current environment | `matplotlib` is not installed in the active Python environment. | Added `matplotlib` to `requirements.txt` and made visualizers emit CSV/Markdown instead of failing. |
+| Live GaMS run not performed | `cjvt/GaMS-1B-Chat` was not present in the discovered Ollama/Open WebUI model list on 2026-05-21. | Keep GaMS as preferred Slovenian candidate; use `ul-fri-nlp-course-project-optimized:latest` as the best currently runnable model. |
+| Some discovered models disabled in default arena | `qwen2.5-coder:7b` was available but too slow for routine smoke evaluation. | Disabled it by default and documented the reason; direct Ollama arena still covers optimized, Mistral, Llama 3, and Gemma 3 4B. |
 
 ## Final Acceptance Checklist
 
@@ -91,6 +90,8 @@ This file maps the course instructions in `instructions/Natural language process
 - [x] `requirements.txt` exists.
 - [x] Official source manifest is JSON-valid.
 - [x] Official source monitor was regenerated.
+- [x] Live optimized-model evaluation was regenerated through remote Ollama.
+- [x] Evaluation charts were regenerated from `.venv`.
 - [x] Fine-tuning artifacts are marked exploratory/stale for final claims.
 - [x] Standalone app is planned, not implemented.
 - [x] Deviations are documented and justified.

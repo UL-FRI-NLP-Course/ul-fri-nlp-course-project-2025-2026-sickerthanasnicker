@@ -21,15 +21,24 @@ def _json_request(url, payload=None, headers=None, timeout=180):
 
 
 def ollama_host():
-    return os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
+    return (
+        os.environ.get("OLLAMA_HOST")
+        or os.environ.get("OLLAMA_URL")
+        or "http://localhost:11434"
+    ).rstrip("/")
 
 
 def webui_host():
-    return os.environ.get("WEBUI_HOST", "").rstrip("/")
+    return (
+        os.environ.get("WEBUI_HOST")
+        or os.environ.get("OPENWEBUI_HOST")
+        or os.environ.get("OPENWEBUI_URL")
+        or ""
+    ).rstrip("/")
 
 
 def webui_headers():
-    api_key = os.environ.get("WEBUI_API_KEY", "")
+    api_key = os.environ.get("WEBUI_API_KEY") or os.environ.get("OPENWEBUI_API_KEY") or ""
     headers = {}
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"

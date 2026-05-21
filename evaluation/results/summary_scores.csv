@@ -1,4 +1,4 @@
 model_id,model_label,variant,n,correctness,grounding,completeness,clarity,hallucination,refusal_accuracy
-offline-llama3:latest,offline-llama3:latest,baseline,20,0.7,0.2,0.7,5.0,4.2,0.0
-offline-llama3:latest,offline-llama3:latest,rag,20,3.2,3.7,3.2,5.0,0.85,1.0
-raw-rag-prompt,raw RAG prompt,raw_rag_prompt,20,1.8,4.8,1.8,3.1,0.0,1.0
+ollama-ul-fri-nlp-course-project-optimized:latest,ollama-ul-fri-nlp-course-project-optimized:latest,baseline,20,3.55,4.75,4.5,4.65,0.75,0.5
+ollama-ul-fri-nlp-course-project-optimized:latest,ollama-ul-fri-nlp-course-project-optimized:latest,rag,20,4.3,4.95,4.5,4.7,0.0,1.0
+raw-rag-prompt,raw RAG prompt,raw_rag_prompt,20,5.0,5.0,5.0,4.65,0.0,1.0

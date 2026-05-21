@@ -1,6 +1,6 @@
 # RAG Optimization Report
 
-Date: 2026-05-20
+Date: 2026-05-21
 
 ## Scope Decision
 
@@ -14,8 +14,8 @@ The repository currently has two different RAG corpora:
 
 | Corpus | Size | Main content | Current retrieval result |
 | --- | ---: | --- | --- |
-| `report/code/data/chunk.jsonl` | 15 chunks | Curated ZDR-1/ZMinP snippets | Answerable hit rate `0.938`, false evidence rate `0.000`, average context `191.8` words |
-| `evaluation/optimizations/data/coleslaw_employment_chunks.jsonl` | 500 chunks | 398 `sp_courts`, 96 journalist collective agreement chunks, 6 constitutional-decision chunks | Answerable hit rate `0.500`, false evidence rate `0.250`, average context `557.2` words |
+| `report/code/data/chunk.jsonl` | 15 chunks | Curated ZDR-1/ZMinP snippets | Answerable hit rate `1.000`, false evidence rate `0.000`, average context `189.9` words |
+| `evaluation/optimizations/data/coleslaw_employment_chunks.jsonl` | 500 chunks | 398 `sp_courts`, 96 journalist collective agreement chunks, 6 constitutional-decision chunks | Answerable hit rate `0.813`, false evidence rate `0.000`, average context `555.3` words |
 
 Conclusion: the curated corpus is small but much safer for the current test set. The COLESLAW extraction is useful for a demo case-law index, but it should not be the primary legal source because it over-retrieves old case law and sector-specific collective-agreement text.
 
@@ -96,8 +96,15 @@ Hugging Face search found these relevant GaMS models:
 Recommendation:
 
 1. Use `cjvt/GaMS-1B-Chat` as the preferred GaMS answer generator once served through Open WebUI or a compatible local endpoint.
-2. Keep `mistral:7b` as the current local fallback if GaMS is not yet runnable.
+2. Use `ul-fri-nlp-course-project-optimized:latest` as the current best runnable model on the remote Ollama endpoint; keep `mistral:7b`, `llama3:latest`, and `gemma3:4b` as comparison/fallback models.
 3. Do not fine-tune now. Spend effort on official-source ingestion, chunking, metadata, citation checks, and refusal tests.
+
+Live endpoint status on 2026-05-21:
+
+- remote Ollama/Open WebUI through `.env` aliases is reachable;
+- `ul-fri-nlp-course-project-optimized:latest`, `mistral:7b`, `llama3:latest`, and `gemma3:4b` are runnable evaluation candidates;
+- `qwen2.5-coder:7b` is available but disabled in the default arena because it was too slow for routine smoke runs;
+- `cjvt/GaMS-1B-Chat` remains the preferred Slovenian candidate, but it was not present in the discovered Ollama/Open WebUI model list.
 
 ## Evaluation Criteria
 
@@ -137,7 +144,8 @@ Freshness:
 Correctness, grounding, completeness, clarity:
 
 - scored `0-5` by `evaluation/judge_eval.py`;
-- online judge can be used, but offline fallback exists for repeatable smoke tests.
+- the primary live run uses LLM-as-a-judge with remote `llama3:latest`, a common evaluation pattern for RAG systems;
+- offline fallback exists for repeatable smoke tests and uses reference/context token overlap.
 
 Hallucination:
 
@@ -170,11 +178,11 @@ Best current approach: strict RAG over curated, verified primary-law chunks, wit
 
 What does not work well yet: using the current 500-chunk COLESLAW extraction as the main corpus. It retrieves too much case law and an old sector-specific collective agreement, which weakens statutory question answering.
 
-Historical answer and fine-tuning artifacts that were generated before the latest corpus corrections should be treated as stale unless they are regenerated in the current run. The final claims use the corrected questions, corrected curated chunks, retrieval summaries, offline smoke tests, and official source monitor snapshot.
+Historical answer and fine-tuning artifacts that were generated before the latest corpus corrections should be treated as stale unless they are regenerated in the current run. The final claims use the corrected questions, corrected curated chunks, normalized BM25 retrieval summaries, live optimized-model judgements, offline diagnostic smoke tests, and official source monitor snapshot.
 
-Regenerated offline smoke result for the corrected curated corpus: RAG improved fallback correctness from `0.70` to `3.20`, reduced hallucination from `4.20` to `0.85`, and reached `1.00` refusal accuracy on unanswerable questions.
+Regenerated live optimized-model result for the corrected curated corpus, judged by remote `llama3:latest`: RAG improved correctness from `3.55` to `4.30`, reduced hallucination from `0.75` to `0.00`, and reached `1.00` refusal accuracy on unanswerable questions. Normalized BM25 retrieval reached `1.000` answerable hit rate and `0.000` false-evidence rate.
 
-Offline prompt-smoke result for `strict_legal_rag_sl_v2` over the current COLESLAW optimization corpus: RAG improved fallback correctness from `0.70` to `1.85`, reduced hallucination from `4.20` to `1.80`, and reached `1.00` refusal accuracy on unanswerable questions. This validates the refusal prompt direction, but the low correctness confirms that the corpus, not the prompt alone, is the main bottleneck.
+Offline prompt-smoke result for `strict_legal_rag_sl_v2` over the current COLESLAW optimization corpus: RAG improved fallback correctness from `0.70` to `1.95`, reduced hallucination from `4.20` to `2.10`, and reached `1.00` refusal accuracy on unanswerable questions. This validates the refusal prompt direction, but the low correctness confirms that the corpus, not the prompt alone, is the main bottleneck.
 
 Next highest-impact RAG work:
 

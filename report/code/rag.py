@@ -1,6 +1,7 @@
 import json
 import sys
 import pickle
+import re
 from pathlib import Path
 from rank_bm25 import BM25Okapi
 
@@ -12,6 +13,40 @@ KEYWORDS = [
     "letni dopust", "dopust", "delavec", "delodajalec", "plača", "bolezninska",
     "nadurno delo", "odpravnina", "minimalna plača", "ZDR", "delovni čas"
 ]
+
+
+TOKEN_RE = re.compile(r"[0-9]+|[A-Za-zČŠŽĆĐčšžćđ]+")
+
+STOPWORDS = {
+    "ali", "brez", "da", "do", "ga", "gre", "ima", "in", "iz", "je", "jih",
+    "jo", "kaj", "kako", "kakšen", "kakšna", "kakšne", "kdaj", "ker", "ki",
+    "ko", "kolikšna", "koliko", "lahko", "me", "med", "mi", "mora", "moram",
+    "na", "nad", "ne", "ni", "o", "ob", "od", "po", "pod", "pri", "se",
+    "so", "s", "sta", "te", "ter", "to", "v", "vprašanje", "za", "z", "že",
+    "kontekst", "zanesljivo", "odgovoriti", "pove", "danega", "korpusa",
+}
+
+
+def stem_token(token):
+    token = token.lower()
+    for suffix in (
+        "skega", "skem", "skih", "ostjo", "anje", "enega", "ega", "imi",
+        "ami", "ijo", "ost", "ih", "im", "em", "om", "a", "e", "i", "o", "u",
+    ):
+        if len(token) > len(suffix) + 3 and token.endswith(suffix):
+            return token[: -len(suffix)]
+    return token
+
+
+def tokenize(text):
+    terms = []
+    for token in TOKEN_RE.findall(text.lower()):
+        if token in STOPWORDS:
+            continue
+        if len(token) <= 2 and not token.isdigit():
+            continue
+        terms.append(stem_token(token))
+    return terms
 
 
 def is_relevant(text):
@@ -57,7 +92,7 @@ def build_index(jsonl_dir):
         for c in chunks:
             fp.write(json.dumps(c, ensure_ascii=False) + "\n")
 
-    tokenized = [c["text"].lower().split() for c in chunks]
+    tokenized = [tokenize(c["text"]) for c in chunks]
     index = BM25Okapi(tokenized)
 
     with open(INDEX_FILE, "wb") as fp:
@@ -72,7 +107,7 @@ def build_index_from_chunks():
     with open(CHUNKS_FILE, encoding="utf-8") as fp:
         for line in fp:
             chunks.append(json.loads(line))
-    tokenized = [c["text"].lower().split() for c in chunks]
+    tokenized = [tokenize(c["text"]) for c in chunks]
     index = BM25Okapi(tokenized)
     with open(INDEX_FILE, "wb") as fp:
         pickle.dump((index, chunks), fp)
@@ -85,7 +120,7 @@ def load_index():
 
 
 def search(query, index, chunks, top_k=3):
-    scores = index.get_scores(query.lower().split())
+    scores = index.get_scores(tokenize(query))
     ranked = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)[:top_k]
     return [(chunks[i], round(s, 3)) for i, s in ranked]
 

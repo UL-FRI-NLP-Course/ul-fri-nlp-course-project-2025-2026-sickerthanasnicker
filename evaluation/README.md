@@ -62,6 +62,8 @@ WEBUI_HOST=https://your-open-webui.example.com
 WEBUI_API_KEY=your-api-key
 ```
 
+The provider code also accepts `OLLAMA_URL`, `OPENWEBUI_URL`, and `OPENWEBUI_API_KEY` aliases, which are convenient when reusing existing local configuration.
+
 Open WebUI support uses:
 
 - `GET /api/models` for model discovery;
@@ -146,15 +148,14 @@ Outputs:
 
 ## Arena Models
 
-Default enabled arena models in `config.json` use Open WebUI:
+Default enabled arena models in `config.json` use the remote/local Ollama API exposed through `OLLAMA_HOST` or `OLLAMA_URL`:
 
 - `ollama-optimized-employment-law`: `ollama / ul-fri-nlp-course-project-optimized:latest`
-- `webui-mistral-7b`: `openwebui / mistral:7b`
-- `webui-qwen2.5-coder-7b`: `openwebui / qwen2.5-coder:7b`
-- `webui-qwen3-coder-30b-a3b`: `openwebui / hf.co/byteshape/Qwen3-Coder-30B-A3B-Instruct-GGUF:latest`
-- `webui-llama3`: `openwebui / llama3:latest`
+- `ollama-mistral-7b`: `ollama / mistral:7b`
+- `ollama-llama3`: `ollama / llama3:latest`
+- `ollama-gemma3-4b`: `ollama / gemma3:4b`
 
-The requested `gpt-5.4-mini` and `gpt-5.5` entries are also written in `config.json`, but disabled by default because the current Open WebUI `/api/models` response does not expose them and direct calls returned HTTP 400. Enable them only after they appear in `python evaluation/list_models.py --provider openwebui`.
+`qwen2.5-coder:7b` is available on the remote Ollama host but disabled by default because it was too slow for routine smoke evaluation. The requested `gpt-5.4-mini` and `gpt-5.5` entries are also written in `config.json`, but disabled by default because the current Open WebUI `/api/models` response does not expose them and direct calls returned HTTP 400. Enable disabled models only after they appear in model discovery and a short smoke run completes.
 
 `config.json` also includes `include_raw_rag_prompt: true`, which adds a retrieval-only `raw_rag_prompt` baseline containing the exact prompt/context that would be sent to a model.
 
@@ -197,6 +198,26 @@ Answer quality:
 - correctness, grounding, completeness, clarity: 0-5 where higher is better;
 - hallucination: 0-5 where lower is better;
 - refusal accuracy for unanswerable questions.
+
+## Metric Provenance
+
+The first-order evaluation uses common RAG evaluation ideas:
+
+- BM25 top-k retrieval over the candidate corpus;
+- retrieval hit rate, analogous to recall@k on answerable questions;
+- false evidence rate on unanswerable/out-of-domain questions;
+- LLM-as-a-judge scoring for generated answers;
+- hallucination and refusal/safety checks.
+
+Project-specific metrics are deliberately simple and reproducible:
+
+- `reference_keyword_fraction`: fraction of normalized reference content terms that appear in retrieved context;
+- retrieval hit: `reference_keyword_fraction >= 0.35` for answerable questions;
+- false evidence: the same threshold applied to unanswerable questions, where a high overlap means retrieval may mislead the generator;
+- refusal accuracy: fraction of unanswerable questions where the answer contains an explicit refusal pattern;
+- freshness/source availability: current reachability and validity status from `official_source_monitor.json`.
+
+The threshold-based metrics are not a replacement for human legal review. They are used as deterministic regression checks so retrieval changes can be compared before expensive or subjective judging.
 
 ## Fine-Tuning Preparation
 

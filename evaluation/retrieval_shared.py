@@ -27,7 +27,7 @@ def load_chunks(path=CHUNKS_FILE):
 
 
 def build_index(chunks):
-    tokenized = [chunk["text"].lower().split() for chunk in chunks]
+    tokenized = [content_terms(chunk["text"]) for chunk in chunks]
     try:
         from rank_bm25 import BM25Okapi
 
@@ -48,7 +48,7 @@ def load_project_search():
 
 
 def fallback_search(query, index, chunks, top_k=3):
-    scores = index.get_scores(query.lower().split())
+    scores = index.get_scores(content_terms(query))
     ranked = sorted(enumerate(scores), key=lambda item: item[1], reverse=True)[:top_k]
     return [(chunks[i], round(float(score), 3)) for i, score in ranked]
 

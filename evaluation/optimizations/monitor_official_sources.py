@@ -1,5 +1,6 @@
 import argparse
 import json
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -14,6 +15,18 @@ from io_utils import write_json
 DEFAULT_MANIFEST = OPTIMIZATION_DIR / "official_sources.json"
 DEFAULT_OUTPUT = PROJECT_ROOT / "evaluation" / "results" / "optimization" / "official_source_monitor.json"
 PISRS_FILTER_URL = "https://pisrs.si/api/filter/filter"
+SOURCE_MONITOR_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (compatible; ul-fri-nlp-rag-source-monitor/1.0; "
+        "+https://fri.uni-lj.si/)"
+    ),
+    "Accept": (
+        "text/html,application/xhtml+xml,application/pdf,"
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document,*/*;q=0.8"
+    ),
+    "Accept-Language": "sl,en;q=0.8",
+    "Cache-Control": "no-cache",
+}
 
 
 def utc_now():
@@ -42,35 +55,41 @@ def json_request(url, payload, timeout=30):
 
 
 def source_status(url, timeout=20):
+    last_error = None
     for method in ("HEAD", "GET"):
-        request = urllib.request.Request(
-            url,
-            headers={"User-Agent": "ul-fri-nlp-rag-source-monitor/1.0"},
-            method=method,
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
-                return {
-                    "ok": 200 <= response.status < 400,
-                    "status": response.status,
-                    "content_type": response.headers.get("Content-Type", ""),
-                    "last_modified": response.headers.get("Last-Modified", ""),
+        for attempt in range(2):
+            request = urllib.request.Request(url, headers=SOURCE_MONITOR_HEADERS, method=method)
+            try:
+                with urllib.request.urlopen(request, timeout=timeout) as response:
+                    return {
+                        "ok": 200 <= response.status < 400,
+                        "status": response.status,
+                        "content_type": response.headers.get("Content-Type", ""),
+                        "last_modified": response.headers.get("Last-Modified", ""),
+                    }
+            except urllib.error.HTTPError as exc:
+                last_error = {
+                    "ok": False,
+                    "status": exc.code,
+                    "content_type": exc.headers.get("Content-Type", "") if exc.headers else "",
+                    "last_modified": exc.headers.get("Last-Modified", "") if exc.headers else "",
+                    "error": str(exc),
                 }
-        except urllib.error.HTTPError as exc:
-            if method == "HEAD" and exc.code in {403, 405}:
-                continue
-            return {
-                "ok": False,
-                "status": exc.code,
-                "content_type": exc.headers.get("Content-Type", "") if exc.headers else "",
-                "last_modified": exc.headers.get("Last-Modified", "") if exc.headers else "",
-                "error": str(exc),
-            }
-        except Exception as exc:
-            if method == "HEAD":
-                continue
-            return {"ok": False, "status": None, "error": f"{type(exc).__name__}: {exc}"}
-    return {"ok": False, "status": None, "error": "No HTTP response."}
+                if method == "HEAD" and exc.code in {403, 405, 429, 500, 502, 503, 504}:
+                    break
+                if exc.code in {429, 500, 502, 503, 504} and attempt == 0:
+                    time.sleep(0.5)
+                    continue
+                return last_error
+            except Exception as exc:
+                last_error = {"ok": False, "status": None, "error": f"{type(exc).__name__}: {exc}"}
+                if method == "HEAD":
+                    break
+                if attempt == 0:
+                    time.sleep(0.5)
+                    continue
+                return last_error
+    return last_error or {"ok": False, "status": None, "error": "No HTTP response."}
 
 
 def pisrs_payload(source, collections):

@@ -21,7 +21,7 @@ We built a retrieval-augmented generation assistant for Slovenian employment-law
 The final system intentionally uses one main approach, RAG, because the target machine is CPU-limited and legal correctness depends more on current official sources than on model memorization.
 The assistant retrieves curated legal passages, applies a strict Slovenian system prompt, cites the retrieved source, and refuses unsupported or out-of-domain questions.
 We evaluated retrieval separately from generation, monitored official source availability, and compared a curated primary-law corpus with a larger COLESLAW-derived extraction.
-The best current setup is strict RAG over verified primary-law chunks: retrieval reaches 0.938 answerable hit rate with 0.000 false-evidence rate on unanswerable questions.
+The best current setup is strict RAG over verified primary-law chunks: normalized BM25 retrieval reaches 1.000 answerable hit rate with 0.000 false-evidence rate on unanswerable questions.
 }
 
 \begin{document}
@@ -77,23 +77,23 @@ The judge has an offline fallback so that the repository remains reproducible wh
 \toprule
 \textbf{Configuration} & \textbf{Hit} & \textbf{False ev.} & \textbf{Ctx. words} \\
 \midrule
-\textbf{Curated RAG} & \textbf{0.938} & \textbf{0.000} & \textbf{191.8} \\
-COLESLAW sample & 0.500 & 0.250 & 557.2 \\
+\textbf{Curated RAG} & \textbf{1.000} & \textbf{0.000} & \textbf{189.9} \\
+COLESLAW sample & 0.813 & 0.000 & 555.3 \\
 \bottomrule
 \end{tabular}
 \label{tab:retrieval}
 \end{table}
 
 \begin{table}[ht]
-\caption{Offline smoke evaluation on the corrected curated corpus.}
+\caption{Live optimized-model evaluation on the corrected curated corpus, judged by remote Llama 3.}
 \centering
 \small
 \begin{tabular}{lccc}
 \toprule
 \textbf{Variant} & \textbf{Correctness} & \textbf{Hallucination} & \textbf{Refusal} \\
 \midrule
-Baseline & 0.70 & 4.20 & 0.00 \\
-\textbf{Strict RAG} & \textbf{3.20} & \textbf{0.85} & \textbf{1.00} \\
+Baseline & 3.55 & 0.75 & 0.50 \\
+\textbf{Strict RAG} & \textbf{4.30} & \textbf{0.00} & \textbf{1.00} \\
 \bottomrule
 \end{tabular}
 \label{tab:answers}
@@ -101,9 +101,9 @@ Baseline & 0.70 & 4.20 & 0.00 \\
 
 The main result is that corpus quality matters more than corpus size.
 The curated legal chunks retrieve the expected law for nearly all answerable questions and avoid false support for out-of-scope questions.
-The larger COLESLAW extraction improves breadth, but without source-priority filtering it retrieves too much case law for statutory questions.
+The larger COLESLAW extraction improves breadth, but even after token normalization it retrieves too much case law for statutory questions.
 The strict prompt improves refusal and hallucination behavior on the curated corpus.
-On the COLESLAW optimization sample, strict RAG still improved correctness from 0.70 to 1.85 and reduced hallucination from 4.20 to 1.80, but the lower score confirms that prompting cannot compensate for weak retrieval context.
+On the COLESLAW optimization sample, strict RAG still improved offline correctness from 0.70 to 1.95 and reduced hallucination from 4.20 to 2.10, but the lower score confirms that prompting cannot compensate for weak retrieval context.
 
 \section*{Limitations and Future Work}
 The project does not yet implement a production standalone app; the app design is documented separately and recommends a PWA before Tauri or Flutter.
