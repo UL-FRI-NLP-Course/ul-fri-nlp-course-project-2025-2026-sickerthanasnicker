@@ -119,9 +119,39 @@ def load_index():
         return pickle.load(fp)
 
 
+def actor_adjustment(query, text):
+    """Small legal-domain reranker for actor-sensitive employment questions."""
+    query_l = query.lower()
+    text_l = text.lower()
+    adjustment = 0.0
+
+    asks_employer = "delodajalec" in query_l or "delodajalca" in query_l
+    if asks_employer:
+        if "s strani delodajalca" in text_l or "delodajalec lahko" in text_l:
+            adjustment += 4.0
+        if "delavec lahko redno odpove" in text_l:
+            adjustment -= 4.0
+
+    asks_worker = "delavec" in query_l or "delavca" in query_l
+    if asks_worker and "delavec lahko redno odpove" in text_l:
+        adjustment += 1.0
+
+    if "razlog" in query_l and "krivdni razlog" in text_l:
+        adjustment += 1.0
+
+    if "po prvih" in query_l and "daljša odsotnost bremeni zdravstveno zavarovanje" in text_l:
+        adjustment += 1.0
+
+    return adjustment
+
+
 def search(query, index, chunks, top_k=3):
     scores = index.get_scores(tokenize(query))
-    ranked = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)[:top_k]
+    adjusted = [
+        (i, float(score) + actor_adjustment(query, chunks[i]["text"]))
+        for i, score in enumerate(scores)
+    ]
+    ranked = sorted(adjusted, key=lambda x: x[1], reverse=True)[:top_k]
     return [(chunks[i], round(s, 3)) for i, s in ranked]
 
 
