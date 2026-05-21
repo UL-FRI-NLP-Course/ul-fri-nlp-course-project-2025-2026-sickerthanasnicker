@@ -1,8 +1,20 @@
-{"id": "q001", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correctly gives 20 working days and cites ZDR-1; extra leave-detail text is more verbose than needed."}
-{"id": "q003", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correctly gives 15 days for less than one year and cites Article 94."}
-{"id": "q006", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correct tiered severance formula with ZDR-1 Article 108 citation."}
-{"id": "q011", "correctness": "correct", "citation_ok": "no", "refusal_ok": "n/a", "note": "Overtime limits are correct, but the final answer omits the explicit ZDR-1 Article 143 citation."}
-{"id": "q012", "correctness": "incorrect", "citation_ok": "no", "refusal_ok": "n/a", "note": "The question asks who pays after the first 20 working days; the answer repeats only that the employer pays the first 20 days."}
-{"id": "q015", "correctness": "incorrect", "citation_ok": "no", "refusal_ok": "no", "note": "The question is underspecified; the model should ask for context or refuse. It instead gives a broad answer and overstates the severance implication."}
-{"id": "q017", "correctness": "correct", "citation_ok": "n/a", "refusal_ok": "yes", "note": "Correctly refuses a VAT question as outside Slovenian employment law."}
-{"id": "q020", "correctness": "correct", "citation_ok": "n/a", "refusal_ok": "yes", "note": "Correctly refuses company-formation guidance as outside scope."}
+{"id": "q001", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correct 20 working-day minimum with ZDR-1 Article 159 citation."}
+{"id": "q002", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correctly says the right to annual leave is acquired when employment is concluded."}
+{"id": "q003", "correctness": "correct", "citation_ok": "no", "refusal_ok": "n/a", "note": "Correct 15-day notice period, but the answer omits an explicit article citation."}
+{"id": "q004", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correctly states that the worker may terminate without stating a reason and cites Article 94."}
+{"id": "q005", "correctness": "correct", "citation_ok": "no", "refusal_ok": "n/a", "note": "Correctly lists business, incapacity and fault reasons, but omits the Article 89 citation."}
+{"id": "q006", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Gives the severance tiers and Article 108 citation; wording is slightly compressed but materially correct."}
+{"id": "q007", "correctness": "correct", "citation_ok": "no", "refusal_ok": "n/a", "note": "Correct court-demand remedy, but the answer omits the Article 17 citation."}
+{"id": "q008", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correct six-month maximum and Article 125 citation."}
+{"id": "q009", "correctness": "incorrect", "citation_ok": "no", "refusal_ok": "no", "note": "The retrieved Article 55 context contains the two-year rule, but the model incorrectly refuses."}
+{"id": "q010", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correct 30-minute break rule with Article 154 citation."}
+{"id": "q011", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "n/a", "note": "Correct overtime limits and Article 143 citation."}
+{"id": "q012", "correctness": "incorrect", "citation_ok": "no", "refusal_ok": "n/a", "note": "The context says health insurance bears longer absence after the first 20 working days; the model incorrectly says the employer pays after 20 days."}
+{"id": "q013", "correctness": "correct", "citation_ok": "yes", "refusal_ok": "yes", "note": "Correctly treats the question as ambiguous and points to worker/employer notice-period sources."}
+{"id": "q014", "correctness": "incorrect", "citation_ok": "no", "refusal_ok": "no", "note": "Starts with a refusal but then drifts into irrelevant notice-period text and unsupported assumptions."}
+{"id": "q015", "correctness": "correct", "citation_ok": "n/a", "refusal_ok": "yes", "note": "Correctly refuses a broad dismissal question as underspecified."}
+{"id": "q016", "correctness": "correct", "citation_ok": "n/a", "refusal_ok": "yes", "note": "Correctly refuses a broad wage question as underspecified."}
+{"id": "q017", "correctness": "correct", "citation_ok": "n/a", "refusal_ok": "yes", "note": "Correctly refuses VAT as outside Slovenian employment law."}
+{"id": "q018", "correctness": "correct", "citation_ok": "n/a", "refusal_ok": "yes", "note": "Correctly refuses inheritance as outside Slovenian employment law."}
+{"id": "q019", "correctness": "correct", "citation_ok": "n/a", "refusal_ok": "yes", "note": "Correctly refuses Austrian minimum wage as outside Slovenian employment law."}
+{"id": "q020", "correctness": "correct", "citation_ok": "n/a", "refusal_ok": "yes", "note": "Correctly refuses company formation as outside Slovenian employment law."}

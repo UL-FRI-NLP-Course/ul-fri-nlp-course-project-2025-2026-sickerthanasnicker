@@ -56,7 +56,7 @@ The source monitor currently checks 12 PISRS sources, 17 government or official 
 The implemented pipeline is RAG-first.
 Documents are split into compact chunks with metadata such as law name, article, title, and source.
 The current retriever is BM25 with a simple lexical fallback, which keeps the project runnable on CPU and without a vector database.
-At answer time the top retrieved chunks are formatted as context and passed to the generator with the selected prompt \texttt{strict\_legal\_rag\_sl\_v2}.
+At answer time the top retrieved chunks are formatted as context and passed to the generator with the selected prompt \texttt{strict\_legal\_rag\_sl\_v3}.
 The prompt requires Slovenian-only answers, checks Slovenian employment-law scope, prioritizes PISRS over official interpretations and case law, and uses a fixed refusal sentence when the context is insufficient.
 
 The preferred model for the next live deployment is GaMS-1B-Chat, because it is Slovenian-focused and CPU-friendlier than larger GaMS variants \cite{GaMS1B}.
@@ -78,7 +78,7 @@ The judge has an offline fallback so that the repository remains reproducible wh
 \toprule
 \textbf{Configuration} & \textbf{Hit@3} & \textbf{False ev.} & \textbf{Ctx. words} \\
 \midrule
-\textbf{Curated RAG} & \textbf{1.000} & \textbf{0.000} & \textbf{189.9} \\
+\textbf{Curated RAG} & \textbf{1.000} & \textbf{0.000} & \textbf{200.4} \\
 COLESLAW sample & 0.813 & 0.000 & 555.3 \\
 \bottomrule
 \end{tabular}
@@ -86,15 +86,15 @@ COLESLAW sample & 0.813 & 0.000 & 555.3 \\
 \end{table}
 
 \begin{table}[ht]
-\caption{Live optimized-model evaluation on the corrected curated corpus, judged by remote Llama 3.}
+\caption{Current deployed-wrapper evaluation on the corrected curated corpus, judged by the deterministic offline judge.}
 \centering
 \small
 \begin{tabular}{lccc}
 \toprule
 \textbf{Variant} & \textbf{Correctness} & \textbf{Hallucination} & \textbf{Refusal} \\
 \midrule
-Baseline & 3.55 & 0.75 & 0.50 \\
-\textbf{Strict RAG} & \textbf{4.30} & \textbf{0.00} & \textbf{1.00} \\
+Baseline & 1.85 & 0.20 & 1.00 \\
+\textbf{Strict RAG} & \textbf{2.85} & 0.75 & \textbf{1.00} \\
 \bottomrule
 \end{tabular}
 \label{tab:answers}
@@ -103,9 +103,9 @@ Baseline & 3.55 & 0.75 & 0.50 \\
 The main result is that corpus quality matters more than corpus size.
 The curated legal chunks retrieve the expected law for nearly all answerable questions and avoid false support for out-of-scope questions.
 The larger COLESLAW extraction improves breadth, but even after token normalization it retrieves too much case law for statutory questions.
-The strict prompt improves refusal and hallucination behavior on the curated corpus.
-On the COLESLAW optimization sample, strict RAG still improved offline correctness from 0.70 to 1.95 and reduced hallucination from 4.20 to 2.10, but the lower score confirms that prompting cannot compensate for weak retrieval context.
-A manual Open WebUI spot-check of eight final-model answers found six correct or appropriately refused answers, with failures on one sick-pay question and one ambiguous dismissal question; the appendix records the exact labels and shows that citation discipline still needs improvement.
+The strict prompt improves correctness, grounding, and refusal behavior on the curated corpus, although generation can still misread retrieved legal text.
+On the curated optimization sample, strict RAG improved offline correctness from 0.70 to 3.15 and reduced hallucination from 4.20 to 0.85.
+A manual Open WebUI spot-check of all 20 evaluation questions found 17 correct or appropriately refused answers; the remaining failures were generation errors on fixed-term contracts, sick-pay after 20 working days, and one ambiguous leave question.
 
 \section*{Limitations and Future Work}
 The project does not yet implement a production standalone app; the app design is documented separately and recommends a PWA before Tauri or Flutter.

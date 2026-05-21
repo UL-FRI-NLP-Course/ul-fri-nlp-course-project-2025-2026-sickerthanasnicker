@@ -4,15 +4,15 @@
 
 | model_id | model_label | variant | n | correctness | grounding | completeness | clarity | hallucination | refusal_accuracy |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ollama-ul-fri-nlp-course-project-optimized:latest | ollama-ul-fri-nlp-course-project-optimized:latest | baseline | 20 | 3.55 | 4.75 | 4.50 | 4.65 | 0.75 | 0.50 |
-| ollama-ul-fri-nlp-course-project-optimized:latest | ollama-ul-fri-nlp-course-project-optimized:latest | rag | 20 | 4.30 | 4.95 | 4.50 | 4.70 | 0.00 | 1.00 |
-| raw-rag-prompt | raw RAG prompt | raw_rag_prompt | 20 | 5.00 | 5.00 | 5.00 | 4.65 | 0.00 | 1.00 |
+| openwebui-ul-fri-slovenian-employment-law-rag-openwebui | openwebui-ul-fri-slovenian-employment-law-rag-openwebui | baseline | 20 | 1.85 | 1.00 | 1.85 | 5.00 | 0.20 | 1.00 |
+| openwebui-ul-fri-slovenian-employment-law-rag-openwebui | openwebui-ul-fri-slovenian-employment-law-rag-openwebui | rag | 20 | 2.85 | 3.95 | 2.85 | 5.00 | 0.75 | 1.00 |
+| raw-rag-prompt | raw RAG prompt | raw_rag_prompt | 20 | 1.80 | 4.90 | 1.80 | 3.10 | 0.00 | 1.00 |
 
 ## Retrieval
 
 - Answerable hit rate: 1.000
 - Unanswerable false evidence rate: 0.000
-- Average context length: 189.9 words
+- Average context length: 200.4 words
 
 
 ## Charts

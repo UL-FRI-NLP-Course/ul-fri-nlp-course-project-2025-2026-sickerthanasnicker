@@ -166,7 +166,7 @@ The final deployed Open WebUI option is:
 - id: `ul-fri-slovenian-employment-law-rag-openwebui`
 - display name: `UL FRI Slovenian Employment Law RAG`
 - base model: `ul-fri-nlp-course-project-optimized:latest`
-- prompt: `strict_legal_rag_sl_v2`
+- prompt: `strict_legal_rag_sl_v3`
 - settings: temperature `0.0`, top-p `1.0`, max output `500`
 
 Refresh it with:

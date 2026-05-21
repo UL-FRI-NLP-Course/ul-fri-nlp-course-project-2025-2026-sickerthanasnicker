@@ -1,4 +1,4 @@
 model_id,model_label,variant,n,correctness,grounding,completeness,clarity,hallucination,refusal_accuracy
-ollama-ul-fri-nlp-course-project-optimized:latest,ollama-ul-fri-nlp-course-project-optimized:latest,baseline,20,3.55,4.75,4.5,4.65,0.75,0.5
-ollama-ul-fri-nlp-course-project-optimized:latest,ollama-ul-fri-nlp-course-project-optimized:latest,rag,20,4.3,4.95,4.5,4.7,0.0,1.0
-raw-rag-prompt,raw RAG prompt,raw_rag_prompt,20,5.0,5.0,5.0,4.65,0.0,1.0
+openwebui-ul-fri-slovenian-employment-law-rag-openwebui,openwebui-ul-fri-slovenian-employment-law-rag-openwebui,baseline,20,1.85,1.0,1.85,5.0,0.2,1.0
+openwebui-ul-fri-slovenian-employment-law-rag-openwebui,openwebui-ul-fri-slovenian-employment-law-rag-openwebui,rag,20,2.85,3.95,2.85,5.0,0.75,1.0
+raw-rag-prompt,raw RAG prompt,raw_rag_prompt,20,1.8,4.9,1.8,3.1,0.0,1.0

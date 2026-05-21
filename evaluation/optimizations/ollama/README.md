@@ -14,7 +14,7 @@ Run it:
 ollama run ul-fri-slovenian-employment-law-rag
 ```
 
-This model is an Ollama prompt/config model based on the best evaluated runnable base, `ul-fri-nlp-course-project-optimized:latest`. It uses the selected `strict_legal_rag_sl_v2` system prompt and deterministic generation settings.
+This model is an Ollama prompt/config model based on the best evaluated runnable base, `ul-fri-nlp-course-project-optimized:latest`. It uses the selected `strict_legal_rag_sl_v3` system prompt and deterministic generation settings.
 
 Register or refresh the final Open WebUI picker option:
 

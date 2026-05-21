@@ -81,8 +81,9 @@ Run the optimization prompt sweep without live model calls:
 python evaluation/optimizations/run_prompt_sweep.py \
   --provider offline \
   --model-id webui-mistral-7b \
-  --prompt-id strict_legal_rag_sl_v2 \
-  --settings-id deterministic
+  --prompt-id strict_legal_rag_sl_v3 \
+  --settings-id deterministic \
+  --corpus-chunks report/code/data/chunk.jsonl
 
 python evaluation/judge_eval.py \
   --provider offline \
@@ -141,7 +142,7 @@ The answer corpus should use official sources only:
 
 The preferred Slovenian CPU-friendly candidate remains `cjvt/GaMS-1B-Chat` once it is served through Open WebUI or another compatible endpoint. It was not present in the discovered local model list during the 2026-05-21 verification run, so the current best runnable model is `ul-fri-nlp-course-project-optimized:latest` on the remote Ollama endpoint. `mistral:7b`, `llama3:latest`, and `gemma3:4b` are kept as comparison/fallback models.
 
-The final assistant behavior is controlled mainly by `strict_legal_rag_sl_v2`: strict Slovenian answers, employment-law scope checks, source-priority rules, citation discipline, and refusal for unsupported questions.
+The final assistant behavior is controlled mainly by `strict_legal_rag_sl_v3`: strict Slovenian answers, employment-law scope checks, source-priority rules, citation discipline, ambiguity guardrails, and refusal for unsupported questions.
 
 The finalized Open WebUI option is `ul-fri-slovenian-employment-law-rag-openwebui` ("UL FRI Slovenian Employment Law RAG"). It wraps the best evaluated runnable base model with the selected strict prompt and deterministic settings. Refresh or recreate it with:
 
