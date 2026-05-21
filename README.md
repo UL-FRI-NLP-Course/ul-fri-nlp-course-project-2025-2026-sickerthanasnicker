@@ -75,6 +75,12 @@ Manual spot-check evidence for the final Open WebUI model is in
 `evaluation/results/manual_openwebui_eval_answers.jsonl` and manual labels in
 `evaluation/results/manual_openwebui_eval_judgements.jsonl`.
 
+Refresh the manual answer collection from the deployed Open WebUI model:
+
+```bash
+python evaluation/manual_openwebui_eval.py
+```
+
 Run the optimization prompt sweep without live model calls:
 
 ```bash

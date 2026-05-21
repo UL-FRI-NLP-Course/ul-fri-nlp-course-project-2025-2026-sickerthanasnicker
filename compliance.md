@@ -8,12 +8,12 @@ This file maps the course instructions in `instructions/Natural language process
 
 | Area | Status | Evidence | Notes / deviation |
 | --- | --- | --- | --- |
-| Final solution | Complete | `report/code/rag.py`, `evaluation/`, `evaluation/optimizations/config.json` | Final solution is RAG-only with strict prompt and official-source monitoring. |
+| Final solution | Complete | `report/code/rag.py`, `evaluation/`, `evaluation/optimizations/config.json` | Final solution is RAG-only with strict v3 prompt, lightweight lexical reranking, and official-source monitoring. |
 | Final report | Complete | `report/report.tex` | Rewritten as final report; no placeholder abstract or initial-report wording remains. |
 | Reproducible repository | Complete | `README.md`, `requirements.txt`, `evaluation/README.md` | Live LLM calls were verified through remote Ollama/Open WebUI aliases; offline smoke mode remains available. |
 | Corpus and source curation | Complete | `report/code/data/chunk.jsonl`, `evaluation/optimizations/official_sources.json` | Official source manifest uses PISRS, GOV.SI, MDDSZ, IRSD, eUprava, SPOT, ESS, OPSI, and sodnapraksa.si. |
-| Evaluation | Complete | `evaluation/questions.jsonl`, `evaluation/results/`, `evaluation/optimizations/rag_optimization_report.md` | Retrieval and answer metrics are separated; stale historical artifacts are documented. |
-| Open WebUI deployment | Complete | `evaluation/optimizations/create_ollama_model.py`, `evaluation/results/openwebui_final_model_smoke.json` | Final picker option is `ul-fri-slovenian-employment-law-rag-openwebui`, with strict prompt and deterministic settings. |
+| Evaluation | Complete | `evaluation/questions.jsonl`, `evaluation/results/`, `evaluation/manual_eval_appendix.md`, `evaluation/optimizations/rag_optimization_report.md` | Retrieval and answer metrics are separated; current manual review covers all 20 evaluation questions. |
+| Open WebUI deployment | Complete | `evaluation/optimizations/create_ollama_model.py`, `evaluation/results/openwebui_final_model_smoke.json` | Final picker option is `ul-fri-slovenian-employment-law-rag-openwebui`, with `strict_legal_rag_sl_v3` and deterministic settings. |
 | Standalone app | Planned, not implemented | `app_plan.md` | Intentionally not implemented for this submission; user requested plan only. |
 | Fine-tuning | Exploratory only | `evaluation/fine_tuning/data/README.md`, `evaluation/optimizations/requirements-peft.txt` | Deviation: no fine-tuning because of CPU limits and lab recommendation to choose one approach. |
 
@@ -44,7 +44,7 @@ This file maps the course instructions in `instructions/Natural language process
 | If RAG: document retrieval mechanism | Complete | `report/report.tex`, `evaluation/retrieval_eval.py`, `evaluation/retrieval_shared.py`, `report/code/rag.py` | Normalized BM25 with a simple lexical fallback for CPU reproducibility. |
 | If RAG: document prompt guardrails | Complete | `evaluation/optimizations/config.json`, `evaluation/optimizations/rag_optimization_report.md` | Selected prompt is `strict_legal_rag_sl_v3`. |
 | Evaluation: retrieval accuracy / relevance | Complete | `evaluation/retrieval_eval.py`, `evaluation/results/retrieval_summary.csv`, `evaluation/manual_eval_appendix.md` | Main metric is answerable Hit@3 plus false evidence and context length; Hit@1 is documented as a stricter diagnostic. |
-| Evaluation: factual consistency | Complete | `evaluation/judge_eval.py`, `evaluation/results/summary_scores.csv` | Primary current result uses live LLM-as-judge with remote `llama3:latest`; offline fallback uses reference/context overlap. |
+| Evaluation: factual consistency | Complete | `evaluation/judge_eval.py`, `evaluation/results/summary_scores.csv`, `evaluation/manual_eval_appendix.md` | Current reproducible pass uses offline judge plus manual review; earlier live LLM-as-judge artifacts remain historical context. |
 | Evaluation: tone and safe handling | Complete | `evaluation/questions.jsonl`, `evaluation/judge_eval.py` | Includes ambiguous and unanswerable questions; refusal accuracy is reported. |
 | Human-centric metrics | Partial, improved | `evaluation/manual_eval_appendix.md`, `evaluation/results/manual_openwebui_eval_answers.jsonl`, `evaluation/results/manual_openwebui_eval_judgements.jsonl` | Added manual spot-check of all 20 final Open WebUI answers; still not a qualified legal-expert review. |
 | Architecture, challenges, workflow insights | Complete | `report/report.tex`, `app_plan.md` | Report explains corpus-size vs corpus-quality tradeoff and CPU constraints. |
@@ -58,7 +58,7 @@ This file maps the course instructions in `instructions/Natural language process
 | Results discussed, not only shown | Complete | `report/report.tex`, `evaluation/optimizations/rag_optimization_report.md` | Discusses why curated corpus beats larger COLESLAW sample. |
 | Readable tables/figures that add value | Complete | `report/report.tex`, `evaluation/results/report.md`, `evaluation/results/*.png`, `evaluation/results/optimization/*.png`, `evaluation/results/arena_live_smoke_charts/*.png` | `matplotlib` is installed in `.venv`; charts, CSVs, and Markdown reports regenerate. |
 | Sensible measures | Complete | `evaluation/retrieval_eval.py`, `evaluation/judge_eval.py` | Separates retrieval failures from generation failures. |
-| Show where algorithm works and fails | Complete | `report/report.tex`, `evaluation/optimizations/rag_optimization_report.md` | Works on curated statutory chunks; fails on noisy case-law-heavy extraction. |
+| Show where algorithm works and fails | Complete | `report/report.tex`, `evaluation/optimizations/rag_optimization_report.md`, `evaluation/manual_eval_appendix.md` | Works on curated statutory chunks and refusals; remaining deployed-model failures are `q009`, `q012`, and `q014`. |
 | Justify differences in approaches | Complete | `report/report.tex`, `evaluation/optimizations/rag_optimization_report.md` | RAG vs fine-tuning vs prompt-only documented. |
 | Beyond minimum criteria | Complete | `evaluation/optimizations/`, `app_plan.md`, `compliance.md` | Includes prompt sweep, source monitor, official-source manifest, Open WebUI export, app plan, and compliance audit. |
 
@@ -71,6 +71,27 @@ This file maps the course instructions in `instructions/Natural language process
 | Include dependencies | Complete | `requirements.txt`, `evaluation/optimizations/requirements-peft.txt` | Runtime and optional PEFT dependencies are separated. |
 | Include manually prepared data if needed | Complete | `report/code/data/chunk.jsonl`, `evaluation/questions.jsonl` | Small curated corpus and evaluation questions are committed. |
 | Public/current source validation | Complete | `evaluation/results/optimization/official_source_monitor.json` | Latest run: 12/12 PISRS, 17/17 government/official interpretation, 1/1 case-law sources reachable. |
+
+## Latest Compliance Check
+
+Run date: 2026-05-21.
+
+| Check | Status | Result |
+| --- | --- | --- |
+| `python -m json.tool evaluation/optimizations/config.json` | Pass | Optimization config is valid JSON and selects `strict_legal_rag_sl_v3`. |
+| `python -m json.tool evaluation/optimizations/official_sources.json` | Pass | Official source manifest is valid JSON. |
+| `python -m py_compile report/code/rag.py evaluation/manual_openwebui_eval.py evaluation/retrieval_eval.py evaluation/run_eval.py evaluation/judge_eval.py evaluation/optimizations/create_ollama_model.py` | Pass | Evaluation, retrieval, deployment, and manual-eval scripts compile. |
+| `python evaluation/optimizations/monitor_official_sources.py` | Pass | PISRS `12/12`, government/official interpretation `17/17`, case law `1/1`. |
+| `python evaluation/retrieval_eval.py --quiet` | Pass | Hit@3 `1.000`, false evidence `0.000`, average context `200.4` words. |
+| `python evaluation/retrieval_eval.py --quiet --top-k 1 --output /tmp/retrieval_top1.jsonl` | Pass with known weakness | Hit@1 `0.938`; only answerable failure is `q015`, an underspecified dismissal question. |
+| `python evaluation/optimizations/run_prompt_sweep.py --provider offline --model-id webui-mistral-7b --prompt-id strict_legal_rag_sl_v3 --settings-id deterministic --corpus-chunks report/code/data/chunk.jsonl --quiet` | Pass | Regenerated curated-corpus optimization answers. |
+| `python evaluation/judge_eval.py --provider offline --answers evaluation/results/optimization/prompt_sweep_answers.jsonl --output evaluation/results/optimization/judgements.jsonl --quiet` | Pass | Offline RAG correctness `3.15`, grounding `3.75`, hallucination `0.85`, refusal `1.00`. |
+| `python evaluation/optimizations/summarize_optimization.py` | Pass | Regenerated optimization CSV, Markdown, and charts. |
+| `python evaluation/manual_openwebui_eval.py` | Pass | Collected 20 deployed Open WebUI answers with no API errors. |
+| Manual review of deployed Open WebUI answers | Pass with residual risk | `17/20` correct or appropriately refused; failures documented for `q009`, `q012`, `q014`. |
+| `python evaluation/run_eval.py --provider openwebui --model ul-fri-slovenian-employment-law-rag-openwebui --quiet` | Pass | Regenerated 60 main answer rows for raw prompt, baseline, and RAG variants. |
+| `python evaluation/judge_eval.py --provider offline --quiet` and `python evaluation/visualize_results.py` | Pass | Regenerated main judgements, summaries, and charts. |
+| `latexmk -pdf -outdir=.out report.tex` from `report/` | Pass | Rebuilt final PDF; tracked `report/report.pdf` was refreshed from `.out/report.pdf`. |
 
 ## Explicit Deviations
 
