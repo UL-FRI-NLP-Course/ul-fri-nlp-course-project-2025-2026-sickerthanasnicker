@@ -22,6 +22,7 @@ The final system intentionally uses one main approach, RAG, because the target m
 The assistant retrieves curated legal passages, applies a strict Slovenian system prompt, cites the retrieved source, and refuses unsupported or out-of-domain questions.
 We evaluated retrieval separately from generation, monitored official source availability, and compared a curated primary-law corpus with a larger COLESLAW-derived extraction.
 The best current setup is strict RAG over verified primary-law chunks: normalized BM25 retrieval reaches 1.000 answerable Hit@3 with 0.000 false-evidence rate on unanswerable questions.
+Manual review of the deployed Open WebUI wrapper found 17/20 answers correct or appropriately refused.
 }
 
 \begin{document}
@@ -33,6 +34,7 @@ The best current setup is strict RAG over verified primary-law chunks: normalize
 General-purpose LLMs are risky for legal question answering because they may answer fluently while inventing legal rules, citations, or article numbers.
 Our domain is therefore restricted to Slovenian employment law: employment contracts, termination, leave, wages, working time, sick leave, collective employment issues, and closely related statutory guidance.
 The assistant is informational, not a substitute for a lawyer, and must refuse tax, inheritance, company-formation, foreign-law, or other non-employment-law questions.
+This narrow domain also matches the course project goal for a domain-specific institutional assistant: define a strict use case, curate a source of truth, inject domain knowledge into an LLM, and evaluate whether the system knows when not to answer.
 
 \section*{Related Work}
 Existing Slovenian legal assistants such as Pravko and MojMaliPravnik show demand for accessible legal explanations, but they do not give us a reproducible course pipeline or a controlled official-source policy \cite{Pravko,MojMaliPravnik}.
@@ -43,29 +45,37 @@ Following the survey perspective that domain knowledge can be injected at severa
 
 \section*{Corpus and Sources}
 We used COLESLAW 1.0 as the broad legal starting point \cite{COLESLAW}, but the final RAG corpus is source-prioritized rather than corpus-size-maximized.
-COLESLAW is valuable for case-law demonstrations, yet our 500-chunk employment-law extraction was dominated by \textit{SodnaPraksa} and old collective-agreement material.
-For statutory question answering this caused weaker retrieval than the smaller curated primary-law set.
+The repository keeps two corpora for comparison.
+The broad COLESLAW extraction has 500 employment-law chunks, but 398 of them come from \textit{SodnaPraksa} and many others from old collective-agreement material.
+This is useful for case-law exploration, but it is a poor default for statutory question answering.
+The final deployed corpus is therefore a smaller curated set of 14 primary-law chunks covering the evaluation topics from ZDR-1 and ZMinP.
+It is not presented as a complete legal database; it is a controlled source-of-truth slice for testing the RAG behavior and source-priority policy.
 
 The final source policy is strict.
 PISRS statutes, especially ZDR-1, are canonical primary law \cite{PISRSZDR1}.
 GOV.SI, MDDSZ, IRSD, eUprava, SPOT, ESS, and OPSI are official interpretation or operational sources \cite{GovDelovnaRazmerja,GovMinimalnaPlaca}.
 \textit{sodnapraksa.si} and selected COLESLAW case-law chunks are tertiary support only and may not override current statutes.
 The source monitor currently checks 12 PISRS sources, 17 government or official interpretation sources, and one official case-law index; the latest run found all reachable.
+This directly addresses the data-curation requirement: datasets available elsewhere are linked, small transformed chunks and evaluation questions are committed, and transformation scripts for COLESLAW and optional PEFT data are included in the repository.
 
 \section*{System}
 The implemented pipeline is RAG-first.
 Documents are split into compact chunks with metadata such as law name, article, title, and source.
-The current retriever is BM25 with a simple lexical fallback, which keeps the project runnable on CPU and without a vector database.
-At answer time the top retrieved chunks are formatted as context and passed to the generator with the selected prompt \texttt{strict\_legal\_rag\_sl\_v3}.
+The current retriever is normalized BM25 with a simple lexical fallback, which keeps the project runnable on CPU and without a vector database.
+The evaluation layer also reuses the project retriever so that retrieval scores correspond to the actual answer-time context.
+At answer time the top retrieved chunks are formatted as context and passed to the generator with the selected strict RAG v3 prompt.
 The prompt requires Slovenian-only answers, checks Slovenian employment-law scope, prioritizes PISRS over official interpretations and case law, and uses a fixed refusal sentence when the context is insufficient.
+It also tells the model how to handle short ambiguous questions such as ``Ali me lahko odpustijo?'' without giving a falsely complete legal conclusion.
 
 The preferred model for the next live deployment is GaMS-1B-Chat, because it is Slovenian-focused and CPU-friendlier than larger GaMS variants \cite{GaMS1B}.
 Until GaMS is served through Open WebUI or a compatible local endpoint, the repository keeps deterministic offline tests and Ollama/Open WebUI fallbacks.
 The final Open WebUI option documented in the repository wraps the best currently runnable model with the selected strict prompt and deterministic settings.
 Fine-tuning data preparation exists only as an exploratory artifact; it is not used for the final claim.
+This is a deliberate trade-off: LoRA could teach style or answer format, but it would not solve source freshness, and a legal assistant should prefer retrieved current law over remembered parameters.
 
 \section*{Evaluation}
 We evaluate retrieval and answer quality separately.
+The test set has 20 questions: 12 factual employment-law questions, 4 ambiguous in-domain questions, and 4 out-of-domain or unsupported questions.
 Retrieval metrics are answerable Hit@3, false-evidence rate for unanswerable questions, and average context length.
 Answer metrics are correctness, grounding, completeness, clarity, hallucination, and refusal accuracy.
 The judge has an offline fallback so that the repository remains reproducible when no local model server is available.
@@ -78,7 +88,7 @@ The judge has an offline fallback so that the repository remains reproducible wh
 \toprule
 \textbf{Configuration} & \textbf{Hit@3} & \textbf{False ev.} & \textbf{Ctx. words} \\
 \midrule
-\textbf{Curated RAG} & \textbf{1.000} & \textbf{0.000} & \textbf{200.4} \\
+\textbf{Curated RAG} & \textbf{1.000} & \textbf{0.000} & \textbf{199.2} \\
 COLESLAW sample & 0.813 & 0.000 & 555.3 \\
 \bottomrule
 \end{tabular}
@@ -100,15 +110,45 @@ Baseline & 1.85 & 0.20 & 1.00 \\
 \label{tab:answers}
 \end{table}
 
+\begin{table}[ht]
+\caption{Manual review of the final Open WebUI model over all 20 evaluation questions.}
+\centering
+\small
+\begin{tabular}{lc}
+\toprule
+\textbf{Manual check} & \textbf{Result} \\
+\midrule
+Correct or appropriate refusal & \textbf{17/20} \\
+Correct factual answers & 10/12 \\
+Supported citations & 7/11 \\
+Out-of-domain refusals & \textbf{4/4} \\
+Ambiguous-question refusals & 3/4 \\
+\bottomrule
+\end{tabular}
+\label{tab:manual}
+\end{table}
+
 The main result is that corpus quality matters more than corpus size.
 The curated legal chunks retrieve the expected law for nearly all answerable questions and avoid false support for out-of-scope questions.
 The larger COLESLAW extraction improves breadth, but even after token normalization it retrieves too much case law for statutory questions.
 The strict prompt improves correctness, grounding, and refusal behavior on the curated corpus, although generation can still misread retrieved legal text.
 On the curated optimization sample, strict RAG improved offline correctness from 0.70 to 3.15 and reduced hallucination from 4.20 to 0.85.
 A manual Open WebUI spot-check of all 20 evaluation questions found 17 correct or appropriately refused answers; the remaining failures were generation errors on fixed-term contracts, sick-pay after 20 working days, and one ambiguous leave question.
+These errors are not retrieval failures: the correct chunks were present, but the generator either over-refused or reversed a condition.
+
+\section*{Reproducibility and Compliance}
+The final submission requirements are covered by repository evidence rather than by the report alone.
+The README gives setup and reproduction commands, the requirements file lists runtime dependencies, and the example environment file documents optional model endpoints without committing secrets.
+The curated chunks, evaluation questions, and generated result files make the current claims inspectable.
+The scripts compile, JSON configuration files validate, retrieval can be regenerated offline, and the report builds with \texttt{latexmk}.
+
+The grading guidelines ask for a final report with analyses and discussion, a fully reproducible repository, readable results, sensible measures, and clear limitations.
+The main compliance choices are therefore explicit: one implemented solution is RAG; fine-tuning is marked exploratory; COLESLAW is linked and transformation scripts are included; official sources are monitored; retrieval and generation are evaluated separately; and remaining failures are documented instead of hidden.
+Peer review is the only major course obligation outside this repository.
 
 \section*{Limitations and Future Work}
 The project does not yet implement a production standalone app; the app design is documented separately and recommends a PWA before Tauri or Flutter.
+The biggest technical limitation is corpus size: 14 curated chunks are enough for controlled evaluation, but not enough for real legal coverage.
 The next highest-impact RAG work is article-level PISRS ingestion, source-priority reranking, citation validation, and expansion of the evaluation set with more current-law and out-of-scope examples.
 Dense embeddings and reranking are promising, but should be added only after the official corpus is clean and monitored.
 Fine-tuning remains a future option if RAG and prompting stop improving grounded correctness.

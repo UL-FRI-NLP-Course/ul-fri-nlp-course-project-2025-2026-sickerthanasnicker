@@ -14,7 +14,7 @@ The repository currently has two different RAG corpora:
 
 | Corpus | Size | Main content | Current retrieval result |
 | --- | ---: | --- | --- |
-| `report/code/data/chunk.jsonl` | 14 chunks | Curated ZDR-1/ZMinP snippets | Answerable Hit@3 `1.000`, false evidence rate `0.000`, average context `200.4` words |
+| `report/code/data/chunk.jsonl` | 14 chunks | Curated ZDR-1/ZMinP snippets | Answerable Hit@3 `1.000`, false evidence rate `0.000`, average context `199.2` words |
 | `evaluation/optimizations/data/coleslaw_employment_chunks.jsonl` | 500 chunks | 398 `sp_courts`, 96 journalist collective agreement chunks, 6 constitutional-decision chunks | Answerable Hit@3 `0.813`, false evidence rate `0.000`, average context `555.3` words |
 
 Conclusion: the curated corpus is small but much safer for the current test set. The COLESLAW extraction is useful for a demo case-law index, but it should not be the primary legal source because it over-retrieves old case law and sector-specific collective-agreement text.
@@ -183,7 +183,7 @@ What does not work well yet: using the current 500-chunk COLESLAW extraction as 
 
 Historical answer and fine-tuning artifacts that were generated before the latest corpus corrections should be treated as stale unless they are regenerated in the current run. The final claims use the corrected questions, corrected curated chunks, normalized BM25 retrieval summaries, deployed Open WebUI wrapper smoke tests, offline diagnostic smoke tests, manual review, and official source monitor snapshot.
 
-Regenerated deployed-wrapper result for the corrected curated corpus, judged by the deterministic offline judge: RAG improved correctness from `1.85` to `2.85`, improved grounding from `1.00` to `3.95`, and reached `1.00` refusal accuracy on unanswerable questions. Normalized BM25 retrieval reached `1.000` answerable Hit@3 and `0.000` false-evidence rate with `200.4` average context words.
+Regenerated deployed-wrapper result for the corrected curated corpus, judged by the deterministic offline judge: RAG improved correctness from `1.85` to `2.85`, improved grounding from `1.00` to `3.95`, and reached `1.00` refusal accuracy on unanswerable questions. Normalized BM25 retrieval reached `1.000` answerable Hit@3 and `0.000` false-evidence rate with `199.2` average context words.
 
 Strict top-1 retrieval is weaker: `python evaluation/retrieval_eval.py --quiet --top-k 1 --output /tmp/retrieval_top1.jsonl` reports answerable Hit@1 `0.938`. In the current repository state the failing top-1 item is `q015` ("Ali me lahko odpustijo?"), while `q011` ("Kakšne so omejitve nadurnega dela?") retrieves `ZDR-1, čl. 143` at rank 1. The final report therefore uses `Hit@3` explicitly rather than an ambiguous "hit rate" label.
 

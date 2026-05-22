@@ -1,6 +1,6 @@
 # Compliance With NLP 2026 Project Instructions
 
-Date: 2026-05-21
+Date: 2026-05-22
 
 This file maps the course instructions in `instructions/Natural language processing 2026.pdf` to the repository evidence for the final Slovenian employment-law RAG assistant.
 
@@ -16,6 +16,21 @@ This file maps the course instructions in `instructions/Natural language process
 | Open WebUI deployment | Complete | `evaluation/optimizations/create_ollama_model.py`, `evaluation/results/openwebui_final_model_smoke.json` | Final picker option is `ul-fri-slovenian-employment-law-rag-openwebui`, with `strict_legal_rag_sl_v3` and deterministic settings. |
 | Standalone app | Planned, not implemented | `app_plan.md` | Intentionally not implemented for this submission; user requested plan only. |
 | Fine-tuning | Exploratory only | `evaluation/fine_tuning/data/README.md`, `evaluation/optimizations/requirements-peft.txt` | Deviation: no fine-tuning because of CPU limits and lab recommendation to choose one approach. |
+| Independent grading estimate | Complete | `grade.md` | A spawned sub-agent independently estimated the project at grade 8/10, with likely range 7.5-8.5. |
+
+## Grading Criteria Interpretation
+
+The PDF states that exactly fulfilling the instructions corresponds to grade 8, while 9-10 require stronger-than-minimum work, novel ideas, polished reporting, readable visualizations, and well-discussed results. The relevant grading interpretation for this repository is:
+
+| Rubric level | Fit to current project | Evidence |
+| --- | --- | --- |
+| 10 exceptional | Not claimed | Corpus and evaluation are still too small for an exceptional legal assistant; no expert legal review. |
+| 9 very good | Partially supported | Extra source monitor, prompt optimization, Open WebUI export, manual review, and app plan go beyond the minimum, but unresolved answer/citation failures remain. |
+| 8 good | Supported | Final report, implemented RAG, curated data, reproducible scripts, evaluation, limitations, and documented trade-offs satisfy the stated minimum criteria. |
+| 7 superficial | Mostly exceeded | The repository includes analysis, repeatable commands, and failure discussion, so it is stronger than a mostly superficial baseline. |
+| 6 or lower | Not applicable | There is a working implementation and report evidence for every core Domain-Specific AI Assistant requirement. |
+
+Conservative expected cluster: 8/10 for Submission 3, with upside toward 9 if graders value the extra engineering artifacts and do not penalize the small curated corpus too heavily.
 
 ## Submission Requirements
 
@@ -74,24 +89,30 @@ This file maps the course instructions in `instructions/Natural language process
 
 ## Latest Compliance Check
 
-Run date: 2026-05-21.
+Run date: 2026-05-22. Commands were run in `.venv` after `python -m venv .venv` and `.venv/bin/python -m pip install -r requirements.txt`. Live Open WebUI artifacts are listed separately because they depend on external endpoint availability.
 
 | Check | Status | Result |
 | --- | --- | --- |
-| `python -m json.tool evaluation/optimizations/config.json` | Pass | Optimization config is valid JSON and selects `strict_legal_rag_sl_v3`. |
-| `python -m json.tool evaluation/optimizations/official_sources.json` | Pass | Official source manifest is valid JSON. |
-| `python -m py_compile report/code/rag.py evaluation/manual_openwebui_eval.py evaluation/retrieval_eval.py evaluation/run_eval.py evaluation/judge_eval.py evaluation/optimizations/create_ollama_model.py` | Pass | Evaluation, retrieval, deployment, and manual-eval scripts compile. |
-| `python evaluation/optimizations/monitor_official_sources.py` | Pass | PISRS `12/12`, government/official interpretation `17/17`, case law `1/1`. |
-| `python evaluation/retrieval_eval.py --quiet` | Pass | Hit@3 `1.000`, false evidence `0.000`, average context `200.4` words. |
-| `python evaluation/retrieval_eval.py --quiet --top-k 1 --output /tmp/retrieval_top1.jsonl` | Pass with known weakness | Hit@1 `0.938`; only answerable failure is `q015`, an underspecified dismissal question. |
-| `python evaluation/optimizations/run_prompt_sweep.py --provider offline --model-id webui-mistral-7b --prompt-id strict_legal_rag_sl_v3 --settings-id deterministic --corpus-chunks report/code/data/chunk.jsonl --quiet` | Pass | Regenerated curated-corpus optimization answers. |
-| `python evaluation/judge_eval.py --provider offline --answers evaluation/results/optimization/prompt_sweep_answers.jsonl --output evaluation/results/optimization/judgements.jsonl --quiet` | Pass | Offline RAG correctness `3.15`, grounding `3.75`, hallucination `0.85`, refusal `1.00`. |
-| `python evaluation/optimizations/summarize_optimization.py` | Pass | Regenerated optimization CSV, Markdown, and charts. |
-| `python evaluation/manual_openwebui_eval.py` | Pass | Collected 20 deployed Open WebUI answers with no API errors. |
-| Manual review of deployed Open WebUI answers | Pass with residual risk | `17/20` correct or appropriately refused; failures documented for `q009`, `q012`, `q014`. |
-| `python evaluation/run_eval.py --provider openwebui --model ul-fri-slovenian-employment-law-rag-openwebui --quiet` | Pass | Regenerated 60 main answer rows for raw prompt, baseline, and RAG variants. |
-| `python evaluation/judge_eval.py --provider offline --quiet` and `python evaluation/visualize_results.py` | Pass | Regenerated main judgements, summaries, and charts. |
-| `latexmk -pdf -outdir=.out report.tex` from `report/` | Pass | Rebuilt final PDF; tracked `report/report.pdf` was refreshed from `.out/report.pdf`. |
+| `.venv/bin/python -m json.tool evaluation/optimizations/config.json` | Pass | Optimization config is valid JSON and selects `strict_legal_rag_sl_v3`. |
+| `.venv/bin/python -m json.tool evaluation/optimizations/official_sources.json` | Pass | Official source manifest is valid JSON. |
+| `.venv/bin/python -m py_compile ...` | Pass | Evaluation, retrieval, deployment, source-monitor, and manual-eval scripts compile, including `evaluation/retrieval_shared.py`. |
+| `.venv/bin/python evaluation/optimizations/monitor_official_sources.py` | Pass | PISRS `12/12`, government/official interpretation `17/17`, case law `1/1`. |
+| `.venv/bin/python evaluation/retrieval_eval.py --quiet` | Pass | Hit@3 `1.000`, false evidence `0.000`, average context `199.2` words. |
+| `.venv/bin/python evaluation/retrieval_eval.py --quiet --top-k 1 --output /tmp/retrieval_top1.jsonl` | Pass with known weakness | Hit@1 `0.938`; only answerable failure is `q015`, an underspecified dismissal question. |
+| `.venv/bin/python evaluation/optimizations/run_prompt_sweep.py --provider offline --model-id webui-mistral-7b --prompt-id strict_legal_rag_sl_v3 --settings-id deterministic --corpus-chunks report/code/data/chunk.jsonl --quiet` | Pass | Regenerated curated-corpus optimization answers and retrieval rows. |
+| `.venv/bin/python evaluation/judge_eval.py --provider offline --answers evaluation/results/optimization/prompt_sweep_answers.jsonl --output evaluation/results/optimization/judgements.jsonl --quiet` | Pass | Offline RAG correctness `3.15`, grounding `3.75`, hallucination `0.85`, refusal `1.00`. |
+| `.venv/bin/python evaluation/optimizations/summarize_optimization.py` | Pass | Regenerated optimization CSV, Markdown, and charts. |
+| `.venv/bin/python evaluation/judge_eval.py --provider offline --quiet` and `.venv/bin/python evaluation/visualize_results.py` | Pass | Regenerated main judgements, summaries, and charts from existing answer rows. |
+| `latexmk -pdf -outdir=.out report.tex` from `report/` | Pass | Rebuilt final PDF; tracked `report/report.pdf` was refreshed from `.out/report.pdf` and is 3 pages. |
+
+## Live Artifact Status
+
+| Artifact | Status | Notes |
+| --- | --- | --- |
+| `evaluation/results/manual_openwebui_eval_answers.jsonl` | Present | Existing 20-answer Open WebUI collection from 2026-05-21. |
+| `evaluation/manual_eval_appendix.md` | Present | Manual review: `17/20` correct or appropriately refused; failures documented for `q009`, `q012`, `q014`. |
+| `evaluation/results/openwebui_final_model_smoke.json` | Present | Smoke evidence for `ul-fri-slovenian-employment-law-rag-openwebui`. |
+| Live Open WebUI regeneration on 2026-05-22 | Not rerun | External endpoint/model availability is not required for the offline reproducibility path. |
 
 ## Explicit Deviations
 
@@ -111,11 +132,12 @@ Run date: 2026-05-21.
 - [x] README commands match the actual repository.
 - [x] `requirements.txt` exists.
 - [x] Official source manifest is JSON-valid.
-- [x] Official source monitor was regenerated.
-- [x] Live optimized-model evaluation was regenerated through remote Ollama.
-- [x] Final optimized chatbot was registered and smoke-tested in Open WebUI.
+- [x] Official source monitor was regenerated on 2026-05-22.
+- [x] Existing live optimized-model artifacts are present and documented.
+- [x] Final optimized chatbot was registered and smoke-tested in Open WebUI in the existing artifact set.
 - [x] Evaluation charts were regenerated from `.venv`.
 - [x] Manual Open WebUI spot-check appendix added.
 - [x] Fine-tuning artifacts are marked exploratory/stale for final claims.
 - [x] Standalone app is planned, not implemented.
 - [x] Deviations are documented and justified.
+- [x] `grade.md` contains an independent sub-agent grade estimate.

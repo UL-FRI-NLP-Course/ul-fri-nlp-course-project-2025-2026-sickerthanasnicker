@@ -23,7 +23,7 @@ uses `top_k=3` and currently reports:
 
 - answerable hit rate / Hit@3: `1.000`;
 - unanswerable false-evidence rate: `0.000`;
-- average context length: `200.4` words.
+- average context length: `199.2` words.
 
 A stricter diagnostic run with `--top-k 1` reports answerable Hit@1 `0.938`.
 In the current repository state, the Hit@1 failure is `q015` ("Ali me lahko

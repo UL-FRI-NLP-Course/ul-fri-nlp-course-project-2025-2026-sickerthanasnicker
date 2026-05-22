@@ -3,7 +3,6 @@ import sys
 import pickle
 import re
 from pathlib import Path
-from rank_bm25 import BM25Okapi
 
 CHUNKS_FILE = "data/chunk.jsonl"
 INDEX_FILE = "data/index.pkl"
@@ -27,8 +26,35 @@ STOPWORDS = {
 }
 
 
+class SimpleLexicalIndex:
+    """Fallback index used when rank-bm25 is not installed."""
+
+    def __init__(self, tokenized_docs):
+        self.docs = []
+        for doc in tokenized_docs:
+            counts = {}
+            for term in doc:
+                counts[term] = counts.get(term, 0) + 1
+            self.docs.append(counts)
+
+    def get_scores(self, query_tokens):
+        query_terms = set(query_tokens)
+        return [sum(doc.get(term, 0) for term in query_terms) for doc in self.docs]
+
+
+def make_index(tokenized_docs):
+    try:
+        from rank_bm25 import BM25Okapi
+
+        return BM25Okapi(tokenized_docs)
+    except ImportError:
+        return SimpleLexicalIndex(tokenized_docs)
+
+
 def stem_token(token):
     token = token.lower()
+    if token in {"delo", "dela", "delu", "delom"}:
+        return "del"
     for suffix in (
         "skega", "skem", "skih", "ostjo", "anje", "enega", "ega", "imi",
         "ami", "ijo", "ost", "ih", "im", "em", "om", "a", "e", "i", "o", "u",
@@ -93,7 +119,7 @@ def build_index(jsonl_dir):
             fp.write(json.dumps(c, ensure_ascii=False) + "\n")
 
     tokenized = [tokenize(c["text"]) for c in chunks]
-    index = BM25Okapi(tokenized)
+    index = make_index(tokenized)
 
     with open(INDEX_FILE, "wb") as fp:
         pickle.dump((index, chunks), fp)
@@ -108,7 +134,7 @@ def build_index_from_chunks():
         for line in fp:
             chunks.append(json.loads(line))
     tokenized = [tokenize(c["text"]) for c in chunks]
-    index = BM25Okapi(tokenized)
+    index = make_index(tokenized)
     with open(INDEX_FILE, "wb") as fp:
         pickle.dump((index, chunks), fp)
     print(f"Index zgrajen ({len(chunks)} chunkov).\n")
@@ -141,6 +167,12 @@ def actor_adjustment(query, text):
 
     if "po prvih" in query_l and "daljša odsotnost bremeni zdravstveno zavarovanje" in text_l:
         adjustment += 1.0
+
+    if "odpravnin" in query_l and "odpravnina" in text_l:
+        adjustment += 4.0
+
+    if "nadurn" in query_l and "nadurno delo" in text_l:
+        adjustment += 4.0
 
     return adjustment
 

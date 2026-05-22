@@ -27,7 +27,8 @@ def load_chunks(path=CHUNKS_FILE):
 
 
 def build_index(chunks):
-    tokenized = [content_terms(chunk["text"]) for chunk in chunks]
+    tokenizer = load_project_tokenizer() or content_terms
+    tokenized = [tokenizer(chunk["text"]) for chunk in chunks]
     try:
         from rank_bm25 import BM25Okapi
 
@@ -47,8 +48,20 @@ def load_project_search():
         return None
 
 
+def load_project_tokenizer():
+    if str(REPORT_CODE_DIR) not in sys.path:
+        sys.path.insert(0, str(REPORT_CODE_DIR))
+    try:
+        from rag import tokenize
+
+        return tokenize
+    except Exception:
+        return None
+
+
 def fallback_search(query, index, chunks, top_k=3):
-    scores = index.get_scores(content_terms(query))
+    tokenizer = load_project_tokenizer() or content_terms
+    scores = index.get_scores(tokenizer(query))
     ranked = sorted(enumerate(scores), key=lambda item: item[1], reverse=True)[:top_k]
     return [(chunks[i], round(float(score), 3)) for i, score in ranked]
 

@@ -19,7 +19,7 @@ These results are separate from the main reproducible evaluation. They compare s
 
 - Answerable hit rate: 1.000
 - Unanswerable false evidence rate: 0.000
-- Average context length: 200.4 words
+- Average context length: 199.2 words
 
 ## Charts
 

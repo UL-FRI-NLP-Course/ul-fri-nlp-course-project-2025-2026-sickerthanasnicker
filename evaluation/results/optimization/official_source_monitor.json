@@ -1,6 +1,6 @@
 {
-  "retrieved_at": "2026-05-21T18:26:57+00:00",
-  "manifest": "/home/tibor/Repos/ul-fri-nlp-course-project-2025-2026-sickerthanasnicker/evaluation/optimizations/official_sources.json",
+  "retrieved_at": "2026-05-22T10:14:10+00:00",
+  "manifest": "/home/tibor/repos/ul-fri-nlp-course-project-2025-2026-sickerthanasnicker/evaluation/optimizations/official_sources.json",
   "pisrs_filter_url": "https://pisrs.si/api/filter/filter",
   "summary": {
     "pisrs_sources": 12,
