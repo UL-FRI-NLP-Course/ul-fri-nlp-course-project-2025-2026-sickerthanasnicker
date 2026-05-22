@@ -21,7 +21,7 @@ The pipeline is designed to demonstrate four things:
 
 ## Files
 
-- `questions.jsonl`: 20 factual, ambiguous, and unanswerable questions.
+- `questions.jsonl`: 40 factual, ambiguous, and unanswerable questions.
 - `config.json`: default provider/model settings and arena model list.
 - `config.example.env`: example environment variables without secrets.
 - `list_models.py`: lists Ollama or Open WebUI models.
@@ -31,7 +31,7 @@ The pipeline is designed to demonstrate four things:
 - `vote_eval.py`: ranks existing answers with anonymized model voting and self-bias metrics.
 - `visualize_results.py`: creates charts and a Markdown report.
 - `fine_tuning/prepare_dataset.py`: prepares grounded QA JSONL for later fine-tuning.
-- `optimizations/`: separate correctness-improvement experiments for prompt sweeps, COLESLAW preprocessing, PEFT data prep, and Open WebUI preset export.
+- `optimizations/`: separate correctness-improvement experiments for official corpus building, prompt sweeps, COLESLAW preprocessing, PEFT data prep, and Open WebUI preset export.
 
 Generated outputs are written to `evaluation/results/`.
 
@@ -81,13 +81,22 @@ python evaluation/list_models.py --provider openwebui
 Install dependencies if needed:
 
 ```bash
-pip install rank-bm25 matplotlib python-dotenv
+pip install -r requirements.txt
 ```
 
 Run retrieval evaluation:
 
 ```bash
 python evaluation/retrieval_eval.py
+```
+
+Rebuild the official corpus:
+
+```bash
+python evaluation/optimizations/build_official_corpus.py \
+  --output report/code/data/chunk.jsonl \
+  --include-case-law \
+  --max-case-law-chunks 30
 ```
 
 Run default local Llama evaluation:
@@ -257,7 +266,7 @@ This step does not run expensive fine-tuning. It creates chat-style examples tha
 Optimization experiments are kept separate from the main evaluation outputs:
 
 ```bash
-python evaluation/optimizations/prepare_corpus.py --limit 500
+python evaluation/optimizations/build_official_corpus.py --include-case-law --max-case-law-chunks 30
 python evaluation/optimizations/run_prompt_sweep.py --limit 2 --provider offline
 python evaluation/judge_eval.py \
   --answers evaluation/results/optimization/prompt_sweep_answers.jsonl \

@@ -1,4 +1,4 @@
-model_id,model_label,variant,n,correctness,grounding,completeness,clarity,hallucination,refusal_accuracy
-openwebui-ul-fri-slovenian-employment-law-rag-openwebui,openwebui-ul-fri-slovenian-employment-law-rag-openwebui,baseline,20,1.85,1.0,1.85,5.0,0.2,1.0
-openwebui-ul-fri-slovenian-employment-law-rag-openwebui,openwebui-ul-fri-slovenian-employment-law-rag-openwebui,rag,20,2.85,3.95,2.85,5.0,0.75,1.0
-raw-rag-prompt,raw RAG prompt,raw_rag_prompt,20,1.8,4.9,1.8,3.1,0.0,1.0
+model_id,model_label,variant,n,correctness,grounding,completeness,clarity,hallucination,supported_citation_rate,refusal_accuracy
+offline-llama3:latest,offline-llama3:latest,baseline,40,0.5,0.125,0.5,5.0,4.125,0.0,0.0
+offline-llama3:latest,offline-llama3:latest,rag,40,2.95,4.825,2.95,4.85,1.675,1.0,1.0
+raw-rag-prompt,raw RAG prompt,raw_rag_prompt,40,1.5,5.0,1.5,3.25,0.0,0.0,1.0

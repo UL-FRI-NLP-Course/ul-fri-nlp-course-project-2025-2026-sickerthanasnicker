@@ -279,9 +279,22 @@ def section_chunks_from_html(html, item, retrieved_at):
     for tag in soup(["script", "style", "noscript", "header", "footer", "nav", "form", "svg"]):
         tag.decompose()
     container = soup.find("main") or soup.body or soup
-    elements = container.find_all(["h1", "h2", "h3", "h4", "p", "li"])
 
     sections = []
+    special_blocks = container.select(".answer-text, .faqAnswer, .question-text, .text")
+    for block in special_blocks:
+        text = clean_text(block.get_text(" ", strip=True))
+        if meaningful_section(text):
+            heading = item.get("title", "")
+            previous_heading = block.find_previous(["h1", "h2", "h3", "h4"])
+            if previous_heading:
+                heading = clean_text(previous_heading.get_text(" ", strip=True)) or heading
+            sections.append((heading, text))
+
+    if sections:
+        return make_section_chunks(sections, item, retrieved_at)
+
+    elements = container.find_all(["h1", "h2", "h3", "h4", "p", "li"])
     heading = item.get("title", "")
     parts = []
 
@@ -307,6 +320,10 @@ def section_chunks_from_html(html, item, retrieved_at):
         if meaningful_section(text):
             sections = [(item.get("title", ""), text)]
 
+    return make_section_chunks(sections, item, retrieved_at)
+
+
+def make_section_chunks(sections, item, retrieved_at):
     chunks = []
     for heading, text in sections:
         for index, chunk_text in enumerate(chunk_words(text, size=180, overlap=30), start=1):

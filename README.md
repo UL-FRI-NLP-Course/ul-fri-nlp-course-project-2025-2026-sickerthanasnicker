@@ -8,15 +8,15 @@ The selected approach is retrieval-augmented generation (RAG). We do not fine-tu
 
 Implemented:
 
-- curated BM25 RAG corpus in `report/code/data/chunk.jsonl`;
+- expanded official RAG corpus in `report/code/data/chunk.jsonl`;
+- official corpus builder in `evaluation/optimizations/build_official_corpus.py`;
 - retrieval and answer-evaluation pipeline in `evaluation/`;
 - RAG optimization track with strict Slovenian legal system prompts in `evaluation/optimizations/`;
-- official source manifest and monitor for PISRS, GOV.SI, MDDSZ, IRSD, eUprava, SPOT, ESS, OPSI, and sodnapraksa.si;
+- official source manifest and monitor for PISRS, GOV.SI, MDDSZ, ZZZS, IRSD, eUprava, SPOT, ESS, OPSI, and sodnapraksa.si;
 - Open WebUI/Ollama export files for the selected strict RAG prompt;
-- standalone app design plan in `app_plan.md`;
 - grading and instruction compliance ledger in `compliance.md`.
 
-The best current result is strict RAG over the curated primary-law chunks. The COLESLAW extraction is kept as secondary/case-law support because the current 500-chunk sample is dominated by case law and old sector-specific material.
+The best current result is strict RAG over an official-plus-case-law corpus built from current official sources. The committed corpus contains 1,371 chunks: 1,059 PISRS article chunks, 189 official interpretation chunks, 93 official operational-guidance chunks, and 30 tertiary COLESLAW/sodnapraksa case-law chunks. Case law is suppressed for statutory questions unless the question asks for practice or interpretation.
 
 ## Setup
 
@@ -51,16 +51,23 @@ python -m json.tool evaluation/optimizations/official_sources.json >/tmp/officia
 python evaluation/optimizations/monitor_official_sources.py
 ```
 
-Evaluate retrieval on the curated RAG corpus:
+Rebuild the official RAG corpus:
+
+```bash
+python evaluation/optimizations/build_official_corpus.py \
+  --output report/code/data/chunk.jsonl \
+  --include-case-law \
+  --max-case-law-chunks 30
+```
+
+Evaluate retrieval on the committed RAG corpus:
 
 ```bash
 python evaluation/retrieval_eval.py
 python evaluation/retrieval_eval.py --quiet --top-k 1 --output /tmp/retrieval_top1.jsonl
 ```
 
-The main reported retrieval number is Hit@3. The top-1 command is a stricter
-diagnostic and is documented separately when it exposes ambiguous-question
-weaknesses.
+The main reported retrieval number is Hit@3. The current 40-question set reports Hit@3 `1.000`, false evidence `0.000`, and average context length `448.6` words. The top-1 command is a stricter diagnostic.
 
 Run deterministic offline generation and judging smoke tests:
 
@@ -70,10 +77,7 @@ python evaluation/judge_eval.py --provider offline
 python evaluation/visualize_results.py
 ```
 
-Manual spot-check evidence for the final Open WebUI model is in
-`evaluation/manual_eval_appendix.md`, with raw outputs in
-`evaluation/results/manual_openwebui_eval_answers.jsonl` and manual labels in
-`evaluation/results/manual_openwebui_eval_judgements.jsonl`.
+Manual/offline review notes are in `evaluation/manual_eval_appendix.md`. Existing Open WebUI raw outputs remain historical artifacts because live endpoint availability is external to the offline reproducibility path.
 
 Refresh the manual answer collection from the deployed Open WebUI model:
 
@@ -112,7 +116,6 @@ If `latexmk` is unavailable, open the tracked `report/report.pdf` or compile wit
 
 ```text
 .
-├── app_plan.md
 ├── compliance.md
 ├── evaluation/
 │   ├── questions.jsonl
@@ -121,7 +124,9 @@ If `latexmk` is unavailable, open the tracked `report/report.pdf` or compile wit
 │   ├── retrieval_eval.py
 │   ├── results/
 │   └── optimizations/
+│       ├── build_official_corpus.py
 │       ├── config.json
+│       ├── data/official_employment_summary.json
 │       ├── official_sources.json
 │       ├── monitor_official_sources.py
 │       └── rag_optimization_report.md
@@ -140,9 +145,11 @@ If `latexmk` is unavailable, open the tracked `report/report.pdf` or compile wit
 The answer corpus should use official sources only:
 
 1. PISRS statutes and consolidated texts are canonical.
-2. GOV.SI, MDDSZ, IRSD, eUprava, SPOT, ESS, and OPSI are official explanations or operational registers.
-3. `sodnapraksa.si` and COLESLAW case-law chunks are secondary demo support only.
+2. GOV.SI, MDDSZ, ZZZS, IRSD, eUprava, SPOT, ESS, and OPSI are official explanations or operational registers.
+3. `sodnapraksa.si` and COLESLAW case-law chunks are tertiary support only.
 4. Private legal portals, blogs, forums, and unofficial summaries are excluded from grounded answers.
+
+Retrieval reranking follows `primary_law > official_interpretation > official_operational_guidance > official_case_law`. Case-law chunks are kept out of statutory top results unless the question asks about practice, courts, or interpretation.
 
 ## Model Choice
 

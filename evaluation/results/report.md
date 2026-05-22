@@ -2,17 +2,17 @@
 
 ## Answer Scores
 
-| model_id | model_label | variant | n | correctness | grounding | completeness | clarity | hallucination | refusal_accuracy |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| openwebui-ul-fri-slovenian-employment-law-rag-openwebui | openwebui-ul-fri-slovenian-employment-law-rag-openwebui | baseline | 20 | 1.85 | 1.00 | 1.85 | 5.00 | 0.20 | 1.00 |
-| openwebui-ul-fri-slovenian-employment-law-rag-openwebui | openwebui-ul-fri-slovenian-employment-law-rag-openwebui | rag | 20 | 2.85 | 3.95 | 2.85 | 5.00 | 0.75 | 1.00 |
-| raw-rag-prompt | raw RAG prompt | raw_rag_prompt | 20 | 1.80 | 4.90 | 1.80 | 3.10 | 0.00 | 1.00 |
+| model_id | model_label | variant | n | correctness | grounding | completeness | clarity | hallucination | supported_citation_rate | refusal_accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| offline-llama3:latest | offline-llama3:latest | baseline | 40 | 0.50 | 0.12 | 0.50 | 5.00 | 4.12 | 0.00 | 0.00 |
+| offline-llama3:latest | offline-llama3:latest | rag | 40 | 2.95 | 4.83 | 2.95 | 4.85 | 1.68 | 1.00 | 1.00 |
+| raw-rag-prompt | raw RAG prompt | raw_rag_prompt | 40 | 1.50 | 5.00 | 1.50 | 3.25 | 0.00 | 0.00 | 1.00 |
 
 ## Retrieval
 
 - Answerable hit rate: 1.000
 - Unanswerable false evidence rate: 0.000
-- Average context length: 199.2 words
+- Average context length: 448.6 words
 
 
 ## Charts

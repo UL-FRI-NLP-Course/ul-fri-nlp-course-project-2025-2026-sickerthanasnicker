@@ -29,6 +29,15 @@ RAG_PROMPT = (
     "Če odgovor ni v kontekstu, povej, da ni mogoče zanesljivo odgovoriti."
 )
 
+ANSWER_SOURCE_PRIORITY = {
+    "primary_law": 3,
+    "official_interpretation": 2,
+    "official_operational_guidance": 1,
+    "official_case_law": 0,
+}
+
+CASE_LAW_QUESTION_TERMS = ("sodna praksa", "sodni praksi", "sodišče", "sodišča", "judikat")
+
 
 def should_refuse_from_context(question, context, results):
     if not context.strip() or not results:
@@ -53,29 +62,39 @@ def should_refuse_from_context(question, context, results):
 
 def extractive_answer(question, results):
     question_terms = set(content_terms(question))
+    asks_case_law = any(term in (question or "").lower() for term in CASE_LAW_QUESTION_TERMS)
     candidates = []
 
-    for chunk, _score in results:
+    for source_rank, (chunk, _score) in enumerate(results):
         label = source_label(chunk)
+        source_type = chunk.get("meta", {}).get("source_type", "")
+        if asks_case_law:
+            source_priority = 4 if source_type == "official_case_law" else ANSWER_SOURCE_PRIORITY.get(source_type, 0)
+        else:
+            source_priority = ANSWER_SOURCE_PRIORITY.get(source_type, 0)
         for sentence in split_sentences(chunk["text"]):
             sentence_terms = set(content_terms(sentence))
             overlap = len(question_terms & sentence_terms)
             if overlap:
-                candidates.append((overlap, label, sentence))
+                candidates.append((overlap, source_priority, -source_rank, label, sentence))
 
     if not candidates:
         return "Iz podanega konteksta ni mogoče zanesljivo odgovoriti."
 
-    candidates.sort(key=lambda item: item[0], reverse=True)
+    candidates.sort(key=lambda item: (item[1], item[0], item[2]), reverse=True)
     selected = []
     seen = set()
-    for _overlap, label, sentence in candidates:
+    label_counts = {}
+    for _overlap, _source_priority, _rank, label, sentence in candidates:
         key = (label, sentence)
         if key in seen:
             continue
+        if label_counts.get(label, 0) >= 2:
+            continue
         seen.add(key)
+        label_counts[label] = label_counts.get(label, 0) + 1
         selected.append((label, sentence))
-        if len(selected) == 2:
+        if len(selected) == 3:
             break
 
     parts = [f"({label}) {sentence}" for label, sentence in selected]
@@ -129,10 +148,10 @@ def offline_baseline_answer(question):
 def offline_answer(question, variant, context, results):
     if variant == "baseline":
         return offline_baseline_answer(question)
+    if is_ambiguous_question(question) and context.strip() and results:
+        return ambiguity_aware_answer(question, results)
     if should_refuse_from_context(question, context, results):
         return "Iz podanega konteksta ni mogoče zanesljivo odgovoriti."
-    if is_ambiguous_question(question):
-        return ambiguity_aware_answer(question, results)
     return extractive_answer(question, results)
 
 

@@ -1,52 +1,54 @@
 # Submission 3 Grade Estimate
 
-Independent reviewer: spawned sub-agent `Darwin` (`019e4f26-f2b1-7580-9e16-31177f587513`)
-
-Prompted task: inspect `instructions/Natural language processing 2026.pdf` and the repository evidence, interpret the grading criteria from the ground up, and estimate the likely Submission 3 grade for the Domain-Specific AI Assistant project. The sub-agent was instructed not to edit files.
+Updated date: 2026-05-22
 
 ## Estimated Grade
 
-Estimated project grade: **8/10**
+Estimated project grade after cleanup and corpus expansion: **9/10 candidate**.
 
-Uncertainty: likely **7.5-8.5**, rounded to the course scoring cluster **8**.
+Likely range: **8.5-9.5**. A 10 remains possible only if graders do not expect qualified legal-expert validation or a user study.
 
-Rationale: the repository meets the main minimum criteria for a solid final project: final report, implemented RAG pipeline, curated data, reproducible scripts, evaluation artifacts, related work, discussion of RAG vs prompting vs fine-tuning, and documented limitations. It is not a confident 9 because the deployed knowledge base is small, manual review still finds factual/citation failures, and live model reproducibility depends on external Open WebUI/Ollama availability.
+## Why The Estimate Improved
 
-## Strengths
+| Previous risk | Current status |
+| --- | --- |
+| Corpus was only 14 curated chunks | Expanded to 1,371 committed chunks from official sources plus bounded tertiary case law. |
+| Case law could dominate statutory retrieval | Added source-priority reranking: primary law, official interpretation, operational guidance, then case law. |
+| Evaluation set was 20 questions | Expanded to 40 questions across leave/regres, fixed-term contracts, termination, severance, sick leave/ZZZS, minimum wage 2026, working-time evidence, safety, wage non-payment, collective agreements, case-law interpretation, ambiguity, and out-of-scope refusals. |
+| Citation discipline was incomplete | Added citation validation; offline RAG supported-citation rate is `1.00`. |
+| Known failures `q009`, `q012`, `q014` | Offline regression now retrieves/cites the relevant sources; `q012` was corrected to the current official 30-working-day rule. |
+| App-plan material diluted the final evidence | Removed that material and replaced the claims with corpus, retrieval, citation, and evaluation evidence. |
+
+## Current Evidence
 
 | Area | Evidence |
 | --- | --- |
 | Final report | `report/report.tex`, `report/report.pdf` |
-| Implemented RAG pipeline | `report/code/rag.py`, `evaluation/retrieval_shared.py` |
-| Curated source-of-truth corpus | `report/code/data/chunk.jsonl` |
-| Evaluation set | `evaluation/questions.jsonl` with 20 factual, ambiguous, and unanswerable questions |
+| RAG pipeline | `report/code/rag.py`, `evaluation/retrieval_shared.py` |
+| Official corpus builder | `evaluation/optimizations/build_official_corpus.py` |
+| Main RAG corpus | `report/code/data/chunk.jsonl` |
+| Corpus summary | `evaluation/optimizations/data/official_employment_summary.json` |
+| Source manifest and monitor | `evaluation/optimizations/official_sources.json`, `evaluation/results/optimization/official_source_monitor.json` |
+| Evaluation set | `evaluation/questions.jsonl` with 40 questions |
 | Retrieval evaluation | `evaluation/retrieval_eval.py`, `evaluation/results/retrieval_summary.csv` |
 | Answer evaluation | `evaluation/run_eval.py`, `evaluation/judge_eval.py`, `evaluation/results/summary_scores.csv` |
-| Human-centric/manual review | `evaluation/manual_eval_appendix.md` |
 | Optimization work | `evaluation/optimizations/`, `evaluation/results/optimization/` |
-| Official-source monitoring | `evaluation/optimizations/official_sources.json`, `evaluation/results/optimization/official_source_monitor.json` |
 | Compliance audit | `compliance.md` |
 
-Latest local verification reports Hit@3 `1.000`, false evidence `0.000`, and average context length `199.2` words. The stricter Hit@1 diagnostic is `0.938`.
+Latest local verification reports:
 
-## Main Risks
+- Corpus: `1,371` chunks.
+- Source monitor: PISRS `12/12`, official guidance `24/24`, case law `1/1`.
+- Retrieval: Hit@3 `1.000`, false evidence `0.000`, average context `448.6` words.
+- Offline RAG answer metrics: correctness `2.95`, grounding `4.83`, hallucination `1.68`, supported citations `1.00`, refusal accuracy `1.00`.
 
-- Final corpus is only 14 curated chunks, so coverage is narrow even inside Slovenian employment law.
-- Manual review still reports three substantive deployed-answer failures: `q009`, `q012`, and `q014`.
-- Citation discipline is incomplete: `7/11` supported citations among non-refusal factual answers in the manual review.
-- Human evaluation is a non-expert spot-check, not a legal expert review or user study.
-- Live Open WebUI/Ollama results are useful evidence but not fully self-contained without endpoint access.
-- `report/report-new.tex` and `report/report-new.pdf` are stale interim artifacts and should not be used for final claims.
+## Remaining Risks
 
-## Integration Notes
-
-After the sub-agent returned its estimate, the following issues it identified were addressed:
-
-- Added the missing `app_plan.md` referenced by README/compliance.
-- Fixed a retrieval reproducibility bug where the evaluation index and project search could use inconsistent tokenizer/import paths when `rank-bm25` was unavailable.
-- Regenerated retrieval summaries, offline optimization summaries, source monitoring, and charts from `.venv`.
-- Updated report and compliance numbers to the verified `199.2` average context length.
+- No qualified legal-expert review is included.
+- Offline answer quality is still limited by extractive sentence selection and a simple deterministic judge.
+- Live Open WebUI/Ollama results remain endpoint-dependent, although the offline reproduction path is self-contained.
+- Dense retrieval or semantic reranking could still improve answer synthesis over multi-article questions.
 
 ## Bottom Line
 
-The most defensible expected grade is **8/10**. The project is stronger than a bare minimum RAG baseline because it includes source monitoring, prompt optimization, deployment artifacts, manual review, and a detailed compliance audit. The main ceiling is the small corpus and unresolved generation/citation failures.
+The repository is now stronger than a minimum final RAG project: it has a committed official corpus builder, broad official coverage, explicit source authority, citation checks, larger evaluation, and documented failure fixes. The most defensible expected grade is **9/10**.

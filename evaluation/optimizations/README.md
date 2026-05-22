@@ -3,7 +3,25 @@
 This directory contains experiments that are separate from the main reproducible evaluation in `evaluation/`.
 The goal is to improve answer correctness while preserving grounding and refusal behavior.
 
-## 1. Prepare Shared Corpus Chunks
+## 1. Build Official Corpus
+
+The final RAG corpus is built from current official sources plus a bounded tertiary case-law tier:
+
+```bash
+python evaluation/optimizations/build_official_corpus.py \
+  --output report/code/data/chunk.jsonl \
+  --include-case-law \
+  --max-case-law-chunks 30
+```
+
+Outputs:
+
+- `report/code/data/chunk.jsonl`
+- `evaluation/optimizations/data/official_employment_summary.json`
+
+The current committed corpus has 1,371 chunks: PISRS article-level law chunks, official interpretation/guidance chunks, and 30 tertiary COLESLAW/sodnapraksa chunks.
+
+## 1b. Prepare COLESLAW Case-Law Chunks
 
 The COLESLAW archive is streamed directly from `corpus/COLESLAW.zip`; it is not extracted into the repository.
 
@@ -17,7 +35,7 @@ Outputs:
 - `evaluation/optimizations/data/coleslaw_employment_summary.json`
 
 These normalized chunks can be reused for retrieval experiments and fine-tuning data preparation.
-The current extraction is useful as case-law and secondary context support, but it should not be treated as the primary RAG corpus because it is dominated by `SodnaPraksa/sp_courts.jsonl` and one sector-specific collective agreement.
+The current extraction is useful as case-law and tertiary support, but it should not be treated as the primary RAG corpus because it is dominated by `SodnaPraksa/sp_courts.jsonl` and one sector-specific collective agreement.
 
 For a bounded fuller local preparation run with progress:
 
@@ -28,7 +46,7 @@ python evaluation/optimizations/prepare_corpus.py \
   --progress-every 5000
 ```
 
-## 1a. Monitor Official Sources
+## 1c. Monitor Official Sources
 
 Official primary and interpretation sources are tracked in:
 
@@ -44,7 +62,7 @@ Output:
 
 - `evaluation/results/optimization/official_source_monitor.json`
 
-The monitor checks PISRS register matches and GOV.SI/MDDSZ/IRSD/eUprava/SPOT/ESS/OPSI source availability, including selected DOCX/PDF explanation files. The current final-submission snapshot reports 12/12 PISRS sources, 17/17 government/official interpretation sources, and 1/1 case-law source reachable. Use this before rebuilding the official RAG corpus or reporting current-law results.
+The monitor checks PISRS register matches and GOV.SI/MDDSZ/ZZZS/IRSD/eUprava/SPOT/ESS/OPSI source availability, including selected DOCX/PDF explanation files. The current final-submission snapshot reports 12/12 PISRS sources, 24/24 government/official interpretation or operational sources, and 1/1 case-law source reachable. Use this before rebuilding the official RAG corpus or reporting current-law results.
 
 ## 2. Run Prompt And Parameter Sweep
 

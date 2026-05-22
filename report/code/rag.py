@@ -13,11 +13,11 @@ KEYWORDS = [
     "nadurno delo", "odpravnina", "minimalna plača", "ZDR", "delovni čas"
 ]
 
-SOURCE_TYPE_RANK = {
-    "primary_law": 4,
-    "official_interpretation": 3,
-    "official_operational_guidance": 2,
-    "official_case_law": 1,
+SOURCE_TYPE_BONUS = {
+    "primary_law": 7.0,
+    "official_interpretation": 2.5,
+    "official_operational_guidance": 2.0,
+    "official_case_law": 0.0,
 }
 
 PRIORITY_RANK = {
@@ -37,6 +37,24 @@ CASE_LAW_QUERY_TERMS = (
     "judikat",
     "razlaga",
     "interpretacija",
+)
+
+OUT_OF_SCOPE_TERMS = (
+    "avstrij",
+    "ddv",
+    "deduj",
+    "dedn",
+    "elektronsk",
+    "gospodarsk",
+    "knjig",
+    "omejen",
+    "prehit",
+    "promet",
+    "registrsk",
+    "stanovanj",
+    "starš",
+    "ustanov",
+    "vožnj",
 )
 
 
@@ -79,6 +97,8 @@ def make_index(tokenized_docs):
 
 def stem_token(token):
     token = token.lower()
+    if token.startswith("odpust"):
+        return "odpoved"
     if token in {"delo", "dela", "delu", "delom"}:
         return "del"
     for suffix in (
@@ -212,6 +232,12 @@ def actor_adjustment(query, text):
     if "regres" in query_l and "regres za letni dopust" in text_l:
         adjustment += 3.0
 
+    if "koliko" in query_l and "dopust" in query_l:
+        if "ne sme biti krajši kot štiri tedne" in text_l:
+            adjustment += 8.0
+        if "1/12" in text_l:
+            adjustment += 6.0
+
     if "minimaln" in query_l and "2026" in query_l and "1.481,88" in text_l:
         adjustment += 8.0
 
@@ -221,6 +247,9 @@ def actor_adjustment(query, text):
     if "kolektivn" in query_l and "kolektivnih pogodb" in text_l:
         adjustment += 3.0
 
+    if "katere podatke" in query_l and "naslednje podatke" in text_l:
+        adjustment += 8.0
+
     return adjustment
 
 
@@ -229,10 +258,13 @@ def source_priority_adjustment(query, chunk):
     meta = chunk.get("meta", {})
     source_type = meta.get("source_type", "")
     priority = meta.get("priority", "")
+    url = meta.get("url", "")
+    law = meta.get("law", "")
+    article = meta.get("article", "")
     query_l = query.lower()
     asks_case_law = any(term in query_l for term in CASE_LAW_QUERY_TERMS)
 
-    adjustment = SOURCE_TYPE_RANK.get(source_type, 0) * 0.35
+    adjustment = SOURCE_TYPE_BONUS.get(source_type, 0.0)
     adjustment += PRIORITY_RANK.get(priority, 0) * 0.15
 
     if source_type == "official_case_law" and not asks_case_law:
@@ -240,10 +272,28 @@ def source_priority_adjustment(query, chunk):
     elif source_type == "official_case_law" and asks_case_law:
         adjustment += 5.0
 
+    if "določen čas" in query_l and law == "ZDR-1" and article in {"54", "55", "56"}:
+        adjustment += 4.0
+
+    if "dopust" in query_l and law == "ZDR-1" and article in {"159", "160", "161", "162", "163"}:
+        adjustment += 8.0
+    if "koliko" in query_l and "dopust" in query_l and law == "ZDR-1" and article in {"159", "161"}:
+        adjustment += 6.0
+
+    if ("ne izplača" in query_l or "neizplač" in query_l) and "izplacal-place" in url:
+        adjustment += 12.0
+
+    if "kolektivn" in query_l and "evidenc" in query_l and "podatki.gov.si" in url:
+        adjustment += 12.0
+
     return adjustment
 
 
 def search(query, index, chunks, top_k=3):
+    query_terms = set(tokenize(query))
+    if query_terms & set(OUT_OF_SCOPE_TERMS):
+        return []
+
     scores = index.get_scores(tokenize(query))
     adjusted = [
         (

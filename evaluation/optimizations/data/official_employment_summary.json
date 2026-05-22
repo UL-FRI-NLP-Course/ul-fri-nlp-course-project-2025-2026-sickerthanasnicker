@@ -1,12 +1,12 @@
 {
-  "retrieved_at": "2026-05-22T10:58:58+00:00",
+  "retrieved_at": "2026-05-22T11:06:25+00:00",
   "manifest": "/home/tibor/repos/ul-fri-nlp-course-project-2025-2026-sickerthanasnicker/evaluation/optimizations/official_sources.json",
   "output": "report/code/data/chunk.jsonl",
-  "chunks_written": 1367,
+  "chunks_written": 1371,
   "source_type_counts": {
     "primary_law": 1059,
-    "official_interpretation": 191,
-    "official_operational_guidance": 87,
+    "official_interpretation": 189,
+    "official_operational_guidance": 93,
     "official_case_law": 30
   },
   "top_law_counts": {
