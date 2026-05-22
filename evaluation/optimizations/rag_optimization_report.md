@@ -57,16 +57,16 @@ Latest retrieval summary:
 | --- | --- |
 | Hit@3 | `1.000` |
 | False evidence | `0.000` |
-| Average context length | `448.6` words |
+| Average context length | `1430.8` words |
 
 Latest offline RAG answer summary:
 
 | Metric | Result |
 | --- | --- |
-| Correctness | `2.95` |
-| Grounding | `4.83` |
-| Hallucination | `1.68` |
-| Supported citation rate | `1.00` |
+| Correctness | `2.45` |
+| Grounding | `4.65` |
+| Hallucination | `2.10` |
+| Supported citation rate | `0.97` |
 | Refusal accuracy | `1.00` |
 
 ## Regression Fixes

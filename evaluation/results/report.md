@@ -5,14 +5,14 @@
 | model_id | model_label | variant | n | correctness | grounding | completeness | clarity | hallucination | supported_citation_rate | refusal_accuracy |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | offline-llama3:latest | offline-llama3:latest | baseline | 40 | 0.50 | 0.12 | 0.50 | 5.00 | 4.12 | 0.00 | 0.00 |
-| offline-llama3:latest | offline-llama3:latest | rag | 40 | 2.95 | 4.83 | 2.95 | 4.85 | 1.68 | 1.00 | 1.00 |
+| offline-llama3:latest | offline-llama3:latest | rag | 40 | 2.45 | 4.65 | 2.45 | 4.55 | 2.10 | 0.97 | 1.00 |
 | raw-rag-prompt | raw RAG prompt | raw_rag_prompt | 40 | 1.50 | 5.00 | 1.50 | 3.25 | 0.00 | 0.00 | 1.00 |
 
 ## Retrieval
 
 - Answerable hit rate: 1.000
 - Unanswerable false evidence rate: 0.000
-- Average context length: 448.6 words
+- Average context length: 1430.8 words
 
 
 ## Charts

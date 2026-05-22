@@ -21,7 +21,7 @@ We built a retrieval-augmented generation assistant for Slovenian employment-law
 The final system intentionally uses one main approach, RAG, because the target machine is CPU-limited and legal correctness depends more on current official sources than on model memorization.
 The assistant retrieves official legal passages, applies a strict Slovenian system prompt, cites retrieved sources, and refuses unsupported or out-of-domain questions.
 We evaluated retrieval separately from generation, monitored official source availability, and expanded the corpus from a small curated slice to an official-plus-case-law knowledge base.
-The current setup reaches 1.000 answerable Hit@3 with 0.000 false-evidence rate on a 40-question evaluation set, and offline RAG answers cite a matching retrieved source in all supported non-refusal cases.
+The current setup reaches 1.000 answerable Hit@3 with 0.000 false-evidence rate on a 40-question evaluation set, and offline RAG answers preserve high citation support while refusing unsupported questions.
 }
 
 \begin{document}
@@ -87,7 +87,7 @@ The judge has an offline fallback so that the repository remains reproducible wh
 \toprule
 \textbf{Configuration} & \textbf{Hit@3} & \textbf{False ev.} & \textbf{Ctx. words} \\
 \midrule
-\textbf{Official corpus} & \textbf{1.000} & \textbf{0.000} & \textbf{448.6} \\
+\textbf{Official corpus} & \textbf{1.000} & \textbf{0.000} & \textbf{1430.8} \\
 Old curated slice & 1.000 & 0.000 & 199.2 \\
 \bottomrule
 \end{tabular}
@@ -103,7 +103,7 @@ Old curated slice & 1.000 & 0.000 & 199.2 \\
 \textbf{Variant} & \textbf{Correctness} & \textbf{Hallucination} & \textbf{Citations} \\
 \midrule
 Baseline & 0.50 & 4.12 & 0.00 \\
-\textbf{Strict RAG} & \textbf{2.95} & \textbf{1.68} & \textbf{1.00} \\
+\textbf{Strict RAG} & \textbf{2.45} & \textbf{2.10} & \textbf{0.97} \\
 \bottomrule
 \end{tabular}
 \label{tab:answers}
@@ -113,7 +113,7 @@ Baseline & 0.50 & 4.12 & 0.00 \\
 \caption{Regression checks for the three previously failing questions.}
 \centering
 \small
-\begin{tabular}{lc}
+\begin{tabular}{@{}p{0.34\linewidth}p{0.58\linewidth}@{}}
 \toprule
 \textbf{Check} & \textbf{Result} \\
 \midrule

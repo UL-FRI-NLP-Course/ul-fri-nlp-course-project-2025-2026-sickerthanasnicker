@@ -129,9 +129,20 @@ dmypy.json
 .pyre/
 
 
-# latex build files
-/report/.out
-/report/pdf
+# LaTeX/report build files
+/report/.out/
+/report/*.aux
+/report/*.bbl
+/report/*.bcf
+/report/*.blg
+/report/*.fdb_latexmk
+/report/*.fls
+/report/*.log
+/report/*.out
+/report/*.pdf
+/report/*.run.xml
+/report/*.synctex.gz
+/report/pdf/
 
 # Datasets
 /data/*
