@@ -139,10 +139,8 @@ dmypy.json
 /report/*.fls
 /report/*.log
 /report/*.out
-/report/*.pdf
 /report/*.run.xml
 /report/*.synctex.gz
-/report/pdf/
 
 # Datasets
 /data/*

@@ -169,6 +169,27 @@ Without context the model freely invents legal provisions and never refuses; wit
 Answer correctness also improved substantially (0.50 to 2.95 out of 5), though there is still a gap between how well the right sources are retrieved and how well the model synthesises them into a complete answer.
 This gap makes sense: finding the right article is one step, but combining information across several statutory paragraphs into a concise correct answer is harder.
 
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{summary_scores}
+  \caption{Scores across all metrics for the three evaluated variants. Correctness and hallucination are on a 0--5 scale; citations and refusal are 0--1 fractions. RAG brings large gains on every dimension except clarity, which was already high for the baseline.}
+  \label{fig:summary}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{refusal_accuracy}
+  \caption{Refusal accuracy by variant. The baseline never refuses an unanswerable question; adding retrieval context and a strict prompt achieves perfect refusal on the 40-question set.}
+  \label{fig:refusal}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{optimization_hallucination}
+  \caption{Hallucination score for the Mistral 7B model with and without retrieved context (lower is better). The score drops from 4.12 to 1.68 once the model is grounded in official source text.}
+  \label{fig:hallucination}
+\end{figure}
+
 \section*{Reproducibility and Compliance}
 
 Everything needed to reproduce the reported numbers is in the repository.
