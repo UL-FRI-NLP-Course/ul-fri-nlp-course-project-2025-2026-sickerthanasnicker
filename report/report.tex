@@ -95,11 +95,13 @@ The third focused on handling vague questions, since some questions like ``How m
 The fourth added source priority to the prompt instructions, mirroring what the retrieval already does.
 The fifth and final version added three things: a requirement that every non-refusal answer must cite a specific article or source, a rule that vague questions must start with an explanation of what information is missing rather than a confident general answer, and a rule that when the law has multiple tiers or thresholds the answer must list all of them rather than just mentioning the first.
 
-For the model itself we ran a side-by-side arena evaluation comparing llama3, Mistral 7B, Gemma 3 4B, Qwen 2.5 Coder 7B, and a larger Qwen model.
-On the short smoke test with RAG context every model scored 5.00/5 for correctness and grounding; without context they all dropped to around 4.2--4.4/5.
-The main takeaway was that retrieval quality and the prompt mattered much more than which specific model we used.
-For the deployed system we use Mistral 7B because it is available locally and handles the structured prompt instructions well.
-Our preferred model would be GaMS-1B-Chat, a Slovenian-focused model that should perform better on the language specifically \cite{GaMS1B}, but it was not available on the local endpoint during evaluation.
+For the model itself we ran a side-by-side arena evaluation comparing llama3, Mistral 7B, Gemma 3 4B, Qwen 2.5 Coder 7B, a larger Qwen model, and GaMS-2B-Instruct, a Slovenian-focused model from the GaMS family \cite{GaMS1B}.
+On the short smoke test with RAG context every model from the general-purpose group scored 5.00/5 for correctness and grounding; without context they all dropped to around 4.2--4.4/5.
+The main takeaway from that group was that retrieval quality and the prompt mattered much more than which specific model we used.
+GaMS-2B-Instruct tells a different story: its baseline correctness (1.65/5 without any retrieved context) is more than three times higher than the llama3 baseline (0.50/5), which reflects the benefit of Slovenian-specific pretraining.
+With RAG context, however, GaMS-2B scores 1.93/5 for correctness and achieves zero refusal accuracy---it does not follow the instruction to refuse unanswerable questions.
+The gap reveals a trade-off between language quality and instruction-following discipline: GaMS knows the language better but does not obey the strict prompt guardrails as reliably.
+For the deployed system we use Mistral 7B because it handles the structured prompt instructions well and achieves the best overall RAG performance.
 The deployed assistant is at \url{https://ai.koderverse.com/}, using deterministic settings (temperature 0) so answers are reproducible.
 
 We also prepared a fine-tuning dataset---176 training examples and 44 validation examples in a chat format---to explore whether LoRA adaptation would help.
@@ -134,15 +136,18 @@ Initial COLESLAW slice & 1.000 & 0.000 & 189.9 \\
 \end{table}
 
 \begin{table}[ht]
-\caption{Answer quality on the 40-question set. Baseline has no retrieved context. Strict RAG uses the official corpus, the final system prompt, Mistral 7B, and temperature 0. Correctness and hallucination are 0--5; citations and refusal are fractions.}
+\caption{Answer quality on the 40-question set. Baseline rows have no retrieved context. Strict RAG uses the official corpus, the final system prompt, Mistral 7B, and temperature 0. GaMS-2B is the Slovenian GaMS-2B-Instruct model with the same corpus and prompt. Correctness and hallucination are 0--5; citations and refusal are fractions.}
 \centering
 \small
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Variant} & \textbf{Correct.} & \textbf{Halluc.} & \textbf{Citations} & \textbf{Refusal} \\
 \midrule
-Baseline & 0.50 & 4.12 & 0.00 & 0.00 \\
-\textbf{Strict RAG} & \textbf{2.95} & \textbf{1.68} & \textbf{1.00} & \textbf{1.00} \\
+Baseline (llama3) & 0.50 & 4.12 & 0.00 & 0.00 \\
+\textbf{Strict RAG (Mistral 7B)} & \textbf{2.95} & \textbf{1.68} & \textbf{1.00} & \textbf{1.00} \\
+\midrule
+GaMS-2B baseline & 1.65 & 3.60 & 0.00 & 0.20 \\
+GaMS-2B RAG & 1.93 & 2.75 & 0.06 & 0.00 \\
 \bottomrule
 \end{tabular}
 \label{tab:answers}
@@ -168,6 +173,12 @@ The most striking improvements from adding RAG are in the grounding score (0.12 
 Without context the model freely invents legal provisions and never refuses; with context and the final prompt it cites sources and correctly turns away questions it cannot answer.
 Answer correctness also improved substantially (0.50 to 2.95 out of 5), though there is still a gap between how well the right sources are retrieved and how well the model synthesises them into a complete answer.
 This gap makes sense: finding the right article is one step, but combining information across several statutory paragraphs into a concise correct answer is harder.
+
+The GaMS-2B rows show a different pattern.
+Without context, GaMS-2B scores 1.65 for correctness---more than three times the llama3 baseline---because its Slovenian pretraining already encodes some employment-law knowledge.
+With RAG context, correctness rises only slightly to 1.93, and refusal accuracy drops to zero: the model answers every question even when it should decline.
+This suggests that Slovenian-language pretraining helps with raw language quality but does not substitute for instruction-following discipline.
+Fine-tuning GaMS on the strict RAG prompt format would be the natural next step to combine its language strength with the refusal and citation behaviour that the final system achieves with Mistral.
 
 \begin{figure}[ht]
   \centering
@@ -212,8 +223,8 @@ On the technical side, the retriever uses lexical matching, which means it can m
 Dense retrieval or a learned reranker trained on employment-law question-document pairs would be the next improvement to try.
 We held off because it would require a GPU for training and the lexical retriever already achieves perfect Hit@3 on our evaluation set, so the gains would only show up on harder paraphrase cases we have not tested yet.
 
-GaMS-1B-Chat, the Slovenian-focused smaller model we had planned to use, was not available on our endpoint during evaluation.
-Getting it set up and running the arena comparison with it would be the most useful next step on the model side.
+The GaMS evaluation used GaMS-2B-Instruct rather than the originally planned GaMS-1B-Chat, because no GGUF conversion of the 1B model exists and Ollama requires GGUF format.
+Fine-tuning GaMS-2B on the strict RAG prompt format---teaching it to refuse unanswerable questions and to cite sources---would be the most direct way to combine its Slovenian language quality with the instruction-following behaviour the system currently achieves only with Mistral.
 
 \bibliographystyle{unsrt}
 \bibliography{report}

@@ -13,6 +13,14 @@
     "include_raw_rag_prompt": true,
   "arena_models": [
     {
+      "model_id": "ollama-gams-2b-instruct",
+      "provider": "ollama",
+      "model": "hf.co/mradermacher/GaMS-2B-Instruct-GGUF:Q4_K_M",
+      "display_name": "GaMS-2B-Instruct",
+      "enabled": true,
+      "note": "Slovenian-focused 2B instruct model (GaMS family, cjvt). Used as proxy for GaMS-1B-Chat which has no GGUF available."
+    },
+    {
       "model_id": "ollama-optimized-employment-law",
       "provider": "ollama",
       "model": "ul-fri-nlp-course-project-optimized:latest",
