@@ -14,13 +14,14 @@ except ModuleNotFoundError:
     HAS_MATPLOTLIB = False
     plt = None
 
-from io_utils import load_jsonl
+from ul_fri_nlp.evaluation.eval_config import EVALUATION_DIR
+from ul_fri_nlp.evaluation.io_utils import load_jsonl
 
 
-DEFAULT_JUDGEMENTS_FILE = Path(__file__).with_name("results") / "judgements.jsonl"
-DEFAULT_RETRIEVAL_FILE = Path(__file__).with_name("results") / "retrieval.jsonl"
-DEFAULT_VOTE_SUMMARY_FILE = Path(__file__).with_name("results") / "vote_summary.csv"
-DEFAULT_OUTPUT_DIR = Path(__file__).with_name("results")
+DEFAULT_JUDGEMENTS_FILE = EVALUATION_DIR / "results" / "judgements.jsonl"
+DEFAULT_RETRIEVAL_FILE = EVALUATION_DIR / "results" / "retrieval.jsonl"
+DEFAULT_VOTE_SUMMARY_FILE = EVALUATION_DIR / "results" / "vote_summary.csv"
+DEFAULT_OUTPUT_DIR = EVALUATION_DIR / "results"
 
 METRICS = ["correctness", "grounding", "completeness", "clarity", "hallucination"]
 

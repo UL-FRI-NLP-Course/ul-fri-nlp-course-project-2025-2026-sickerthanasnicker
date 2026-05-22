@@ -1,11 +1,13 @@
 import json
-import sys
 import pickle
 import re
+import sys
 from pathlib import Path
 
-CHUNKS_FILE = "data/chunk.jsonl"
-INDEX_FILE = "data/index.pkl"
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+CORPUS_DIR = PROJECT_ROOT / "report" / "code" / "data"
+CHUNKS_FILE = CORPUS_DIR / "chunk.jsonl"
+INDEX_FILE = CORPUS_DIR / "index.pkl"
 
 KEYWORDS = [
     "delovno razmerje", "pogodba o zaposlitvi", "odpoved", "odpovedni rok",
@@ -56,6 +58,7 @@ OUT_OF_SCOPE_TERMS = (
     "ustanov",
     "vožnj",
 )
+OUT_OF_SCOPE_TOKEN_SET = set(OUT_OF_SCOPE_TERMS)
 
 
 TOKEN_RE = re.compile(r"[0-9]+|[A-Za-zČŠŽĆĐčšžćđ]+")
@@ -93,6 +96,21 @@ def make_index(tokenized_docs):
         return BM25Okapi(tokenized_docs)
     except ImportError:
         return SimpleLexicalIndex(tokenized_docs)
+
+
+def load_chunks(path=CHUNKS_FILE):
+    with open(path, encoding="utf-8") as fp:
+        return [json.loads(line) for line in fp]
+
+
+def save_chunks(chunks, path=CHUNKS_FILE):
+    with open(path, "w", encoding="utf-8") as fp:
+        for chunk in chunks:
+            fp.write(json.dumps(chunk, ensure_ascii=False) + "\n")
+
+
+def build_search_index(chunks):
+    return make_index([tokenize(chunk["text"]) for chunk in chunks])
 
 
 def stem_token(token):
@@ -136,7 +154,7 @@ def chunk_text(text, size=300):
 
 def build_index(jsonl_dir):
     print("Filtriram in gradim index...")
-    Path("data").mkdir(exist_ok=True)
+    CORPUS_DIR.mkdir(parents=True, exist_ok=True)
 
     chunks = []
     for f in Path(jsonl_dir).glob("*.jsonl"):
@@ -160,12 +178,8 @@ def build_index(jsonl_dir):
 
     print(f"Najdenih chunkov: {len(chunks)}")
 
-    with open(CHUNKS_FILE, "w", encoding="utf-8") as fp:
-        for c in chunks:
-            fp.write(json.dumps(c, ensure_ascii=False) + "\n")
-
-    tokenized = [tokenize(c["text"]) for c in chunks]
-    index = make_index(tokenized)
+    save_chunks(chunks)
+    index = build_search_index(chunks)
 
     with open(INDEX_FILE, "wb") as fp:
         pickle.dump((index, chunks), fp)
@@ -175,12 +189,8 @@ def build_index(jsonl_dir):
 
 def build_index_from_chunks():
     print("Gradim index iz chunks.jsonl...")
-    chunks = []
-    with open(CHUNKS_FILE, encoding="utf-8") as fp:
-        for line in fp:
-            chunks.append(json.loads(line))
-    tokenized = [tokenize(c["text"]) for c in chunks]
-    index = make_index(tokenized)
+    chunks = load_chunks()
+    index = build_search_index(chunks)
     with open(INDEX_FILE, "wb") as fp:
         pickle.dump((index, chunks), fp)
     print(f"Index zgrajen ({len(chunks)} chunkov).\n")
@@ -290,11 +300,12 @@ def source_priority_adjustment(query, chunk):
 
 
 def search(query, index, chunks, top_k=3):
-    query_terms = set(tokenize(query))
-    if query_terms & set(OUT_OF_SCOPE_TERMS):
+    query_tokens = tokenize(query)
+    query_terms = set(query_tokens)
+    if query_terms & OUT_OF_SCOPE_TOKEN_SET:
         return []
 
-    scores = index.get_scores(tokenize(query))
+    scores = index.get_scores(query_tokens)
     adjusted = [
         (
             i,
@@ -308,20 +319,24 @@ def search(query, index, chunks, top_k=3):
     return [(chunks[i], round(s, 3)) for i, s in ranked]
 
 
+def format_reference(meta):
+    return meta["law"] + (f", čl. {meta['article']}" if meta["article"] else "")
+
+
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--build":
         if len(sys.argv) < 3:
-            print("Uporaba: python rag.py --build <pot_do_coleslaw>")
+            print("Uporaba: python -m ul_fri_nlp.app.rag --build <pot_do_coleslaw>")
             return
         build_index(sys.argv[2])
         return
 
     # ce index ne obstaja ampak chunks.jsonl je ze tam, ga zgradi avtomatsko
-    if not Path(INDEX_FILE).exists() and Path(CHUNKS_FILE).exists():
+    if not INDEX_FILE.exists() and CHUNKS_FILE.exists():
         build_index_from_chunks()
 
-    if not Path(INDEX_FILE).exists():
-        print("Index ne obstaja. Najprej zaženi: python rag.py --build <pot_do_coleslaw>")
+    if not INDEX_FILE.exists():
+        print("Index ne obstaja. Najprej zaženi: python -m ul_fri_nlp.app.rag --build <pot_do_coleslaw>")
         return
 
     index, chunks = load_index()
@@ -338,8 +353,7 @@ def main():
         print()
         for i, (chunk, score) in enumerate(results):
             m = chunk["meta"]
-            ref = m["law"] + (f", čl. {m['article']}" if m["article"] else "")
-            print(f"[{i+1}] {ref} (score: {score})")
+            print(f"[{i+1}] {format_reference(m)} (score: {score})")
             print(f"    {chunk['text'][:300]}")
             print()
 

@@ -1,7 +1,8 @@
 import argparse
 from pathlib import Path
 
-from eval_config import (
+from ul_fri_nlp.evaluation.eval_config import (
+    EVALUATION_DIR,
     enabled_arena_models,
     generation_options,
     get_default_model,
@@ -9,15 +10,15 @@ from eval_config import (
     load_config,
     load_env,
 )
-from io_utils import append_jsonl, load_jsonl
-from model_providers import chat_model
-from progress_utils import Progress
-from retrieval_shared import build_index, format_context, load_chunks, retrieve, source_label
-from text_utils import content_terms, split_sentences
+from ul_fri_nlp.evaluation.io_utils import append_jsonl, load_jsonl
+from ul_fri_nlp.evaluation.model_providers import chat_model
+from ul_fri_nlp.evaluation.progress_utils import Progress
+from ul_fri_nlp.evaluation.retrieval_shared import build_index, format_context, load_chunks, retrieve, source_label
+from ul_fri_nlp.evaluation.text_utils import content_terms, split_sentences
 
 
-DEFAULT_QUESTIONS_FILE = Path(__file__).with_name("questions.jsonl")
-DEFAULT_OUTPUT_FILE = Path(__file__).with_name("results") / "answers.jsonl"
+DEFAULT_QUESTIONS_FILE = EVALUATION_DIR / "questions.jsonl"
+DEFAULT_OUTPUT_FILE = EVALUATION_DIR / "results" / "answers.jsonl"
 
 BASELINE_PROMPT = (
     "Odgovori na vprašanje iz slovenskega prava. "

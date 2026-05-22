@@ -1,17 +1,16 @@
 import argparse
 import json
-import sys
 import time
 from pathlib import Path
 
-from eval_config import load_env
-from io_utils import load_jsonl
-from model_providers import chat_openwebui
-from retrieval_shared import build_index, format_context, load_chunks, retrieve
+from ul_fri_nlp.evaluation.eval_config import EVALUATION_DIR, load_env
+from ul_fri_nlp.evaluation.io_utils import load_jsonl
+from ul_fri_nlp.evaluation.model_providers import chat_openwebui
+from ul_fri_nlp.evaluation.retrieval_shared import build_index, format_context, load_chunks, retrieve
 
 
-DEFAULT_OUTPUT = Path(__file__).with_name("results") / "manual_openwebui_eval_answers.jsonl"
-DEFAULT_QUESTIONS = Path(__file__).with_name("questions.jsonl")
+DEFAULT_OUTPUT = EVALUATION_DIR / "results" / "manual_openwebui_eval_answers.jsonl"
+DEFAULT_QUESTIONS = EVALUATION_DIR / "questions.jsonl"
 
 
 def parse_args():

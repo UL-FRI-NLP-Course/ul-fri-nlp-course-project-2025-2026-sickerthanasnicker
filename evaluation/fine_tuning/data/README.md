@@ -22,4 +22,4 @@ Possible future-only next steps:
 - use these rows as a tiny sanity dataset for LoRA/PEFT experiments;
 - expand with more COLESLAW-derived employment-law QA pairs;
 - create an Ollama Modelfile that bakes in the system prompt;
-- evaluate any tuned model with `python evaluation/run_eval.py --arena`.
+- evaluate any tuned model with `python -m ul_fri_nlp.evaluation.run_eval --arena`.

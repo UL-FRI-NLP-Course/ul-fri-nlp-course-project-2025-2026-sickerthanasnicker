@@ -1,12 +1,12 @@
 import argparse
 from pathlib import Path
 
-from common import EVALUATION_DIR, load_optimization_config, load_questions, prompt_by_id, resolve_optimization_path
+from ul_fri_nlp.optimizations.common import EVALUATION_DIR, load_optimization_config, load_questions, prompt_by_id, resolve_optimization_path
 
-from io_utils import write_jsonl
-from progress_utils import Progress
-from retrieval_shared import build_index, format_context, load_chunks, retrieve
-from text_utils import content_terms, split_sentences
+from ul_fri_nlp.evaluation.io_utils import write_jsonl
+from ul_fri_nlp.evaluation.progress_utils import Progress
+from ul_fri_nlp.evaluation.retrieval_shared import build_index, format_context, load_chunks, retrieve
+from ul_fri_nlp.evaluation.text_utils import content_terms, split_sentences
 
 
 DEFAULT_TRAIN = resolve_optimization_path("data/peft_train.jsonl")
@@ -122,7 +122,7 @@ def split_train_dev(rows, dev_every):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Prepare PEFT-ready grounded chat data from optimized corpus chunks.")
-    parser.add_argument("--config", type=Path, default=Path(__file__).with_name("config.json"))
+    parser.add_argument("--config", type=Path, default=resolve_optimization_path("config.json"))
     parser.add_argument("--questions", type=Path, default=EVALUATION_DIR / "questions.jsonl")
     parser.add_argument("--corpus-chunks", type=Path, default=None)
     parser.add_argument("--train-output", type=Path, default=DEFAULT_TRAIN)

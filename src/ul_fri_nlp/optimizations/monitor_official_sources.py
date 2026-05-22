@@ -7,9 +7,9 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-from common import OPTIMIZATION_DIR, PROJECT_ROOT
+from ul_fri_nlp.optimizations.common import OPTIMIZATION_DIR, PROJECT_ROOT
 
-from io_utils import write_json
+from ul_fri_nlp.evaluation.io_utils import write_json
 
 
 DEFAULT_MANIFEST = OPTIMIZATION_DIR / "official_sources.json"

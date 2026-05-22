@@ -1,17 +1,13 @@
 import json
-import sys
 from pathlib import Path
 
 
-OPTIMIZATION_DIR = Path(__file__).resolve().parent
-EVALUATION_DIR = OPTIMIZATION_DIR.parent
-PROJECT_ROOT = EVALUATION_DIR.parent
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+EVALUATION_DIR = PROJECT_ROOT / "evaluation"
+OPTIMIZATION_DIR = EVALUATION_DIR / "optimizations"
 CONFIG_FILE = OPTIMIZATION_DIR / "config.json"
 
-if str(EVALUATION_DIR) not in sys.path:
-    sys.path.insert(0, str(EVALUATION_DIR))
-
-from io_utils import load_jsonl  # noqa: E402
+from ul_fri_nlp.evaluation.io_utils import load_jsonl
 
 
 def load_optimization_config(path=CONFIG_FILE):

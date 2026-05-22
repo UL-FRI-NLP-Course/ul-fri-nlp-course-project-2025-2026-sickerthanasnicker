@@ -1,16 +1,12 @@
 import argparse
-import sys
 from pathlib import Path
 
 
-EVALUATION_DIR = Path(__file__).resolve().parents[1]
-if str(EVALUATION_DIR) not in sys.path:
-    sys.path.insert(0, str(EVALUATION_DIR))
-
-from io_utils import load_jsonl, write_jsonl
-from progress_utils import Progress
-from retrieval_shared import build_index, format_context, load_chunks, retrieve
-from text_utils import content_terms
+from ul_fri_nlp.evaluation.eval_config import EVALUATION_DIR
+from ul_fri_nlp.evaluation.io_utils import load_jsonl, write_jsonl
+from ul_fri_nlp.evaluation.progress_utils import Progress
+from ul_fri_nlp.evaluation.retrieval_shared import build_index, format_context, load_chunks, retrieve
+from ul_fri_nlp.evaluation.text_utils import content_terms
 
 
 DEFAULT_QUESTIONS_FILE = EVALUATION_DIR / "questions.jsonl"

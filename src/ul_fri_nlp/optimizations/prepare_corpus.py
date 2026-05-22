@@ -5,10 +5,10 @@ import re
 import zipfile
 from pathlib import Path
 
-from common import PROJECT_ROOT, resolve_optimization_path
+from ul_fri_nlp.optimizations.common import PROJECT_ROOT, resolve_optimization_path
 
-from io_utils import write_json, write_jsonl
-from progress_utils import Progress
+from ul_fri_nlp.evaluation.io_utils import write_json, write_jsonl
+from ul_fri_nlp.evaluation.progress_utils import Progress
 
 
 DEFAULT_ZIP = PROJECT_ROOT / "corpus" / "COLESLAW.zip"

@@ -1,4 +1,6 @@
 PYTHON ?= python
+PROJECT_PYTHONPATH := src$(if $(PYTHONPATH),:$(PYTHONPATH))
+RUN_PYTHON := PYTHONPATH=$(PROJECT_PYTHONPATH) $(PYTHON)
 REPORT_TEX := report/report.tex
 
 .PHONY: help setup json-check compile source-monitor corpus retrieval offline-eval report verify clean-report clean-pyc
@@ -25,24 +27,24 @@ json-check:
 	$(PYTHON) -m json.tool evaluation/optimizations/official_sources.json >/tmp/ul_fri_official_sources.json
 
 compile:
-	$(PYTHON) -m compileall -q evaluation report/code
+	$(RUN_PYTHON) -m compileall -q src
 
 source-monitor:
-	$(PYTHON) evaluation/optimizations/monitor_official_sources.py
+	$(RUN_PYTHON) -m ul_fri_nlp.optimizations.monitor_official_sources
 
 corpus:
-	$(PYTHON) evaluation/optimizations/build_official_corpus.py \
+	$(RUN_PYTHON) -m ul_fri_nlp.optimizations.build_official_corpus \
 		--output report/code/data/chunk.jsonl \
 		--include-case-law \
 		--max-case-law-chunks 30
 
 retrieval:
-	$(PYTHON) evaluation/retrieval_eval.py --quiet
+	$(RUN_PYTHON) -m ul_fri_nlp.evaluation.retrieval_eval --quiet
 
 offline-eval:
-	$(PYTHON) evaluation/run_eval.py --provider offline
-	$(PYTHON) evaluation/judge_eval.py --provider offline
-	$(PYTHON) evaluation/visualize_results.py
+	$(RUN_PYTHON) -m ul_fri_nlp.evaluation.run_eval --provider offline
+	$(RUN_PYTHON) -m ul_fri_nlp.evaluation.judge_eval --provider offline
+	$(RUN_PYTHON) -m ul_fri_nlp.evaluation.visualize_results
 
 report:
 	mkdir -p report/.out
@@ -57,4 +59,4 @@ clean-report:
 	rm -rf report/.out
 
 clean-pyc:
-	find evaluation report/code -type d -name __pycache__ -prune -exec rm -rf {} +
+	find src -type d -name __pycache__ -prune -exec rm -rf {} +

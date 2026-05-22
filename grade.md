@@ -54,7 +54,7 @@ Evidence:
 
 - Domain is narrow and explicit: Slovenian employment-law question answering.
 - Source manifest: `evaluation/optimizations/official_sources.json`.
-- Corpus builder: `evaluation/optimizations/build_official_corpus.py`.
+- Corpus builder: `src/ul_fri_nlp/optimizations/build_official_corpus.py`.
 - Committed transformed corpus: `report/code/data/chunk.jsonl`.
 - Corpus summary: `evaluation/optimizations/data/official_employment_summary.json`.
 - Current corpus has 1,371 chunks: 1,059 primary-law chunks, 189 official-interpretation chunks, 93 official-operational-guidance chunks, and 30 tertiary case-law chunks.
@@ -68,12 +68,12 @@ Estimate: **8.5 to 9**.
 
 Evidence:
 
-- Main answer-time retriever: `report/code/rag.py`.
-- Shared retrieval logic used by evaluation: `evaluation/retrieval_shared.py`.
-- Evaluation scripts: `evaluation/retrieval_eval.py`, `evaluation/run_eval.py`, `evaluation/judge_eval.py`, `evaluation/visualize_results.py`.
+- Main answer-time retriever: `src/ul_fri_nlp/app/rag.py`.
+- Shared retrieval logic used by evaluation: `src/ul_fri_nlp/evaluation/retrieval_shared.py`.
+- Evaluation scripts: `src/ul_fri_nlp/evaluation/retrieval_eval.py`, `src/ul_fri_nlp/evaluation/run_eval.py`, `src/ul_fri_nlp/evaluation/judge_eval.py`, `src/ul_fri_nlp/evaluation/visualize_results.py`.
 - Final prompt/model configuration: `evaluation/optimizations/config.json`.
-- Optional deployment/export artifacts: `evaluation/optimizations/webui/optimized_model_preset.json`, `evaluation/optimizations/webui/openwebui_create_model_payload.json`, `evaluation/optimizations/ollama/Modelfile`.
-- Exploratory fine-tuning utilities are present but correctly scoped as non-final artifacts: `evaluation/fine_tuning/` and `evaluation/optimizations/prepare_peft_dataset.py`.
+- Optional deployment/export artifact: `evaluation/optimizations/ollama/Modelfile`.
+- Exploratory fine-tuning utilities are present but correctly scoped as non-final artifacts: `src/ul_fri_nlp/fine_tuning/` and `src/ul_fri_nlp/optimizations/prepare_peft_dataset.py`.
 
 Strength: the implementation chooses a reproducible RAG path over heavier fine-tuning, which is appropriate for legal freshness and CPU-limited reproduction.
 
@@ -130,10 +130,10 @@ make source-monitor
 Equivalent explicit commands:
 
 ```bash
-python evaluation/retrieval_eval.py --quiet
-python evaluation/run_eval.py --provider offline
-python evaluation/judge_eval.py --provider offline
-python evaluation/visualize_results.py
+python -m ul_fri_nlp.evaluation.retrieval_eval --quiet
+python -m ul_fri_nlp.evaluation.run_eval --provider offline
+python -m ul_fri_nlp.evaluation.judge_eval --provider offline
+python -m ul_fri_nlp.evaluation.visualize_results
 mkdir -p report/.out
 cd report/.out && TEXINPUTS=..: pdflatex -interaction=nonstopmode -halt-on-error ../report.tex
 ```

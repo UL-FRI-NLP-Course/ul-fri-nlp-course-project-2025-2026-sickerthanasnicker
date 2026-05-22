@@ -4,7 +4,6 @@ import html as html_lib
 import io
 import json
 import re
-import sys
 import urllib.error
 import urllib.request
 from collections import Counter
@@ -16,9 +15,9 @@ from bs4 import BeautifulSoup
 from docx import Document
 from pypdf import PdfReader
 
-from common import OPTIMIZATION_DIR, PROJECT_ROOT
+from ul_fri_nlp.optimizations.common import OPTIMIZATION_DIR, PROJECT_ROOT
 
-from io_utils import load_jsonl, write_json, write_jsonl
+from ul_fri_nlp.evaluation.io_utils import load_jsonl, write_json, write_jsonl
 
 
 DEFAULT_MANIFEST = OPTIMIZATION_DIR / "official_sources.json"
@@ -602,6 +601,4 @@ def main():
 
 
 if __name__ == "__main__":
-    if str(PROJECT_ROOT / "evaluation") not in sys.path:
-        sys.path.insert(0, str(PROJECT_ROOT / "evaluation"))
     main()

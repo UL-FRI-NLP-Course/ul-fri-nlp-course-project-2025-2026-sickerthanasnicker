@@ -4,11 +4,9 @@ import subprocess
 import urllib.error
 from pathlib import Path
 
-from common import load_optimization_config, prompt_by_id, settings_by_id
-
-from io_utils import load_jsonl
-from eval_config import load_env
-from model_providers import (
+from ul_fri_nlp.evaluation.eval_config import load_env
+from ul_fri_nlp.evaluation.io_utils import load_jsonl
+from ul_fri_nlp.evaluation.model_providers import (
     _json_request,
     chat_openwebui,
     list_ollama_models,
@@ -17,12 +15,18 @@ from model_providers import (
     webui_headers,
     webui_host,
 )
+from ul_fri_nlp.optimizations.common import (
+    OPTIMIZATION_DIR,
+    load_optimization_config,
+    prompt_by_id,
+    settings_by_id,
+)
 
 
-OLLAMA_DIR = Path(__file__).resolve().parent / "ollama"
+OLLAMA_DIR = OPTIMIZATION_DIR / "ollama"
 DEFAULT_MODEL_NAME = "ul-fri-slovenian-employment-law-rag"
 DEFAULT_MODELFILE = OLLAMA_DIR / "Modelfile"
-DEFAULT_EXAMPLES = Path("evaluation/optimizations/data/peft_train.jsonl")
+DEFAULT_EXAMPLES = OPTIMIZATION_DIR / "data" / "peft_train.jsonl"
 
 
 def quote_block(text):
@@ -156,7 +160,7 @@ def smoke_openwebui_model(model_id):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Create the optimized Ollama model from the project prompt/config.")
-    parser.add_argument("--config", type=Path, default=Path("evaluation/optimizations/config.json"))
+    parser.add_argument("--config", type=Path, default=OPTIMIZATION_DIR / "config.json")
     parser.add_argument("--examples", type=Path, default=DEFAULT_EXAMPLES)
     parser.add_argument("--example-count", type=int, default=0)
     parser.add_argument("--modelfile", type=Path, default=DEFAULT_MODELFILE)

@@ -72,27 +72,40 @@ cp evaluation/config.example.env .env
 ├── compliance.md
 ├── grade.md
 ├── requirements.txt
+├── pyproject.toml
+├── src/
+│   └── ul_fri_nlp/
+│       ├── app/
+│       │   └── rag.py
+│       ├── evaluation/
+│       │   ├── run_eval.py
+│       │   ├── judge_eval.py
+│       │   ├── retrieval_eval.py
+│       │   ├── retrieval_shared.py
+│       │   └── visualize_results.py
+│       ├── fine_tuning/
+│       │   └── prepare_dataset.py
+│       └── optimizations/
+│           ├── build_official_corpus.py
+│           ├── create_ollama_model.py
+│           ├── monitor_official_sources.py
+│           └── run_prompt_sweep.py
 ├── evaluation/
 │   ├── questions.jsonl
-│   ├── run_eval.py
-│   ├── judge_eval.py
-│   ├── retrieval_eval.py
-│   ├── visualize_results.py
+│   ├── config.json
+│   ├── config.example.env
 │   ├── results/
 │   ├── fine_tuning/
 │   └── optimizations/
-│       ├── build_official_corpus.py
-│       ├── monitor_official_sources.py
 │       ├── official_sources.json
-│       ├── run_prompt_sweep.py
-│       └── webui/
+│       ├── config.json
+│       ├── data/
+│       └── ollama/
 ├── report/
 │   ├── report.tex
 │   ├── report.bib
 │   ├── .latexmkrc
 │   └── code/
-│       ├── rag.py
-│       ├── evaluate.py
 │       └── data/chunk.jsonl
 └── instructions/
     └── Natural language processing 2026.pdf
@@ -124,7 +137,7 @@ make corpus
 Equivalent explicit command:
 
 ```bash
-python evaluation/optimizations/build_official_corpus.py \
+python -m ul_fri_nlp.optimizations.build_official_corpus \
   --output report/code/data/chunk.jsonl \
   --include-case-law \
   --max-case-law-chunks 30
@@ -162,10 +175,10 @@ make offline-eval
 Run the same commands manually:
 
 ```bash
-python evaluation/retrieval_eval.py
-python evaluation/run_eval.py --provider offline
-python evaluation/judge_eval.py --provider offline
-python evaluation/visualize_results.py
+python -m ul_fri_nlp.evaluation.retrieval_eval
+python -m ul_fri_nlp.evaluation.run_eval --provider offline
+python -m ul_fri_nlp.evaluation.judge_eval --provider offline
+python -m ul_fri_nlp.evaluation.visualize_results
 ```
 
 The current reported retrieval result for the 40-question set is Hit@3 `1.000`, false evidence `0.000`, and average context length about `1430.8` words. Offline answer judging is a deterministic reproducibility check, not a substitute for expert legal review.
@@ -173,10 +186,10 @@ The current reported retrieval result for the 40-question set is Hit@3 `1.000`, 
 For live model comparison, configure `.env`, then run:
 
 ```bash
-python evaluation/list_models.py --provider ollama
-python evaluation/run_eval.py --arena
-python evaluation/judge_eval.py
-python evaluation/visualize_results.py
+python -m ul_fri_nlp.evaluation.list_models --provider ollama
+python -m ul_fri_nlp.evaluation.run_eval --arena
+python -m ul_fri_nlp.evaluation.judge_eval
+python -m ul_fri_nlp.evaluation.visualize_results
 ```
 
 ## Report Build
@@ -217,8 +230,8 @@ make clean-report
 Offline mode is the fully reproducible baseline. It does not call an external model and is suitable for peer reviewers:
 
 ```bash
-python evaluation/run_eval.py --provider offline
-python evaluation/judge_eval.py --provider offline
+python -m ul_fri_nlp.evaluation.run_eval --provider offline
+python -m ul_fri_nlp.evaluation.judge_eval --provider offline
 ```
 
 ### Ollama
@@ -226,27 +239,27 @@ python evaluation/judge_eval.py --provider offline
 Set `OLLAMA_HOST` or `OLLAMA_URL` in `.env`, then verify available models:
 
 ```bash
-python evaluation/list_models.py --provider ollama
+python -m ul_fri_nlp.evaluation.list_models --provider ollama
 ```
 
 Create or refresh the optimized Ollama model:
 
 ```bash
-python evaluation/optimizations/create_ollama_model.py --verify
+python -m ul_fri_nlp.optimizations.create_ollama_model --verify
 ```
 
 Run it directly:
 
 ```bash
-ollama run ul-fri-nlp-course-project-optimized
+ollama run ul-fri-slovenian-employment-law-rag
 ```
 
 Evaluate it:
 
 ```bash
-python evaluation/run_eval.py \
+python -m ul_fri_nlp.evaluation.run_eval \
   --provider ollama \
-  --model ul-fri-nlp-course-project-optimized:latest \
+  --model ul-fri-slovenian-employment-law-rag:latest \
   --output evaluation/results/optimized_ollama_answers.jsonl
 ```
 
@@ -255,13 +268,13 @@ python evaluation/run_eval.py \
 Set `WEBUI_HOST` and `WEBUI_API_KEY` in `.env`, then verify models:
 
 ```bash
-python evaluation/list_models.py --provider openwebui
+python -m ul_fri_nlp.evaluation.list_models --provider openwebui
 ```
 
 Register the final Open WebUI preset, if your API key has permission:
 
 ```bash
-python evaluation/optimizations/create_ollama_model.py \
+python -m ul_fri_nlp.optimizations.create_ollama_model \
   --skip-create \
   --register-openwebui \
   --smoke-openwebui
@@ -271,8 +284,8 @@ The documented final option is `ul-fri-slovenian-employment-law-rag-openwebui`, 
 
 ## Development Notes
 
-- The answer-time retriever lives in `report/code/rag.py`.
-- Shared evaluation retrieval helpers live in `evaluation/retrieval_shared.py`.
+- The answer-time retriever lives in `src/ul_fri_nlp/app/rag.py`.
+- Shared evaluation retrieval helpers live in `src/ul_fri_nlp/evaluation/retrieval_shared.py`.
 - The final prompt and model/deployment configuration live in `evaluation/optimizations/config.json`.
 - Generated Python bytecode, local virtual environments, secrets, and report builds are ignored.
 - Evaluation result snapshots are kept in `evaluation/results/` so reviewers can inspect the evidence behind the report tables.
@@ -282,7 +295,7 @@ The documented final option is `ul-fri-slovenian-employment-law-rag-openwebui`, 
 The project instructions require a final report with analyses and discussion, a fully reproducible repository, linked or included dependencies/corpora, runnable code, sensible evaluation, readable results, and clear limitations. This repository addresses those requirements through:
 
 - final report source in `report/report.tex`;
-- source manifest and corpus builder in `evaluation/optimizations/`;
+- source manifest in `evaluation/optimizations/` and corpus builder in `src/ul_fri_nlp/optimizations/`;
 - committed transformed corpus and evaluation questions;
 - deterministic offline evaluation path;
 - optional live deployment through Ollama/Open WebUI;

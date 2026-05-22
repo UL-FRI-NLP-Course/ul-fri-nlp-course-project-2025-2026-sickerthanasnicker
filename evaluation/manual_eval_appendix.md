@@ -9,10 +9,10 @@ This appendix records the final offline/manual review after expanding the offici
 The reproducible local path is:
 
 ```bash
-python evaluation/retrieval_eval.py --quiet
-python evaluation/run_eval.py --provider offline --quiet
-python evaluation/judge_eval.py --provider offline --quiet
-python evaluation/visualize_results.py
+python -m ul_fri_nlp.evaluation.retrieval_eval --quiet
+python -m ul_fri_nlp.evaluation.run_eval --provider offline --quiet
+python -m ul_fri_nlp.evaluation.judge_eval --provider offline --quiet
+python -m ul_fri_nlp.evaluation.visualize_results
 ```
 
 Current metrics over 40 questions:

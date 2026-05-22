@@ -5,7 +5,7 @@ This directory contains a reproducible evaluation setup for the Slovenian employ
 It compares:
 
 - `baseline`: model answers without retrieved context;
-- `rag`: BM25 retrieval from `report/code/rag.py`, then model answers only from retrieved context;
+- `rag`: BM25 retrieval from `src/ul_fri_nlp/app/rag.py`, then model answers only from retrieved context;
 - `arena`: the same baseline/RAG comparison across multiple configured models.
 
 The default evaluation now uses local Ollama with `llama3:latest`. The deterministic offline mode is still available with `--provider offline`, but it is intended only as a smoke test.
@@ -24,14 +24,16 @@ The pipeline is designed to demonstrate four things:
 - `questions.jsonl`: 40 factual, ambiguous, and unanswerable questions.
 - `config.json`: default provider/model settings and arena model list.
 - `config.example.env`: example environment variables without secrets.
-- `list_models.py`: lists Ollama or Open WebUI models.
-- `run_eval.py`: runs baseline/RAG answer generation.
-- `retrieval_eval.py`: evaluates retrieval independently.
-- `judge_eval.py`: scores answers and prints aggregate results.
-- `vote_eval.py`: ranks existing answers with anonymized model voting and self-bias metrics.
-- `visualize_results.py`: creates charts and a Markdown report.
-- `fine_tuning/prepare_dataset.py`: prepares grounded QA JSONL for later fine-tuning.
-- `optimizations/`: separate correctness-improvement experiments for official corpus building, prompt sweeps, COLESLAW preprocessing, PEFT data prep, and Open WebUI preset export.
+- `results/`: generated answer, judgement, retrieval, chart, and report snapshots.
+- `fine_tuning/data/`: generated exploratory fine-tuning examples.
+- `optimizations/`: static optimization configs, source manifests, prepared data, and Ollama export files.
+
+The Python implementation lives under `src/ul_fri_nlp/`:
+
+- `src/ul_fri_nlp/app/rag.py`: runtime retriever and CLI.
+- `src/ul_fri_nlp/evaluation/`: evaluation, judging, voting, visualization, and model-provider modules.
+- `src/ul_fri_nlp/optimizations/`: corpus building, source monitoring, prompt sweeps, PEFT prep, and Ollama/Open WebUI deployment helpers.
+- `src/ul_fri_nlp/fine_tuning/`: exploratory grounded-data preparation.
 
 Generated outputs are written to `evaluation/results/`.
 
@@ -72,8 +74,8 @@ Open WebUI support uses:
 ## Model Discovery
 
 ```bash
-python evaluation/list_models.py --provider ollama
-python evaluation/list_models.py --provider openwebui
+python -m ul_fri_nlp.evaluation.list_models --provider ollama
+python -m ul_fri_nlp.evaluation.list_models --provider openwebui
 ```
 
 ## Run
@@ -87,13 +89,13 @@ pip install -r requirements.txt
 Run retrieval evaluation:
 
 ```bash
-python evaluation/retrieval_eval.py
+python -m ul_fri_nlp.evaluation.retrieval_eval
 ```
 
 Rebuild the official corpus:
 
 ```bash
-python evaluation/optimizations/build_official_corpus.py \
+python -m ul_fri_nlp.optimizations.build_official_corpus \
   --output report/code/data/chunk.jsonl \
   --include-case-law \
   --max-case-law-chunks 30
@@ -102,19 +104,19 @@ python evaluation/optimizations/build_official_corpus.py \
 Run default local Llama evaluation:
 
 ```bash
-python evaluation/run_eval.py
+python -m ul_fri_nlp.evaluation.run_eval
 ```
 
 Run a small quick check:
 
 ```bash
-python evaluation/run_eval.py --limit 2
+python -m ul_fri_nlp.evaluation.run_eval --limit 2
 ```
 
 Run arena comparison from `config.json`:
 
 ```bash
-python evaluation/run_eval.py --arena
+python -m ul_fri_nlp.evaluation.run_eval --arena
 ```
 
 The answer-generation, retrieval, judging, optimization, and vote scripts print CLI progress by default, including current model, question id, variant, and completed item count. Add `--quiet` to suppress progress logs.
@@ -122,24 +124,24 @@ The answer-generation, retrieval, judging, optimization, and vote scripts print 
 Judge answers:
 
 ```bash
-python evaluation/judge_eval.py
+python -m ul_fri_nlp.evaluation.judge_eval
 ```
 
 Generate charts and a report:
 
 ```bash
-python evaluation/visualize_results.py
+python -m ul_fri_nlp.evaluation.visualize_results
 ```
 
 Run anonymized vote evaluation over an existing arena answer file:
 
 ```bash
-python evaluation/vote_eval.py \
+python -m ul_fri_nlp.evaluation.vote_eval \
   --answers evaluation/results/arena_answers.jsonl \
   --output evaluation/results/vote_eval.jsonl \
   --summary-output evaluation/results/vote_summary.csv
 
-python evaluation/visualize_results.py --vote-summary evaluation/results/vote_summary.csv
+python -m ul_fri_nlp.evaluation.visualize_results --vote-summary evaluation/results/vote_summary.csv
 ```
 
 Outputs:
@@ -181,7 +183,7 @@ The final deployed Open WebUI option is:
 Refresh it with:
 
 ```bash
-python evaluation/optimizations/create_ollama_model.py --skip-create --register-openwebui --smoke-openwebui
+python -m ul_fri_nlp.optimizations.create_ollama_model --skip-create --register-openwebui --smoke-openwebui
 ```
 
 The companion Ollama-only model is `ul-fri-slovenian-employment-law-rag:latest`.
@@ -251,7 +253,7 @@ The threshold-based metrics are not a replacement for human legal review. They a
 Prepare grounded QA data:
 
 ```bash
-python evaluation/fine_tuning/prepare_dataset.py
+python -m ul_fri_nlp.fine_tuning.prepare_dataset
 ```
 
 This creates:
@@ -266,14 +268,14 @@ This step does not run expensive fine-tuning. It creates chat-style examples tha
 Optimization experiments are kept separate from the main evaluation outputs:
 
 ```bash
-python evaluation/optimizations/build_official_corpus.py --include-case-law --max-case-law-chunks 30
-python evaluation/optimizations/run_prompt_sweep.py --limit 2 --provider offline
-python evaluation/judge_eval.py \
+python -m ul_fri_nlp.optimizations.build_official_corpus --include-case-law --max-case-law-chunks 30
+python -m ul_fri_nlp.optimizations.run_prompt_sweep --limit 2 --provider offline
+python -m ul_fri_nlp.evaluation.judge_eval \
   --answers evaluation/results/optimization/prompt_sweep_answers.jsonl \
   --output evaluation/results/optimization/judgements.jsonl
-python evaluation/optimizations/summarize_optimization.py
-python evaluation/optimizations/prepare_peft_dataset.py
-python evaluation/optimizations/export_webui_model.py
+python -m ul_fri_nlp.optimizations.summarize_optimization
+python -m ul_fri_nlp.optimizations.prepare_peft_dataset
+python -m ul_fri_nlp.optimizations.create_ollama_model
 ```
 
 See `evaluation/optimizations/README.md` for the full workflow. The queued vote-score metric plan is saved in `evaluation/backlog/vote_score_metric.md`.
@@ -281,6 +283,6 @@ See `evaluation/optimizations/README.md` for the full workflow. The queued vote-
 Create the local optimized Ollama model:
 
 ```bash
-python evaluation/optimizations/create_ollama_model.py
-ollama run ul-fri-nlp-course-project-optimized
+python -m ul_fri_nlp.optimizations.create_ollama_model
+ollama run ul-fri-slovenian-employment-law-rag
 ```

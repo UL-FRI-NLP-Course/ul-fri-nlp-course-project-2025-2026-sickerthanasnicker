@@ -1,9 +1,10 @@
 import argparse
 from pathlib import Path
 
-from io_utils import load_jsonl, write_jsonl
-from progress_utils import Progress
-from retrieval_shared import (
+from ul_fri_nlp.evaluation.eval_config import EVALUATION_DIR
+from ul_fri_nlp.evaluation.io_utils import load_jsonl, write_jsonl
+from ul_fri_nlp.evaluation.progress_utils import Progress
+from ul_fri_nlp.evaluation.retrieval_shared import (
     CHUNKS_FILE,
     build_index,
     format_context,
@@ -11,11 +12,11 @@ from retrieval_shared import (
     retrieve,
     source_label,
 )
-from text_utils import content_terms
+from ul_fri_nlp.evaluation.text_utils import content_terms
 
 
-DEFAULT_QUESTIONS_FILE = Path(__file__).with_name("questions.jsonl")
-DEFAULT_OUTPUT_FILE = Path(__file__).with_name("results") / "retrieval.jsonl"
+DEFAULT_QUESTIONS_FILE = EVALUATION_DIR / "questions.jsonl"
+DEFAULT_OUTPUT_FILE = EVALUATION_DIR / "results" / "retrieval.jsonl"
 
 
 def keyword_hit(reference, context, threshold):

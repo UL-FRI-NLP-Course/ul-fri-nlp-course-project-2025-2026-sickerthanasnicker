@@ -7,18 +7,18 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from eval_config import generation_options, load_config, load_env
-from io_utils import append_jsonl, load_jsonl
-from judge_eval import fallback_judge
-from model_providers import chat_model
-from progress_utils import Progress
-from retrieval_shared import build_index, format_context, load_chunks, retrieve
+from ul_fri_nlp.evaluation.eval_config import EVALUATION_DIR, generation_options, load_config, load_env
+from ul_fri_nlp.evaluation.io_utils import append_jsonl, load_jsonl
+from ul_fri_nlp.evaluation.judge_eval import fallback_judge
+from ul_fri_nlp.evaluation.model_providers import chat_model
+from ul_fri_nlp.evaluation.progress_utils import Progress
+from ul_fri_nlp.evaluation.retrieval_shared import build_index, format_context, load_chunks, retrieve
 
 
-DEFAULT_QUESTIONS_FILE = Path(__file__).with_name("questions.jsonl")
-DEFAULT_ANSWERS_FILE = Path(__file__).with_name("results") / "answers.jsonl"
-DEFAULT_OUTPUT_FILE = Path(__file__).with_name("results") / "vote_eval.jsonl"
-DEFAULT_SUMMARY_FILE = Path(__file__).with_name("results") / "vote_summary.csv"
+DEFAULT_QUESTIONS_FILE = EVALUATION_DIR / "questions.jsonl"
+DEFAULT_ANSWERS_FILE = EVALUATION_DIR / "results" / "answers.jsonl"
+DEFAULT_OUTPUT_FILE = EVALUATION_DIR / "results" / "vote_eval.jsonl"
+DEFAULT_SUMMARY_FILE = EVALUATION_DIR / "results" / "vote_summary.csv"
 
 VOTE_SYSTEM_PROMPT = """Ocenjuješ anonimne odgovore na vprašanja iz slovenskega prava.
 

@@ -8,7 +8,7 @@ The goal is to improve answer correctness while preserving grounding and refusal
 The final RAG corpus is built from current official sources plus a bounded tertiary case-law tier:
 
 ```bash
-python evaluation/optimizations/build_official_corpus.py \
+python -m ul_fri_nlp.optimizations.build_official_corpus \
   --output report/code/data/chunk.jsonl \
   --include-case-law \
   --max-case-law-chunks 30
@@ -26,7 +26,7 @@ The current committed corpus has 1,371 chunks: PISRS article-level law chunks, o
 The COLESLAW archive is streamed directly from `corpus/COLESLAW.zip`; it is not extracted into the repository.
 
 ```bash
-python evaluation/optimizations/prepare_corpus.py --limit 500
+python -m ul_fri_nlp.optimizations.prepare_corpus --limit 500
 ```
 
 Outputs:
@@ -40,7 +40,7 @@ The current extraction is useful as case-law and tertiary support, but it should
 For a bounded fuller local preparation run with progress:
 
 ```bash
-python evaluation/optimizations/prepare_corpus.py \
+python -m ul_fri_nlp.optimizations.prepare_corpus \
   --limit 500 \
   --max-records 50000 \
   --progress-every 5000
@@ -55,7 +55,7 @@ Official primary and interpretation sources are tracked in:
 Run the monitor:
 
 ```bash
-python evaluation/optimizations/monitor_official_sources.py
+python -m ul_fri_nlp.optimizations.monitor_official_sources
 ```
 
 Output:
@@ -69,13 +69,13 @@ The monitor checks PISRS register matches and GOV.SI/MDDSZ/ZZZS/IRSD/eUprava/SPO
 Smoke test without live model calls:
 
 ```bash
-python evaluation/optimizations/run_prompt_sweep.py --limit 2 --provider offline
+python -m ul_fri_nlp.optimizations.run_prompt_sweep --limit 2 --provider offline
 ```
 
 Run configured live models:
 
 ```bash
-python evaluation/optimizations/run_prompt_sweep.py --limit 2
+python -m ul_fri_nlp.optimizations.run_prompt_sweep --limit 2
 ```
 
 The sweep prints current model, prompt, parameter set, question id, variant, and total progress. Use `--quiet` only when logging is too noisy.
@@ -83,7 +83,7 @@ The sweep prints current model, prompt, parameter set, question id, variant, and
 To reduce runtime, filter to one model, prompt, or parameter set:
 
 ```bash
-python evaluation/optimizations/run_prompt_sweep.py \
+python -m ul_fri_nlp.optimizations.run_prompt_sweep \
   --model-id webui-mistral-7b \
   --prompt-id strict_legal_rag_sl_v2 \
   --settings-id deterministic
@@ -99,11 +99,11 @@ Outputs:
 Use the existing judge, but write to the optimization results folder:
 
 ```bash
-python evaluation/judge_eval.py \
+python -m ul_fri_nlp.evaluation.judge_eval \
   --answers evaluation/results/optimization/prompt_sweep_answers.jsonl \
   --output evaluation/results/optimization/judgements.jsonl
 
-python evaluation/optimizations/summarize_optimization.py
+python -m ul_fri_nlp.optimizations.summarize_optimization
 ```
 
 Outputs:
@@ -119,7 +119,7 @@ Outputs:
 This does not run training. It prepares chat-style JSONL for later LoRA/PEFT. For the final submission this is exploratory only and is not part of the selected approach; regenerate the data before using it because the final model choice is RAG-only.
 
 ```bash
-python evaluation/optimizations/prepare_peft_dataset.py
+python -m ul_fri_nlp.optimizations.prepare_peft_dataset
 ```
 
 Outputs:
@@ -132,47 +132,37 @@ Default PEFT target is Mistral 7B because it is the local model most likely to b
 The current prepared dataset can be regenerated with more corpus examples:
 
 ```bash
-python evaluation/optimizations/prepare_peft_dataset.py --max-corpus-examples 200
+python -m ul_fri_nlp.optimizations.prepare_peft_dataset --max-corpus-examples 200
 ```
 
-## 5. Export Open WebUI Preset
+## 5. Create Local Ollama Model
 
-This creates files for a usable Open WebUI model/preset. It does not mutate Open WebUI by default.
-
-```bash
-python evaluation/optimizations/export_webui_model.py
-```
-
-Outputs:
-
-- `evaluation/optimizations/webui/optimized_model_preset.json`
-- `evaluation/optimizations/webui/openwebui_create_model_payload.json`
-
-If your Open WebUI instance exposes the model creation API and your API key has permission, creation can be attempted explicitly:
+Create the local optimized model from the configured base model, selected system prompt, deterministic parameters, and optional grounded examples:
 
 ```bash
-python evaluation/optimizations/export_webui_model.py --create
-```
-
-## 6. Create Local Ollama Model
-
-Create the local optimized model from `mistral:7b`, the selected system prompt, deterministic parameters, and grounded examples:
-
-```bash
-python evaluation/optimizations/create_ollama_model.py
+python -m ul_fri_nlp.optimizations.create_ollama_model
 ```
 
 Run it directly:
 
 ```bash
-ollama run ul-fri-nlp-course-project-optimized
+ollama run ul-fri-slovenian-employment-law-rag
+```
+
+Register or refresh the final Open WebUI model wrapper:
+
+```bash
+python -m ul_fri_nlp.optimizations.create_ollama_model \
+  --skip-create \
+  --register-openwebui \
+  --smoke-openwebui
 ```
 
 Evaluate it through the main pipeline:
 
 ```bash
-python evaluation/run_eval.py \
+python -m ul_fri_nlp.evaluation.run_eval \
   --provider ollama \
-  --model ul-fri-nlp-course-project-optimized:latest \
+  --model ul-fri-slovenian-employment-law-rag:latest \
   --output evaluation/results/optimized_ollama_answers.jsonl
 ```

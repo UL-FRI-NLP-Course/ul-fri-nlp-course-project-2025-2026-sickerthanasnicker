@@ -9,7 +9,7 @@ The final project uses RAG over a committed official corpus. Fine-tuning remains
 The official corpus is built with:
 
 ```bash
-python evaluation/optimizations/build_official_corpus.py \
+python -m ul_fri_nlp.optimizations.build_official_corpus \
   --output report/code/data/chunk.jsonl \
   --include-case-law \
   --max-case-law-chunks 30

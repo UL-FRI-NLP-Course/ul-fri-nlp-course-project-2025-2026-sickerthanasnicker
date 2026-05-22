@@ -6,12 +6,12 @@ This ledger maps the UL FRI Natural Language Processing 2025/2026 final-project 
 
 | Instruction requirement | Repository evidence | Status |
 | --- | --- | --- |
-| Final project for the Domain-Specific AI Assistant topic: define a strict use case, curate a source of truth, and adapt an LLM with RAG or PEFT. | `README.md`; `report/report.tex`; `report/code/rag.py`; `evaluation/optimizations/config.json`; `evaluation/optimizations/official_sources.json`. The use case is a Slovenian employment-law assistant with official-source grounding, citations, and refusal behavior. | Covered. Final approach is RAG-first; PEFT/fine-tuning utilities are exploratory, not the submitted production claim. |
+| Final project for the Domain-Specific AI Assistant topic: define a strict use case, curate a source of truth, and adapt an LLM with RAG or PEFT. | `README.md`; `report/report.tex`; `src/ul_fri_nlp/app/rag.py`; `evaluation/optimizations/config.json`; `evaluation/optimizations/official_sources.json`. The use case is a Slovenian employment-law assistant with official-source grounding, citations, and refusal behavior. | Covered. Final approach is RAG-first; PEFT/fine-tuning utilities are exploratory, not the submitted production claim. |
 | Literature / related-work discussion, including knowledge injection trade-offs such as prompting, RAG, fine-tuning, and tools. | `report/report.tex` sections `Related Work` and `System`; `report/report.bib`. | Covered in the report source. |
-| Data curation and domain definition with links or included transformed data. | Source manifest: `evaluation/optimizations/official_sources.json`. Corpus builder: `evaluation/optimizations/build_official_corpus.py`. Committed transformed corpus: `report/code/data/chunk.jsonl`. COLESLAW preprocessing: `evaluation/optimizations/prepare_corpus.py`. | Covered. Official/public sources are linked and reproducible; transformed chunks are committed for inspection. |
+| Data curation and domain definition with links or included transformed data. | Source manifest: `evaluation/optimizations/official_sources.json`. Corpus builder: `src/ul_fri_nlp/optimizations/build_official_corpus.py`. Committed transformed corpus: `report/code/data/chunk.jsonl`. COLESLAW preprocessing: `src/ul_fri_nlp/optimizations/prepare_corpus.py`. | Covered. Official/public sources are linked and reproducible; transformed chunks are committed for inspection. |
 | If public datasets are available elsewhere, link them; if transformations were performed, include scripts. | `README.md` documents official source policy and COLESLAW handling. `evaluation/optimizations/README.md` documents corpus, source monitor, COLESLAW extraction, and PEFT data preparation. | Covered, with one limitation: the raw `corpus/COLESLAW.zip` archive is not committed and is expected locally only when regenerating COLESLAW-derived chunks. |
-| Implement at least one solution and analyze results. | Implemented solution: BM25-style RAG in `report/code/rag.py` and shared evaluation retrieval in `evaluation/retrieval_shared.py`. Results: `evaluation/results/`, `evaluation/results/report.md`, `evaluation/optimizations/rag_optimization_report.md`, and report tables. | Covered. |
-| Evaluate retrieval accuracy/relevance and human-centric answer behavior such as factuality, tone, and safe handling of unanswerable queries. | `evaluation/questions.jsonl` has 40 factual, ambiguous, and unanswerable questions. `evaluation/retrieval_eval.py`, `evaluation/run_eval.py`, `evaluation/judge_eval.py`, and `evaluation/visualize_results.py` generate retrieval and answer metrics. | Covered for deterministic peer review. Human/legal expert validation remains a limitation. |
+| Implement at least one solution and analyze results. | Implemented solution: BM25-style RAG in `src/ul_fri_nlp/app/rag.py` and shared evaluation retrieval in `src/ul_fri_nlp/evaluation/retrieval_shared.py`. Results: `evaluation/results/`, `evaluation/results/report.md`, `evaluation/optimizations/rag_optimization_report.md`, and report tables. | Covered. |
+| Evaluate retrieval accuracy/relevance and human-centric answer behavior such as factuality, tone, and safe handling of unanswerable queries. | `evaluation/questions.jsonl` has 40 factual, ambiguous, and unanswerable questions. `src/ul_fri_nlp/evaluation/retrieval_eval.py`, `src/ul_fri_nlp/evaluation/run_eval.py`, `src/ul_fri_nlp/evaluation/judge_eval.py`, and `src/ul_fri_nlp/evaluation/visualize_results.py` generate retrieval and answer metrics. | Covered for deterministic peer review. Human/legal expert validation remains a limitation. |
 | Report results with sensible measures, readable figures/tables, and comparative tables where possible. | `report/report.tex` contains retrieval, answer, and regression tables. Generated charts and CSVs are in `evaluation/results/`. | Covered. |
 | Keep report concise and follow the proposed report template. | `report/report.tex` uses `report/ds_report.cls`; figures/templates are under `report/`. | Covered. |
 | Fully reproducible repository with dependencies and simple rerun path. | `requirements.txt`; `Makefile`; `README.md` reviewer checklist. Main command: `make verify`. Component targets: `make retrieval`, `make offline-eval`, `make report`, `make corpus`, `make source-monitor`. | Covered for offline reproduction. Live Ollama/Open WebUI paths are optional and depend on local endpoints/secrets. |
@@ -67,8 +67,8 @@ make verify
 What `make verify` checks:
 
 - JSON configuration validity for `evaluation/config.json`, `evaluation/optimizations/config.json`, and `evaluation/optimizations/official_sources.json`.
-- Python compile checks for `evaluation/` and `report/code/`.
-- Retrieval metrics through `evaluation/retrieval_eval.py`.
+- Python compile checks for `src/`.
+- Retrieval metrics through `src/ul_fri_nlp/evaluation/retrieval_eval.py`.
 - Deterministic offline generation, judging, and chart/report generation.
 - LaTeX build into `report/.out/report.pdf`.
 
@@ -77,8 +77,8 @@ Optional checks:
 ```bash
 make source-monitor
 make corpus
-python evaluation/list_models.py --provider ollama
-python evaluation/list_models.py --provider openwebui
+python -m ul_fri_nlp.evaluation.list_models --provider ollama
+python -m ul_fri_nlp.evaluation.list_models --provider openwebui
 ```
 
 ## Honest Limitations
