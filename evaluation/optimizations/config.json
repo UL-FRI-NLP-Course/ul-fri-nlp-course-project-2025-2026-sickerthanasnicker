@@ -6,6 +6,14 @@
   },
   "models": [
     {
+      "model_id": "ollama-gams-2b-instruct",
+      "provider": "ollama",
+      "model": "hf.co/mradermacher/GaMS-2B-Instruct-GGUF:Q4_K_M",
+      "display_name": "GaMS-2B-Instruct",
+      "role": "slovenian_language_candidate",
+      "enabled": true
+    },
+    {
       "model_id": "webui-qwen3-coder-30b-a3b",
       "provider": "openwebui",
       "model": "hf.co/byteshape/Qwen3-Coder-30B-A3B-Instruct-GGUF:latest",

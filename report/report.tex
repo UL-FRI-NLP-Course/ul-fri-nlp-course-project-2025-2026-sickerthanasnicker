@@ -20,8 +20,7 @@
 We built a question-answering assistant for Slovenian employment law using retrieval-augmented generation.
 We started from the COLESLAW legal corpus, ran into three systematic failures caused by outdated and low-authority documents, and fixed them by rebuilding the knowledge base from current official sources and iterating through five system prompt versions.
 The final system retrieves from PISRS statutes, government guidance, and related agencies, ranks sources by authority, and uses a strict Slovenian prompt that requires citations and refuses out-of-scope questions.
-On a 40-question evaluation set it achieves perfect retrieval with no false evidence for unanswerable questions, and the full RAG setup scores 2.95/5 for answer correctness and 1.00 for both citation support and refusal accuracy, compared to 0.50 and 0.00 for the baseline without any retrieved context.
-We also prepared fine-tuning data but ultimately did not use it, since for a legal assistant current official sources matter more than what the model has memorised.
+On a 40-question evaluation set it achieves perfect retrieval with no false evidence, and the full RAG setup scores 2.95/5 for answer correctness and 1.00 for both citation support and refusal accuracy, compared to 0.50 and 0.00 for the baseline without retrieved context.
 The deployed assistant is available at \url{https://ai.koderverse.com/}.
 }
 
@@ -37,10 +36,8 @@ They often sound confident while citing articles that do not exist, mixing up ru
 This is a real problem: employment law is one of the areas people most often want quick guidance on, and the questions have correct answers that can be verified against published statutes.
 We picked Slovenian employment law as our domain because it is well scoped, the official sources are publicly available online, and there are already a few Slovenian legal chatbots showing that people want this kind of tool \cite{Pravko,MojMaliPravnik}.
 
-We designed the assistant to be informational rather than a legal advisor.
-It only answers questions about Slovenian employment relationships---contracts, termination, leave, wages, sick leave, and related topics---and it refuses anything else.
-It also refuses when the retrieved documents do not contain enough information to answer the specific question.
-This strict scope was deliberate: it makes evaluation meaningful because we can test not just whether the system answers correctly, but also whether it knows when not to answer.
+The assistant is informational rather than a legal advisor: it answers only Slovenian employment-law questions and refuses both out-of-scope requests and questions where retrieved documents are insufficient.
+This strict scope makes evaluation meaningful---we can test whether the system knows when not to answer, not just whether it answers correctly.
 
 \section*{Related Work}
 
@@ -52,11 +49,10 @@ Techniques like LoRA can teach a model new output formats or styles without retr
 The trade-off between all these methods---prompting, RAG, and fine-tuning---has been surveyed recently in the context of injecting domain knowledge \cite{Song2025Injection}.
 We went with RAG because legal answers need to be grounded in current statutes, and that requires the actual text to be present at generation time rather than baked into model weights.
 
-For the legal text corpus we started with COLESLAW 1.0, a large collection of Slovenian legal documents including statutes, court decisions, and administrative texts \cite{COLESLAW}.
 
 \section*{Corpus and Sources}
 
-Our first approach was to filter the COLESLAW corpus down to employment-law relevant text using keyword matching and use that as the knowledge base.
+Our first approach was to filter COLESLAW 1.0~\cite{COLESLAW}, a large collection of Slovenian legal documents, down to employment-law text and use that as the knowledge base.
 It gave short retrieved contexts (around 190 words per question on average) and we quickly found three concrete answer-quality failures: one question about fixed-term contract duration surfaced the wrong ZDR-1 article, another about who pays sick leave after day 30 returned outdated wording from an older version of the rule, and a third ambiguous question about leave entitlement produced a confident general answer instead of flagging the missing details.
 The underlying problem was that COLESLAW is full of court decisions and older documents: there is plenty of text mentioning employment topics, but the current statutory text is not always the top result, and short context windows leave no room for corroborating sources.
 
@@ -88,35 +84,18 @@ Case-law chunks receive a large negative penalty unless the question explicitly 
 The second adjustment handles actor-sensitive questions.
 Employment law questions are often asymmetric---what an employer can do and what an employee can do are different things---so we add small boosts when the retrieved text specifically matches the actor mentioned in the question.
 
-The system prompt took five iterations to get right.
-The first version established the basic rule: answer only from the retrieved context and refuse if you cannot.
-The second added an explicit check step so the model thinks about whether context actually supports the answer before generating it.
-The third focused on handling vague questions, since some questions like ``How much leave do I get?'' cannot be answered without knowing more details.
-The fourth added source priority to the prompt instructions, mirroring what the retrieval already does.
-The fifth and final version added three things: a requirement that every non-refusal answer must cite a specific article or source, a rule that vague questions must start with an explanation of what information is missing rather than a confident general answer, and a rule that when the law has multiple tiers or thresholds the answer must list all of them rather than just mentioning the first.
+The system prompt took five iterations: from a basic refuse-if-unsure rule, adding an internal context-check step, then vague-question handling, then source-priority instructions mirroring the retriever.
+The final version requires explicit citations on every non-refusal answer, mandates ambiguity explanations before answering vague questions, and requires all thresholds and tiers to be listed rather than just the first.
 
-For the model itself we ran a side-by-side arena evaluation comparing llama3, Mistral 7B, Gemma 3 4B, Qwen 2.5 Coder 7B, and a larger Qwen model.
-On the short smoke test with RAG context every model scored 5.00/5 for correctness and grounding; without context they all dropped to around 4.2--4.4/5.
-The main takeaway from this comparison was that retrieval quality and the system prompt mattered much more than which specific model we used.
+For the model itself we ran an arena evaluation across llama3, Mistral 7B, Gemma 3 4B, and two Qwen variants; every model scored 5.00/5 with RAG context on a smoke test---the questions were straightforward and the retrieved context directly contained the answers, so any capable model could synthesise a correct response---confirming prompt and retrieval quality dominate over model choice.
+We also evaluated GaMS-2B-Instruct~\cite{GaMS1B}, a Slovenian-focused model recommended by the course assistant; results are discussed in the Evaluation section.
+We chose Mistral 7B for deployment at \url{https://ai.koderverse.com/} (temperature 0) for its stronger citation discipline and overall correctness.
 
-On the recommendation of the course assistant we also evaluated GaMS-2B-Instruct, a Slovenian-focused model from the GaMS family~\cite{GaMS1B}.
-GaMS-2B-Instruct tells a notably different story from the general-purpose models.
-Its baseline correctness without any retrieved context (1.65/5) is more than three times higher than the llama3 baseline (0.50/5), because its Slovenian-specific pretraining already encodes a meaningful amount of employment-law knowledge.
-With RAG context, correctness rises only modestly to 1.93/5, and refusal accuracy actually drops to zero---the model answers every question even when it should decline.
-This reveals a clear trade-off: Slovenian-language pretraining gives GaMS a head start on raw knowledge, but the model does not follow strict prompt guardrails as reliably as the general-purpose models do.
-Citation discipline is also poor, with only 6\% of RAG answers including a verifiable source reference compared to 100\% for Mistral.
-For the deployed system we use Mistral 7B because it handles the structured prompt instructions well and achieves the best overall RAG performance.
-The deployed assistant is at \url{https://ai.koderverse.com/}, using deterministic settings (temperature 0) so answers are reproducible.
-
-We also prepared a fine-tuning dataset---176 training examples and 44 validation examples in a chat format---to explore whether LoRA adaptation would help.
-After looking at the results, we decided not to use it for the final system.
-The main reasons were that our evaluation showed retrieval quality was the bottleneck rather than output style, that a fine-tuned model's knowledge of the law would go stale as statutes change, and that running 7B model fine-tuning locally was not practical with the available hardware.
+We prepared a fine-tuning dataset (176 training and 44 validation examples) but did not use it: retrieval quality was the bottleneck rather than output style, and a fine-tuned model's legal knowledge would go stale as statutes change.
 
 \section*{Evaluation}
 
-We kept retrieval and answer quality as separate measurements, which turned out to be important.
-A retrieval failure (the wrong article is returned) and a generation failure (the model ignores a correct article) produce the same wrong answer but need different fixes.
-By measuring retrieval with its own metrics first, we could tell whether a bad answer was caused by a corpus gap or by the model not using the context correctly.
+We measured retrieval and answer quality separately: a retrieval failure and a generation failure produce the same wrong answer but need different fixes.
 
 For retrieval we measured two things.
 Hit@3 checks whether the chunk containing the correct answer is among the top three results the retriever returns.
@@ -132,8 +111,7 @@ For answer quality we used seven metrics.
 \textit{Citation support rate} (0--1) is the fraction of answers that include at least one verifiable reference to a specific article or official source.
 \textit{Refusal accuracy} (0--1) is the fraction of deliberately unanswerable questions that the model correctly declines to answer rather than guessing.
 
-The evaluation set has 40 questions covering twelve topic areas: annual leave and regres, fixed-term contracts, termination, severance, sick leave, minimum wage, working-time records, occupational safety, unpaid wages, collective agreements, court interpretation questions, and questions that are deliberately ambiguous or out of scope.
-That last category is important: an assistant that answers confidently even when it should not know is dangerous for a legal domain, so we treated refusal accuracy as a first-class metric.
+The evaluation set has 40 questions across twelve topic areas---annual leave, fixed-term contracts, termination, sick leave, minimum wage, and deliberately ambiguous or out-of-scope questions---the last category being critical for a legal domain, so refusal accuracy is treated as a first-class metric.
 
 \begin{table}[ht]
 \caption{Retrieval results. Higher Hit@3 and lower false evidence are better. The official corpus was evaluated on the full 40-question set; the initial COLESLAW slice was measured on a 5-question smoke test covering only answerable questions. The main practical difference is context length.}
@@ -151,7 +129,7 @@ Initial COLESLAW slice & 1.000 & 0.000 & 189.9 \\
 \end{table}
 
 \begin{table}[ht]
-\caption{Answer quality on the 40-question set. Baseline rows have no retrieved context. Strict RAG uses the official corpus, the final system prompt, Mistral 7B, and temperature 0. GaMS-2B is the Slovenian GaMS-2B-Instruct model with the same corpus and prompt. Correctness and hallucination are 0--5; citations and refusal are fractions.}
+\caption{Answer quality on the 40-question set. Baseline rows have no retrieved context. All rows use the strict system prompt (strict\_legal\_rag\_sl\_v3) and temperature 0. GaMS-2B is the Slovenian GaMS-2B-Instruct model evaluated with the same corpus and prompt as Mistral. Correctness and hallucination are 0--5; citations and refusal are fractions.}
 \centering
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{lcccc}
@@ -161,8 +139,8 @@ Initial COLESLAW slice & 1.000 & 0.000 & 189.9 \\
 Baseline (llama3) & 0.50 & 4.12 & 0.00 & 0.00 \\
 \textbf{Strict RAG (Mistral 7B)} & \textbf{2.95} & \textbf{1.68} & \textbf{1.00} & \textbf{1.00} \\
 \midrule
-GaMS-2B baseline & 1.65 & 3.60 & 0.00 & 0.20 \\
-GaMS-2B RAG & 1.93 & 2.75 & 0.06 & 0.00 \\
+GaMS-2B baseline & 1.38 & 1.48 & 0.00 & 0.40 \\
+GaMS-2B strict RAG & 2.38 & 1.93 & 0.13 & 1.00 \\
 \bottomrule
 \end{tabular}}
 \label{tab:answers}
@@ -187,61 +165,51 @@ q014: ambiguous leave question & Ambiguity warning issued; ZDR-1 arts.\ 159 and 
 For Mistral 7B the improvements from adding RAG are substantial across every metric.
 Grounding rises from 0.12 to 4.83, meaning the model shifts from answering almost entirely from memory to drawing almost entirely from the retrieved text.
 Citation support goes from 0.00 to 1.00, and refusal accuracy from 0.00 to 1.00: without context the model freely invents legal provisions and never refuses; with context and the strict prompt it cites sources and correctly turns away every question it cannot answer.
-Answer correctness rises from 0.50 to 2.95 out of 5, though a gap remains between how well the right sources are retrieved and how well the model synthesises them into a complete answer.
-Finding the right article is one step; combining information across several statutory paragraphs into a concise correct answer is harder.
+Answer correctness rises from 0.50 to 2.95---retrieving the right article and synthesising a complete answer from several paragraphs remain separate challenges.
 
-The GaMS-2B rows show a different pattern.
-Without context, GaMS-2B scores 1.65 for correctness---more than three times the llama3 baseline---because its Slovenian pretraining already encodes some employment-law knowledge.
-With RAG context, correctness rises only slightly to 1.93, and refusal accuracy drops to zero: the model answers every question even when it should decline.
-This suggests that Slovenian-language pretraining helps with raw language quality but does not substitute for instruction-following discipline.
-Fine-tuning GaMS on the strict RAG prompt format would be the natural next step to combine its language strength with the refusal and citation behaviour that the final system achieves with Mistral.
+GaMS-2B-Instruct, evaluated with the same strict prompt, shows a different pattern: without context its correctness (1.38) is almost three times the llama3 baseline due to Slovenian pretraining; with RAG context both correctness (2.38) and refusal accuracy (1.00) improve substantially, matching Mistral on refusal.
+The remaining gap is citations: 13\% of GaMS RAG answers cite a source versus 100\% for Mistral, and correctness remains lower (2.38 vs.\ 2.95).
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{summary_scores}
-  \caption{Correctness, grounding, completeness, and clarity (all 0--5, higher is better) for the four evaluated variants. Strict RAG (Mistral 7B) shows large gains on correctness and grounding over the baseline. GaMS-2B baseline already scores higher on correctness than the llama3 baseline, reflecting Slovenian-language pretraining, but gains less from retrieved context than Mistral does.}
+  \caption{Correctness, grounding, completeness, and clarity (all 0--5, higher is better) for the four evaluated variants, all using the strict system prompt. Strict RAG (Mistral 7B) achieves the highest correctness (2.95) and grounding (4.83). GaMS-2B baseline (1.38) already outperforms the llama3 baseline (0.50) on correctness due to Slovenian pretraining; with strict RAG context correctness rises to 2.38, closing most of the gap with Mistral.}
   \label{fig:summary}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{refusal_accuracy}
-  \caption{Refusal accuracy (fraction of unanswerable questions correctly declined) for all four variants. A score of 0.00 means the model answered every question it should have refused; 1.00 means it correctly declined all of them. Strict RAG with Mistral is the only variant that achieves perfect refusal. GaMS-2B baseline partially refuses (0.20) but drops to 0.00 when given retrieved context, a key weakness.}
+  \caption{Refusal accuracy (fraction of unanswerable questions correctly declined) for all four variants. A score of 0.00 means the model answered every question it should have refused; 1.00 means it correctly declined all. With the strict system prompt, both Mistral strict RAG and GaMS-2B strict RAG achieve perfect refusal (1.00). The llama3 baseline (no strict prompt, no context) refuses nothing.}
   \label{fig:refusal}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{optimization_hallucination}
-  \caption{Hallucination score (0--5, lower is better) for all four evaluated variants. A score of 0 means no invented content; 5 means the answer is mostly fabricated. Retrieved context reduces hallucination substantially for both models: Mistral drops from 4.12 (baseline) to 1.68 (RAG), and GaMS-2B drops from 3.60 to 2.75. Mistral strict RAG achieves the lowest hallucination overall.}
+  \caption{Hallucination score (0--5, lower is better) for all four evaluated variants (strict system prompt throughout). A score of 0 means no invented content; 5 means mostly fabricated. The llama3 baseline (no strict prompt, no context) scores highest at 4.12. Both Mistral strict RAG (1.68) and GaMS-2B strict RAG (1.93) achieve substantially lower hallucination with retrieved context. GaMS-2B baseline (1.48) is low because the strict prompt causes frequent refusals rather than generation.}
   \label{fig:hallucination}
 \end{figure}
 
 \section*{Reproducibility and Compliance}
 
-Everything needed to reproduce the reported numbers is in the repository.
-Running one make command rebuilds the corpus from official sources, reruns the retrieval and answer evaluations, regenerates charts, and compiles the report PDF.
-The corpus chunks, evaluation questions, and result snapshots are committed so reviewers can inspect the numbers without rerunning anything.
-Configuration examples with placeholder values are included; secrets and endpoint addresses are never committed.
-The raw COLESLAW archive is not in the repository---it is too large---but the scripts for filtering and converting it are included along with the derived chunks we actually used.
-
-The project covers the required course criteria: a strict use case definition, curated official-source knowledge base, one implemented solution (RAG), automated evaluation of both retrieval and answer quality, a final report, and a reproducible repository.
-Fine-tuning is included as an exploratory artifact that documents why we did not end up using it.
+All results are reproducible: one make command rebuilds the corpus, reruns evaluations, regenerates charts, and compiles the report PDF.
+Corpus chunks, evaluation questions, and result snapshots are committed; secrets are never stored.
+The raw COLESLAW archive is omitted (too large) but derived chunks and conversion scripts are included.
 
 \section*{Limitations and Future Work}
 
-The biggest gap we did not close is expert legal validation.
-The evaluation catches retrieval failures and measures citation discipline, but it does not tell us whether the answers are actually correct under Slovenian law.
-The 2.95/5 correctness score gives a rough sense of how often the answers are in the right direction, but that is not the same as a lawyer reviewing the outputs.
+The biggest gap is expert legal validation: automated scores (2.95/5 correctness) are not the same as a lawyer verifying answers are correct under Slovenian law.
 The system is informational only.
 
 On the technical side, the retriever uses lexical matching, which means it can miss a question that asks about the same rule in different words.
 Dense retrieval or a learned reranker trained on employment-law question-document pairs would be the next improvement to try.
 We held off because it would require a GPU for training and the lexical retriever already achieves perfect Hit@3 on our evaluation set, so the gains would only show up on harder paraphrase cases we have not tested yet.
 
-Fine-tuning GaMS-2B on the strict RAG prompt format would be the most direct next step.
-Teaching it to refuse unanswerable questions and cite sources would combine its Slovenian language quality with the instruction-following behaviour the final system achieves with Mistral.
+The main remaining gap for GaMS-2B is citation discipline: it already matches Mistral on refusal accuracy but includes source references in only 13\% of RAG answers versus 100\% for Mistral.
+Fine-tuning GaMS-2B specifically on citation behaviour---training it to output source references in the required format---would likely close most of the remaining gap while retaining the Slovenian language quality.
 
+\clearpage
 \bibliographystyle{unsrt}
 \bibliography{report}
 
