@@ -1,91 +1,124 @@
 # Compliance Ledger
 
-This ledger maps the UL FRI Natural Language Processing 2025/2026 final-project and peer-review instructions to repository evidence. It is written for manual peer review: the goal is to make the submission easy to inspect, rerun, and challenge.
+Updated: 2026-05-22
 
-## Course Requirements Interpreted From Instructions
+This ledger maps the UL FRI Natural Language Processing 2025/2026 final-project instructions to repository evidence. It is written for peer reviewers: the goal is to make the submission straightforward to inspect, rerun, and challenge.
 
-| Instruction requirement | Repository evidence | Status |
+## Course Requirements
+
+| Requirement | Repository evidence | Status |
 | --- | --- | --- |
-| Final project for the Domain-Specific AI Assistant topic: define a strict use case, curate a source of truth, and adapt an LLM with RAG or PEFT. | `README.md`; `report/report.tex`; `src/ul_fri_nlp/app/rag.py`; `evaluation/optimizations/config.json`; `evaluation/optimizations/official_sources.json`. The use case is a Slovenian employment-law assistant with official-source grounding, citations, and refusal behavior. | Covered. Final approach is RAG-first; PEFT/fine-tuning utilities are exploratory, not the submitted production claim. |
-| Literature / related-work discussion, including knowledge injection trade-offs such as prompting, RAG, fine-tuning, and tools. | `report/report.tex` sections `Related Work` and `System`; `report/report.bib`. | Covered in the report source. |
-| Data curation and domain definition with links or included transformed data. | Source manifest: `evaluation/optimizations/official_sources.json`. Corpus builder: `src/ul_fri_nlp/optimizations/build_official_corpus.py`. Committed transformed corpus: `report/code/data/chunk.jsonl`. COLESLAW preprocessing: `src/ul_fri_nlp/optimizations/prepare_corpus.py`. | Covered. Official/public sources are linked and reproducible; transformed chunks are committed for inspection. |
-| If public datasets are available elsewhere, link them; if transformations were performed, include scripts. | `README.md` documents official source policy and COLESLAW handling. `evaluation/optimizations/README.md` documents corpus, source monitor, COLESLAW extraction, and PEFT data preparation. | Covered, with one limitation: the raw `corpus/COLESLAW.zip` archive is not committed and is expected locally only when regenerating COLESLAW-derived chunks. |
-| Implement at least one solution and analyze results. | Implemented solution: BM25-style RAG in `src/ul_fri_nlp/app/rag.py` and shared evaluation retrieval in `src/ul_fri_nlp/evaluation/retrieval_shared.py`. Results: `evaluation/results/`, `evaluation/results/report.md`, `evaluation/optimizations/rag_optimization_report.md`, and report tables. | Covered. |
-| Evaluate retrieval accuracy/relevance and human-centric answer behavior such as factuality, tone, and safe handling of unanswerable queries. | `evaluation/questions.jsonl` has 40 factual, ambiguous, and unanswerable questions. `src/ul_fri_nlp/evaluation/retrieval_eval.py`, `src/ul_fri_nlp/evaluation/run_eval.py`, `src/ul_fri_nlp/evaluation/judge_eval.py`, and `src/ul_fri_nlp/evaluation/visualize_results.py` generate retrieval and answer metrics. | Covered for deterministic peer review. Human/legal expert validation remains a limitation. |
-| Report results with sensible measures, readable figures/tables, and comparative tables where possible. | `report/report.tex` contains retrieval, answer, and regression tables. Generated charts and CSVs are in `evaluation/results/`. | Covered. |
-| Keep report concise and follow the proposed report template. | `report/report.tex` uses `report/ds_report.cls`; figures/templates are under `report/`. | Covered. |
-| Fully reproducible repository with dependencies and simple rerun path. | `requirements.txt`; `Makefile`; `README.md` reviewer checklist. Main command: `make verify`. Component targets: `make retrieval`, `make offline-eval`, `make report`, `make corpus`, `make source-monitor`. | Covered for offline reproduction. Live Ollama/Open WebUI paths are optional and depend on local endpoints/secrets. |
-| Include all dependencies/corpora or clear download/access instructions; do not commit secrets. | Python dependencies in `requirements.txt`; optional PEFT dependencies in `evaluation/optimizations/requirements-peft.txt`; endpoint template in `evaluation/config.example.env`; `.env` ignored. | Covered. |
-| Repository should be public before peer-review period. | This cannot be proven from files alone. `README.md` states the project is intended for final peer review. | External action required: repository visibility must be public by the course deadline. |
-| Peer review: each group reviews assigned same-topic projects and submits scores/feedback through the form by Monday, May 25, 23:59. | No code artifact is required for submitting peer reviews. This ledger is included to help reviewers evaluate this repository quickly. | Outside repository scope. |
+| Domain-specific AI assistant: define a strict use case, curate a knowledge base, adapt an LLM with RAG or PEFT | Domain: Slovenian employment-law question answering. RAG pipeline in `src/ul_fri_nlp/app/rag.py`. Official corpus in `report/code/data/chunk.jsonl`. Prompt and model config in `evaluation/optimizations/config.json`. PEFT data prepared as exploratory artifact, not used for the final system. | Covered. |
+| Literature review covering knowledge injection trade-offs (prompting, RAG, fine-tuning, tools) | `report/report.tex` Related Work and System sections. `report/report.bib`: Lewis 2020 (RAG), Hu 2021 (LoRA), Schick 2023 (Toolformer), Song 2025 (domain injection survey). | Covered. |
+| Data curation and domain definition with linked or included transformed data | Source manifest: `evaluation/optimizations/official_sources.json`. Corpus builder: `src/ul_fri_nlp/optimizations/build_official_corpus.py`. Committed corpus: `report/code/data/chunk.jsonl` (1,371 chunks). COLESLAW preprocessing: `src/ul_fri_nlp/optimizations/prepare_corpus.py`. | Covered. Raw COLESLAW archive not committed; transformation scripts and selected derived chunks are included. |
+| Datasets available elsewhere should be linked; transformation scripts included | Official sources linked in `evaluation/optimizations/official_sources.json` (PISRS, GOV.SI, MDDSZ, ZZZS, etc.). COLESLAW cited in `report/report.bib`. All transformation scripts in `src/ul_fri_nlp/optimizations/`. | Covered. |
+| Implement at least one solution with analysis | BM25+domain-adjustment RAG in `src/ul_fri_nlp/app/rag.py`. Results in `evaluation/results/`. Optimization analysis in `evaluation/results/optimization/optimization_report.md`. | Covered. |
+| Evaluate retrieval accuracy/relevance and human-centric answer quality (factuality, tone, refusal) | 40-question evaluation set `evaluation/questions.jsonl`. Retrieval eval: `src/ul_fri_nlp/evaluation/retrieval_eval.py`. Answer eval: `src/ul_fri_nlp/evaluation/run_eval.py` + `judge_eval.py`. Charts: `visualize_results.py`. | Covered. Expert legal validation is a stated limitation. |
+| Report results with sensible measures, readable figures/tables, and comparative tables | Results tables in `report/report.tex`. Generated charts (PNG/SVG/JPG) in `evaluation/results/`. CSV summaries in `evaluation/results/summary_scores.csv` and `retrieval_summary.csv`. | Covered. |
+| Keep report concise (≤ 4 pages + references + appendices) and follow the proposed template | `report/report.tex` uses `report/ds_report.cls`. Builds to `report/.out/report.pdf` with `make report`. | Covered. |
+| Fully reproducible repository with all dependencies and a simple rerun path | `requirements.txt`, `Makefile`, offline evaluation path, `evaluation/config.example.env`. Main command: `make verify`. | Covered. Live Ollama/Open WebUI paths depend on local endpoints. |
+| Do not commit secrets | `.env` ignored by git. Only the endpoint template `evaluation/config.example.env` is committed. `WEBUI_API_KEY`, `OLLAMA_URL`, and similar are never committed. | Covered. |
+| Repository public before peer-review deadline | Cannot be verified from files. Repository visibility must be set to public by the course deadline (2026-05-22 23:59). | External action required. |
+| Peer review submission by Monday 2026-05-26 23:59 | Outside repository scope. | External obligation. |
 
-## Current Evidence Snapshot
+---
 
-| Artifact | Current evidence |
+## Exact Metrics From Committed Files
+
+### Retrieval — `evaluation/results/retrieval_summary.csv`
+
+| Metric | Value |
 | --- | --- |
-| Corpus | `report/code/data/chunk.jsonl` has 1,371 chunks. `evaluation/optimizations/data/official_employment_summary.json` reports 1,059 `primary_law`, 189 `official_interpretation`, 93 `official_operational_guidance`, and 30 `official_case_law` chunks. |
-| Source manifest | `evaluation/optimizations/official_sources.json` lists 12 PISRS sources, 2 PISRS collections, 24 government/official interpretation sources, 1 case-law source, and a retrieval authority policy. |
-| Source availability | `evaluation/results/optimization/official_source_monitor.json` reports 12/12 PISRS sources, 24/24 government sources, and 1/1 case-law source reachable in the latest snapshot. |
-| Evaluation set | `evaluation/questions.jsonl` has 40 questions covering employment-law facts, ambiguous in-domain questions, and out-of-scope refusals. |
-| Fine-tuning artifacts | `evaluation/fine_tuning/data/train.jsonl` has 16 rows and `dev.jsonl` has 4 rows. Optimization PEFT preparation has 176 train rows and 44 dev rows. These are exploratory artifacts only. |
-| Generated report PDF | `make report` writes `report/.out/report.pdf`. Report PDFs and LaTeX build artifacts are intentionally ignored by git via `.gitignore` (`/report/.out/`, `/report/*.pdf`, etc.). |
+| Answerable hit rate (Hit@3) | 1.000 |
+| Unanswerable false-evidence rate | 0.000 |
+| Average context length (words) | 1430.8 |
 
-## Exact Current Metrics
+### Answer quality — `evaluation/results/summary_scores.csv`
 
-From `evaluation/results/retrieval_summary.csv`:
-
-| answerable_hit_rate | unanswerable_false_evidence_rate | average_context_length_words |
-| --- | --- | --- |
-| 1.0 | 0.0 | 1430.8 |
-
-From `evaluation/results/summary_scores.csv`:
-
-| model_id | variant | n | correctness | grounding | completeness | clarity | hallucination | supported_citation_rate | refusal_accuracy |
+| model\_id | variant | n | correctness | grounding | completeness | clarity | hallucination | citation\_rate | refusal\_accuracy |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| offline-llama3:latest | baseline | 40 | 0.5 | 0.125 | 0.5 | 5.0 | 4.125 | 0.0 | 0.0 |
-| offline-llama3:latest | rag | 40 | 2.45 | 4.65 | 2.45 | 4.55 | 2.1 | 0.9696969696969697 | 1.0 |
-| raw-rag-prompt | raw_rag_prompt | 40 | 1.5 | 5.0 | 1.5 | 3.25 | 0.0 | 0.0 | 1.0 |
+| offline-llama3:latest | baseline | 40 | 0.50 | 0.12 | 0.50 | 5.00 | 4.12 | 0.00 | 0.00 |
+| offline-llama3:latest | rag | 40 | 2.45 | 4.65 | 2.45 | 4.55 | 2.10 | 0.97 | 1.00 |
+| raw-rag-prompt | raw\_rag\_prompt | 40 | 1.50 | 5.00 | 1.50 | 3.25 | 0.00 | 0.00 | 1.00 |
 
-Additional optimization snapshot, useful but secondary to the final CSVs above:
+### Optimized system — `evaluation/results/optimization/optimization_summary.csv`
 
-| File | Metric snapshot |
+Using `strict_legal_rag_sl_v3` prompt + deterministic settings on mistral:7b:
+
+| model\_id | variant | n | correctness | grounding | completeness | clarity | hallucination | citation\_rate | refusal\_accuracy |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| offline-webui-mistral-7b | baseline | 40 | 0.50 | 0.12 | 0.50 | 5.00 | 4.12 | 0.00 | 0.00 |
+| offline-webui-mistral-7b | rag | 40 | 2.95 | 4.83 | 2.95 | 4.85 | 1.68 | 1.00 | 1.00 |
+
+### Corpus — `evaluation/optimizations/data/official_employment_summary.json`
+
+| Source type | Chunks |
+| --- | ---: |
+| primary\_law | 1059 |
+| official\_interpretation | 189 |
+| official\_operational\_guidance | 93 |
+| official\_case\_law | 30 |
+| **Total** | **1371** |
+
+### Source monitor — `evaluation/results/optimization/official_source_monitor.json`
+
+| Category | Status |
 | --- | --- |
-| `evaluation/results/optimization/optimization_summary.csv` | Offline optimized RAG: n=40, correctness 2.95, grounding 4.825, completeness 2.95, clarity 4.85, hallucination 1.675, supported citation rate 1.0, refusal accuracy 1.0. |
-| `evaluation/results/optimization/optimization_retrieval_summary.csv` | answerable hit rate 1.0, unanswerable false evidence rate 0.0, average context length 448.575 words. |
+| PISRS sources | 12/12 reachable |
+| Government/official sources | 24/24 reachable |
+| Case-law index | 1/1 reachable |
 
-## Reviewer Reproduction Path
+---
+
+## Corpus Rebuild and Reproducibility Path
 
 Recommended clean-clone check:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 make verify
 ```
 
-What `make verify` checks:
-
-- JSON configuration validity for `evaluation/config.json`, `evaluation/optimizations/config.json`, and `evaluation/optimizations/official_sources.json`.
-- Python compile checks for `src/`.
-- Retrieval metrics through `src/ul_fri_nlp/evaluation/retrieval_eval.py`.
-- Deterministic offline generation, judging, and chart/report generation.
-- LaTeX build into `report/.out/report.pdf`.
+`make verify` runs: JSON config validation, Python compile check, retrieval metrics, offline generation/judge/charts pipeline, LaTeX report build.
 
 Optional checks:
 
 ```bash
-make source-monitor
-make corpus
-python -m ul_fri_nlp.evaluation.list_models --provider ollama
-python -m ul_fri_nlp.evaluation.list_models --provider openwebui
+make source-monitor      # check official source availability
+make corpus              # rebuild report/code/data/chunk.jsonl from official sources
 ```
+
+---
+
+## Report Narrative Verification
+
+This subsection provides evidence for the specific claims made in `report/report.tex` and `README.md`. Each row maps a report claim to a verifiable repository artifact.
+
+| Report claim | Verification artifact | Confirmed? |
+| --- | --- | --- |
+| "1,371 chunks: 1,059 PISRS article-level chunks, 189 official interpretation chunks, 93 official operational-guidance chunks, and 30 tertiary COLESLAW/sodnapraksa case-law chunks" | `evaluation/optimizations/data/official_employment_summary.json` — exact counts per source type | Yes |
+| "current setup reaches 1.000 answerable Hit@3 with 0.000 false-evidence rate" | `evaluation/results/retrieval_summary.csv` row: `answerable_hit_rate=1.0`, `unanswerable_false_evidence_rate=0.0` | Yes |
+| "offline RAG answers preserve high citation support while refusing unsupported questions" | `evaluation/results/summary_scores.csv`: RAG `supported_citation_rate=0.97`, `refusal_accuracy=1.00` | Yes |
+| "source monitor currently checks 12 PISRS sources, 24 government or official interpretation/operational sources, and one official case-law index; the latest run found all reachable" | `evaluation/results/optimization/official_source_monitor.json` | Yes |
+| "Five prompt iterations … strict_legal_rag_sl_v3" | `evaluation/optimizations/config.json` lists all five prompts with full system text | Yes |
+| "BM25 with a simple lexical fallback" | `src/ul_fri_nlp/app/rag.py`: `make_index()` tries `rank_bm25.BM25Okapi`, falls back to `SimpleLexicalIndex` | Yes |
+| "source priority: primary_law +7.0, official_interpretation +2.5, official_operational_guidance +2.0" | `src/ul_fri_nlp/app/rag.py`: `SOURCE_TYPE_BONUS` dict | Yes |
+| "case-law chunks are suppressed for statutory questions unless the question asks about practice, courts, or interpretation" | `src/ul_fri_nlp/app/rag.py`: `source_priority_adjustment()` — `official_case_law` gets −100 unless `asks_case_law` | Yes |
+| "optimized system: correctness 2.95, hallucination 1.68, citation rate 1.00, refusal accuracy 1.00" | `evaluation/results/optimization/optimization_summary.csv`: `rag` row values exactly match | Yes |
+| "Deployed at <https://ai.koderverse.com/> as ul-fri-slovenian-employment-law-rag-openwebui" | `evaluation/optimizations/config.json` `webui_export.model_id`; `.env` `OPENWEBUI_URL=https://ai.koderverse.com/` | Yes |
+| "three regression failures fixed: q009, q012, q014" | `evaluation/optimizations/rag_optimization_report.md` regression table; `evaluation/manual_eval_appendix.md` Known Failure Fixes table | Yes |
+| "Fine-tuning data prepared but not used for the final system" | `evaluation/optimizations/data/peft_train.jsonl` (176 rows), `peft_dev.jsonl` (44 rows); `evaluation/fine_tuning/data/README.md` explicitly marks these exploratory | Yes |
+| "GaMS-1B-Chat is the preferred CPU-friendly Slovenian model" | `evaluation/optimizations/config.json` `recommended_model.primary_cpu_candidate = "cjvt/GaMS-1B-Chat"`; `role = "recommended_cpu_slovenian_candidate"` | Yes |
+| "arena smoke: all models score 5.00/5 correctness and grounding with RAG on 5-question set" | `evaluation/results/arena_live_smoke_charts/report.md` — all RAG rows show 5.00 correctness and grounding | Yes |
+
+---
 
 ## Honest Limitations
 
-- No qualified legal-expert audit is included. The assistant is informational and source-grounded, not legal advice.
-- The deterministic offline judge is useful for reproducible regression checks, but it is not a substitute for human legal evaluation.
-- Retrieval is lexical/BM25-style and CPU-friendly; there is no dense retriever or learned reranker in the final submitted pipeline.
-- Live model evaluation and Open WebUI/Ollama deployment depend on local model availability, endpoint configuration, and secrets not committed to git.
-- COLESLAW raw data is not committed; only transformation scripts, summaries, and selected derived/tertiary chunks are present.
-- Some historical/manual appendix files may contain older context-length snapshots; for final metrics, use `evaluation/results/retrieval_summary.csv` and `evaluation/results/summary_scores.csv`, reproduced above.
+- No qualified legal-expert audit is included. The assistant is informational and source-grounded, not certified legal advice.
+- The deterministic offline judge is a reproducibility proxy, not a human legal evaluation.
+- Retrieval is lexical BM25; no dense embeddings or learned reranker in the final submitted pipeline.
+- Live Ollama/Open WebUI evaluation depends on local endpoint availability and secrets not committed to git.
+- Raw COLESLAW archive not committed; only transformation scripts, summaries, and selected derived chunks are included.
+- For final authoritative metrics, use `evaluation/results/retrieval_summary.csv` and `evaluation/results/summary_scores.csv`. Some older snapshots in manual appendix files may reflect earlier corpus or question-set sizes.

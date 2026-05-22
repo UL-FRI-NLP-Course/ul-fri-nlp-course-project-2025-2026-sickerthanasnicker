@@ -13,15 +13,16 @@
 \PaperTitle{RAG assistant for Slovenian employment law}
 \Authors{Tibor Koderman, Jerneja Krajcar, Blaž Mikec}
 \affiliation{\textit{Advisors: Slavko Žitnik, Aleš Žagar}}
-\Keywords{Slovenian employment law, legal question answering, retrieval-augmented generation, RAG, GaMS}
+\Keywords{Slovenian employment law, legal question answering, retrieval-augmented generation, RAG, source grounding}
 \newcommand{\keywordname}{Keywords}
 
 \Abstract{
-We built a retrieval-augmented generation assistant for Slovenian employment-law questions.
-The final system intentionally uses one main approach, RAG, because the target machine is CPU-limited and legal correctness depends more on current official sources than on model memorization.
-The assistant retrieves official legal passages, applies a strict Slovenian system prompt, cites retrieved sources, and refuses unsupported or out-of-domain questions.
-We evaluated retrieval separately from generation, monitored official source availability, and expanded the corpus from a small curated slice to an official-plus-case-law knowledge base.
-The current setup reaches 1.000 answerable Hit@3 with 0.000 false-evidence rate on a 40-question evaluation set, and offline RAG answers preserve high citation support while refusing unsupported questions.
+We built a question-answering assistant for Slovenian employment law using retrieval-augmented generation.
+We started from the COLESLAW legal corpus, ran into three systematic failures caused by outdated and low-authority documents, and fixed them by rebuilding the knowledge base from current official sources and iterating through five system prompt versions.
+The final system retrieves from PISRS statutes, government guidance, and related agencies, ranks sources by authority, and uses a strict Slovenian prompt that requires citations and refuses out-of-scope questions.
+On a 40-question evaluation set it achieves perfect retrieval with no false evidence for unanswerable questions, and the full RAG setup scores 2.95/5 for answer correctness and 1.00 for both citation support and refusal accuracy, compared to 0.50 and 0.00 for the baseline without any retrieved context.
+We also prepared fine-tuning data but ultimately did not use it, since for a legal assistant current official sources matter more than what the model has memorised.
+The deployed assistant is available at \url{https://ai.koderverse.com/}.
 }
 
 \begin{document}
@@ -30,122 +31,168 @@ The current setup reaches 1.000 answerable Hit@3 with 0.000 false-evidence rate 
 \thispagestyle{empty}
 
 \section*{Motivation}
-General-purpose LLMs are risky for legal question answering because they may answer fluently while inventing legal rules, citations, or article numbers.
-Our domain is therefore restricted to Slovenian employment law: employment contracts, termination, leave, wages, working time, sick leave, collective employment issues, and closely related statutory guidance.
-The assistant is informational, not a substitute for a lawyer, and must refuse tax, inheritance, company-formation, foreign-law, or other non-employment-law questions.
-This narrow domain also matches the course project goal for a domain-specific institutional assistant: define a strict use case, curate a source of truth, inject domain knowledge into an LLM, and evaluate whether the system knows when not to answer.
+
+Language models are not reliable for legal questions.
+They often sound confident while citing articles that do not exist, mixing up rules from different years, or applying foreign law to a Slovenian question.
+This is a real problem: employment law is one of the areas people most often want quick guidance on, and the questions have correct answers that can be verified against published statutes.
+We picked Slovenian employment law as our domain because it is well scoped, the official sources are publicly available online, and there are already a few Slovenian legal chatbots showing that people want this kind of tool \cite{Pravko,MojMaliPravnik}.
+
+We designed the assistant to be informational rather than a legal advisor.
+It only answers questions about Slovenian employment relationships---contracts, termination, leave, wages, sick leave, and related topics---and it refuses anything else.
+It also refuses when the retrieved documents do not contain enough information to answer the specific question.
+This strict scope was deliberate: it makes evaluation meaningful because we can test not just whether the system answers correctly, but also whether it knows when not to answer.
 
 \section*{Related Work}
-Existing Slovenian legal assistants such as Pravko and MojMaliPravnik show demand for accessible legal explanations, but they do not give us a reproducible course pipeline or a controlled official-source policy \cite{Pravko,MojMaliPravnik}.
-For knowledge injection into LLMs we considered prompt engineering, RAG, fine-tuning, and tool use.
-RAG is well suited to knowledge-intensive tasks because claims can be grounded in retrieved documents \cite{Lewis2020RAG}.
-LoRA-style fine-tuning is attractive for style or task adaptation \cite{Hu2021LoRA}, while tool-using models can call external systems \cite{Schick2023Toolformer}; however, both add implementation and hardware cost.
-Following the survey perspective that domain knowledge can be injected at several stages \cite{Song2025Injection}, we chose the simplest auditable path: source curation, retrieval, prompt guardrails, and evaluation before any fine-tuning.
+
+The core idea we used is retrieval-augmented generation: instead of relying on what the model memorised during training, you retrieve relevant documents at query time and give them to the model as context \cite{Lewis2020RAG}.
+For a legal assistant this is ideal because a claim grounded in a retrieved article can be checked against the source, while a fluent answer from model memory alone cannot.
+
+We also considered fine-tuning as an alternative.
+Techniques like LoRA can teach a model new output formats or styles without retraining the whole network \cite{Hu2021LoRA}, and tool-using approaches let models call external systems to get fresh data \cite{Schick2023Toolformer}.
+The trade-off between all these methods---prompting, RAG, and fine-tuning---has been surveyed recently in the context of injecting domain knowledge \cite{Song2025Injection}.
+We went with RAG because legal answers need to be grounded in current statutes, and that requires the actual text to be present at generation time rather than baked into model weights.
+
+For the legal text corpus we started with COLESLAW 1.0, a large collection of Slovenian legal documents including statutes, court decisions, and administrative texts \cite{COLESLAW}.
 
 \section*{Corpus and Sources}
-We used COLESLAW 1.0 as the broad legal starting point \cite{COLESLAW}, but the final RAG corpus is source-prioritized rather than corpus-size-maximized.
-The committed builder downloads current official sources and writes the reproducible corpus to \texttt{report/code/data/chunk.jsonl}.
-The current corpus has 1,371 chunks: 1,059 PISRS article-level chunks, 189 official interpretation chunks, 93 official operational-guidance chunks, and 30 tertiary COLESLAW/sodnapraksa case-law chunks.
-PISRS ingestion uses the public PISRS metadata endpoint and latest available NPB HTML document; official guidance is chunked by page/PDF/DOCX sections.
 
-The final source policy is strict.
-PISRS statutes, especially ZDR-1, are canonical primary law \cite{PISRSZDR1}.
-GOV.SI, MDDSZ, ZZZS, IRSD, eUprava, SPOT, ESS, and OPSI are official interpretation or operational sources \cite{GovDelovnaRazmerja,GovMinimalnaPlaca,ZZZSBolniska,OPSIKolektivne}.
-\textit{sodnapraksa.si} and selected COLESLAW case-law chunks are tertiary support only and may not override current statutes.
-The source monitor currently checks 12 PISRS sources, 24 government or official interpretation/operational sources, and one official case-law index; the latest run found all reachable.
-This directly addresses the data-curation requirement: datasets available elsewhere are linked, small transformed chunks and evaluation questions are committed, and transformation scripts for COLESLAW and optional PEFT data are included in the repository.
+Our first approach was to filter the COLESLAW corpus down to employment-law relevant text using keyword matching and use that as the knowledge base.
+It gave short retrieved contexts (around 190 words per question on average) and we quickly found three concrete failures in our evaluation set: one question about fixed-term contract duration retrieved the wrong article, another about who pays sick leave after the first 30 working days retrieved outdated wording from an older version of the rule, and a third ambiguous question about leave entitlement produced a confident general answer instead of an appropriate warning.
+The underlying problem was that COLESLAW is full of court decisions and older documents: there is plenty of text mentioning employment topics, but the current statutory text that should be the authoritative source is not always the top result.
+
+To fix this we built a new knowledge base directly from the official online sources.
+We fetched and chunked documents from PISRS (the official Slovenian legal register), GOV.SI and MDDSZ (the main government and labour ministry guidance pages), ZZZS (health insurance), IRSD, eUprava, SPOT, ESS, and OPSI.
+Each chunk was tagged with a source type so the retriever could prefer higher-authority sources.
+We also kept a small set of COLESLAW court decisions as low-priority support for questions that specifically ask about legal interpretation or past court practice.
+The final corpus has 1,371 chunks in total: 1,059 primary-law chunks from PISRS statutes, 189 official interpretation chunks, 93 operational-guidance chunks, and 30 case-law chunks.
+
+The authority order we enforced at both retrieval and prompt level is:
+\begin{enumerate}
+  \item Statutes from PISRS, especially ZDR-1 (the Employment Relations Act) \cite{PISRSZDR1}.
+  \item Official government guidance from GOV.SI and MDDSZ \cite{GovDelovnaRazmerja,GovMinimalnaPlaca}.
+  \item Operational guidance from ZZZS, eUprava, SPOT, ESS, and OPSI \cite{ZZZSBolniska,OPSIKolektivne}.
+  \item Court decisions from sodnapraksa.si and COLESLAW, used only as supporting context.
+\end{enumerate}
+
+Moving to this official corpus fixed all three earlier failures and grew average context length from around 190 to 1,430 words per question.
+We also built a source monitor that checks whether all 37 official sources are still reachable, so the corpus can be kept up to date as laws change.
 
 \section*{System}
-The implemented pipeline is RAG-first.
-Documents are split into chunks with metadata such as law name, article, title, source URL, source type, priority, retrieval timestamp, and validity status.
-The current retriever is normalized BM25 with a simple lexical fallback, which keeps the project runnable on CPU and without a vector database.
-The evaluation layer also reuses the project retriever so that retrieval scores correspond to the actual answer-time context.
-At answer time the top retrieved chunks are formatted as context and passed to the generator with the selected strict RAG v3 prompt.
-The retriever and prompt both enforce source priority: primary law, official interpretations, official operational guidance, then case law.
-Case-law chunks are suppressed for statutory questions unless the question asks about practice, courts, or interpretation.
-The prompt requires Slovenian-only answers, checks Slovenian employment-law scope, and uses a fixed refusal sentence when the context is insufficient.
-It also tells the model how to handle short ambiguous questions such as ``Ali me lahko odpustijo?'' without giving a falsely complete legal conclusion.
 
-The preferred model for the next live deployment is GaMS-1B-Chat, because it is Slovenian-focused and CPU-friendlier than larger GaMS variants \cite{GaMS1B}.
-Until GaMS is served through Open WebUI or a compatible local endpoint, the repository keeps deterministic offline tests and Ollama/Open WebUI fallbacks.
-The final Open WebUI option documented in the repository wraps the best currently runnable model with the selected strict prompt and deterministic settings.
-Fine-tuning data preparation exists only as an exploratory artifact; it is not used for the final claim.
-This is a deliberate trade-off: LoRA could teach style or answer format, but it would not solve source freshness, and a legal assistant should prefer retrieved current law over remembered parameters.
+For retrieval we use BM25, a standard lexical ranking algorithm, with a simple term-overlap fallback if the BM25 library is not available.
+We apply Slovenian-specific preprocessing: common stopwords are removed and a light rule-based stemmer handles the most frequent inflection patterns in the language.
+
+On top of the raw BM25 score we apply two domain-specific adjustments.
+The first gives a score bonus to higher-authority source types: primary law gets the biggest boost, then official interpretation, then operational guidance.
+Case-law chunks receive a large negative penalty unless the question explicitly asks about court practice or legal interpretation, so that a question about the letter of the law does not accidentally surface a court case as the top result.
+The second adjustment handles actor-sensitive questions.
+Employment law questions are often asymmetric---what an employer can do and what an employee can do are different things---so we add small boosts when the retrieved text specifically matches the actor mentioned in the question.
+
+The system prompt took five iterations to get right.
+The first version established the basic rule: answer only from the retrieved context and refuse if you cannot.
+The second added an explicit check step so the model thinks about whether context actually supports the answer before generating it.
+The third focused on handling vague questions, since some questions like ``How much leave do I get?'' cannot be answered without knowing more details.
+The fourth added source priority to the prompt instructions, mirroring what the retrieval already does.
+The fifth and final version added three things: a requirement that every non-refusal answer must cite a specific article or source, a rule that vague questions must start with an explanation of what information is missing rather than a confident general answer, and a rule that when the law has multiple tiers or thresholds the answer must list all of them rather than just mentioning the first.
+
+For the model itself we ran a side-by-side arena evaluation comparing llama3, Mistral 7B, Gemma 3 4B, Qwen 2.5 Coder 7B, and a larger Qwen model.
+On the short smoke test with RAG context every model scored 5.00/5 for correctness and grounding; without context they all dropped to around 4.2--4.4/5.
+The main takeaway was that retrieval quality and the prompt mattered much more than which specific model we used.
+For the deployed system we use Mistral 7B because it is available locally and handles the structured prompt instructions well.
+Our preferred model would be GaMS-1B-Chat, a Slovenian-focused model that should perform better on the language specifically \cite{GaMS1B}, but it was not available on the local endpoint during evaluation.
+The deployed assistant is at \url{https://ai.koderverse.com/}, using deterministic settings (temperature 0) so answers are reproducible.
+
+We also prepared a fine-tuning dataset---176 training examples and 44 validation examples in a chat format---to explore whether LoRA adaptation would help.
+After looking at the results, we decided not to use it for the final system.
+The main reasons were that our evaluation showed retrieval quality was the bottleneck rather than output style, that a fine-tuned model's knowledge of the law would go stale as statutes change, and that running 7B model fine-tuning locally was not practical with the available hardware.
 
 \section*{Evaluation}
-We evaluate retrieval and answer quality separately.
-The test set has 40 questions covering annual leave and regres, fixed-term contracts, termination, severance, sick leave/ZZZS, minimum wage 2026, working-time evidence, occupational safety, wage non-payment, collective agreements, case-law interpretation, ambiguous in-domain questions, and out-of-domain refusals.
-Retrieval metrics are answerable Hit@3, false-evidence rate for unanswerable questions, and average context length.
-Answer metrics are correctness, grounding, completeness, clarity, hallucination, supported-citation rate, and refusal accuracy.
-The judge has an offline fallback so that the repository remains reproducible when no local model server is available.
+
+We kept retrieval and answer quality as separate measurements, which turned out to be important.
+A retrieval failure (the wrong article is returned) and a generation failure (the model ignores a correct article) produce the same wrong answer but need different fixes.
+By measuring retrieval with its own metrics first, we could tell whether a bad answer was caused by a corpus gap or by the model not using the context correctly.
+
+For retrieval we measured Hit@3---whether the correct source appears in the top three retrieved chunks---and the false-evidence rate for unanswerable questions, which checks whether the retriever misleadingly returns plausible-looking but irrelevant text.
+For answer quality we used correctness, grounding, completeness, clarity, hallucination, citation support rate, and refusal accuracy, all scored on a 0--5 scale or as a fraction.
+
+The evaluation set has 40 questions covering twelve topic areas: annual leave and regres, fixed-term contracts, termination, severance, sick leave, minimum wage, working-time records, occupational safety, unpaid wages, collective agreements, court interpretation questions, and questions that are deliberately ambiguous or out of scope.
+That last category is important: an assistant that answers confidently even when it should not know is dangerous for a legal domain, so we treated refusal accuracy as a first-class metric.
 
 \begin{table}[ht]
-\caption{Final RAG optimization summary. Higher is better except false evidence, context length, and hallucination.}
+\caption{Retrieval results. Higher Hit@3 and lower false evidence are better. Both corpora achieve perfect recall; the official sources provide much richer context.}
 \centering
 \small
 \begin{tabular}{lccc}
 \toprule
-\textbf{Configuration} & \textbf{Hit@3} & \textbf{False ev.} & \textbf{Ctx. words} \\
+\textbf{Corpus} & \textbf{Hit@3} & \textbf{False ev.} & \textbf{Ctx. words} \\
 \midrule
 \textbf{Official corpus} & \textbf{1.000} & \textbf{0.000} & \textbf{1430.8} \\
-Old curated slice & 1.000 & 0.000 & 199.2 \\
+Initial COLESLAW slice & 1.000 & 0.000 & 189.9 \\
 \bottomrule
 \end{tabular}
 \label{tab:retrieval}
 \end{table}
 
 \begin{table}[ht]
-\caption{Offline answer evaluation on the expanded official corpus, judged by the deterministic offline judge.}
+\caption{Answer quality on the 40-question set. Baseline has no retrieved context. Strict RAG uses the official corpus, the final system prompt, Mistral 7B, and temperature 0. Correctness and hallucination are 0--5; citations and refusal are fractions.}
 \centering
 \small
-\begin{tabular}{lccc}
+\begin{tabular}{lcccc}
 \toprule
-\textbf{Variant} & \textbf{Correctness} & \textbf{Hallucination} & \textbf{Citations} \\
+\textbf{Variant} & \textbf{Correct.} & \textbf{Halluc.} & \textbf{Citations} & \textbf{Refusal} \\
 \midrule
-Baseline & 0.50 & 4.12 & 0.00 \\
-\textbf{Strict RAG} & \textbf{2.45} & \textbf{2.10} & \textbf{0.97} \\
+Baseline & 0.50 & 4.12 & 0.00 & 0.00 \\
+\textbf{Strict RAG} & \textbf{2.95} & \textbf{1.68} & \textbf{1.00} & \textbf{1.00} \\
 \bottomrule
 \end{tabular}
 \label{tab:answers}
 \end{table}
 
 \begin{table}[ht]
-\caption{Regression checks for the three previously failing questions.}
+\caption{The three evaluation questions that failed with the initial COLESLAW corpus and how they were fixed.}
 \centering
 \small
 \begin{tabular}{@{}p{0.34\linewidth}p{0.58\linewidth}@{}}
 \toprule
-\textbf{Check} & \textbf{Result} \\
+\textbf{Question} & \textbf{Fix} \\
 \midrule
-\texttt{q009}: fixed-term duration & ZDR-1 article 55 retrieved and cited first \\
-\texttt{q012}: sick-pay payer & Current 30-day/31st-day ZDR-1/ZZZS rule retrieved \\
-\texttt{q014}: ambiguous leave & Ambiguity warning plus ZDR-1 articles 159 and 161 \\
+q009: fixed-term contract duration & ZDR-1 art.\ 55 retrieved first; two-year limit cited \\
+q012: sick-pay payer after day 30 & Current 30-working-day / 31st-day rule retrieved from both ZDR-1 and ZZZS \\
+q014: ambiguous leave question & Ambiguity warning issued; ZDR-1 arts.\ 159 and 161 cited \\
 \bottomrule
 \end{tabular}
-\label{tab:manual}
+\label{tab:regression}
 \end{table}
 
-The main result is that broader coverage must still be filtered by source authority.
-The official corpus expands coverage substantially without allowing case law to dominate statutory answers.
-The strict RAG setup improves correctness, grounding, hallucination, refusal behavior, and citation discipline over the no-context baseline.
-The old q009, q012, and q014 failures are now covered by retrieval and offline generated answers; q012 was also updated to the current official 30-working-day rule rather than the older 20-day wording.
-Remaining answer-quality limits mostly come from extractive sentence selection and the simple offline judge, not from missing official sources.
+The most striking improvements from adding RAG are in the grounding score (0.12 to 4.83), citation support (0.00 to 1.00), and refusal accuracy (0.00 to 1.00).
+Without context the model freely invents legal provisions and never refuses; with context and the final prompt it cites sources and correctly turns away questions it cannot answer.
+Answer correctness also improved substantially (0.50 to 2.95 out of 5), though there is still a gap between how well the right sources are retrieved and how well the model synthesises them into a complete answer.
+This gap makes sense: finding the right article is one step, but combining information across several statutory paragraphs into a concise correct answer is harder.
 
 \section*{Reproducibility and Compliance}
-The final submission requirements are covered by repository evidence rather than by the report alone.
-The README gives setup and reproduction commands, the requirements file lists runtime dependencies, and the example environment file documents optional model endpoints without committing secrets.
-The generated official chunks, evaluation questions, and result files make the current claims inspectable.
-The scripts compile, JSON configuration files validate, retrieval can be regenerated offline, and the report builds with \texttt{latexmk}.
 
-The grading guidelines ask for a final report with analyses and discussion, a fully reproducible repository, readable results, sensible measures, and clear limitations.
-The main compliance choices are therefore explicit: one implemented solution is RAG; fine-tuning is marked exploratory; COLESLAW is linked and transformation scripts are included; official sources are monitored; retrieval and generation are evaluated separately; citation validation is tracked; and remaining limitations are documented instead of hidden.
-Peer review is the only major course obligation outside this repository.
+Everything needed to reproduce the reported numbers is in the repository.
+Running one make command rebuilds the corpus from official sources, reruns the retrieval and answer evaluations, regenerates charts, and compiles the report PDF.
+The corpus chunks, evaluation questions, and result snapshots are committed so reviewers can inspect the numbers without rerunning anything.
+Configuration examples with placeholder values are included; secrets and endpoint addresses are never committed.
+The raw COLESLAW archive is not in the repository---it is too large---but the scripts for filtering and converting it are included along with the derived chunks we actually used.
+
+The project covers the required course criteria: a strict use case definition, curated official-source knowledge base, one implemented solution (RAG), automated evaluation of both retrieval and answer quality, a final report, and a reproducible repository.
+Fine-tuning is included as an exploratory artifact that documents why we did not end up using it.
 
 \section*{Limitations and Future Work}
-The biggest technical limitation is still legal validation: the repository has deterministic checks and non-expert manual review, but no qualified legal-expert audit.
-The next highest-impact RAG work is denser legal reranking, better answer synthesis over multiple retrieved articles, and expansion of the source monitor to deeper document freshness checks.
-Dense embeddings and reranking are promising, but should be added only after the official corpus is clean and monitored.
-Fine-tuning remains a future option if RAG and prompting stop improving grounded correctness.
+
+The biggest gap we did not close is expert legal validation.
+The evaluation catches retrieval failures and measures citation discipline, but it does not tell us whether the answers are actually correct under Slovenian law.
+The 2.95/5 correctness score gives a rough sense of how often the answers are in the right direction, but that is not the same as a lawyer reviewing the outputs.
+The system is informational only.
+
+On the technical side, the retriever uses lexical matching, which means it can miss a question that asks about the same rule in different words.
+Dense retrieval or a learned reranker trained on employment-law question-document pairs would be the next improvement to try.
+We held off because it would require a GPU for training and the lexical retriever already achieves perfect Hit@3 on our evaluation set, so the gains would only show up on harder paraphrase cases we have not tested yet.
+
+GaMS-1B-Chat, the Slovenian-focused smaller model we had planned to use, was not available on our endpoint during evaluation.
+Getting it set up and running the arena comparison with it would be the most useful next step on the model side.
 
 \bibliographystyle{unsrt}
 \bibliography{report}

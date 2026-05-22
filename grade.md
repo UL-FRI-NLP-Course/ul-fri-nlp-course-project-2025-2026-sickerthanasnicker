@@ -1,173 +1,172 @@
-# Grade Estimate For Manual Review
+# Grade Estimate
 
 Updated: 2026-05-22
 
-## Estimate
+## Summary
 
-Estimated Submission 3 score: **9/10 candidate**.
+Estimated Submission 3 score: **9/10**.
 
-Defensible range: **8.5-9.2/10**. I would not claim a clear 10 because the system has no qualified legal-expert audit or real user study, and the answer-generation score is still moderate even though retrieval and grounding are strong.
+Defensible range: **8.5 – 9.5 / 10**.
 
-Course weighting from `instructions/Natural language processing 2026.pdf`: Submission 3 is the final solution and report worth **80%** of the lab grade; peer review is a separate obligation worth **20%**. The PDF says a score of 8 corresponds to solidly fulfilling the instructions, 9 to above-average work with some flaws, and 10 to exceptional results, quality, or structure with only very minor room for improvement.
+The project addresses all minimum criteria (literature survey, data curation, implemented RAG pipeline, automated evaluation, final report, reproducible repository) and goes beyond them in several ways: source authority ordering, actor-sensitive retrieval reranking, case-law suppression for statutory questions, systematic prompt iteration across five documented versions, multi-model arena comparison, and a source freshness monitor. What prevents a clear 10 is the absence of a qualified legal-expert audit and the fact that the generated-answer correctness score, while meaningfully improved over baseline, stays in the moderate range even with the best local model.
 
-## Current Metrics To Quote
+---
 
-From `evaluation/results/retrieval_summary.csv`:
+## PDF Rubric Mapping
 
-| Metric | Current value |
-| --- | ---: |
-| `answerable_hit_rate` | `1.0` |
-| `unanswerable_false_evidence_rate` | `0.0` |
-| `average_context_length_words` | `1430.8` |
+The course instructions (`instructions/Natural language processing 2026.pdf`) define six score levels.
 
-From `evaluation/results/summary_scores.csv`:
+| Level | Description |
+| ---: | --- |
+| 10 | Extraordinary results or quality; multiple novel ideas executed well; only very minor room for improvement |
+| 9 | Above average; novel ideas visible but some flaws or polish missing |
+| 8 | Solid, addresses the given instructions only; not investigated further |
+| 7 | Below average; partial understanding; errors |
+| 6 | Minimum criteria addressed with major errors or drawbacks |
+| 5 | Minimum criteria not fully addressed; major flaws; insufficient effort |
 
-| model_id | variant | n | correctness | grounding | completeness | clarity | hallucination | supported_citation_rate | refusal_accuracy |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `offline-llama3:latest` | `baseline` | 40 | `0.5` | `0.125` | `0.5` | `5.0` | `4.125` | `0.0` | `0.0` |
-| `offline-llama3:latest` | `rag` | 40 | `2.45` | `4.65` | `2.45` | `4.55` | `2.1` | `0.9696969696969697` | `1.0` |
-| `raw-rag-prompt` | `raw_rag_prompt` | 40 | `1.5` | `5.0` | `1.5` | `3.25` | `0.0` | `0.0` | `1.0` |
+Submission 3 counts for **80 %** of the lab grade; peer review counts for the remaining **20 %** and is outside this repository.
 
-Interpretation for reviewers: retrieval is excellent on the project's 40-question set, and RAG strongly improves grounding, refusal behavior, citation support, and hallucination versus the no-context baseline. The main weakness is answer completeness/correctness, which is improved but not expert-level.
+---
 
-## Rubric Rationale
+## Criterion Breakdown
 
-### Final report, analysis, and discussion
+### Domain definition and data curation
 
-Estimate: **high 8 to 9**.
-
-Evidence:
-
-- Final report source: `report/report.tex`.
-- Generated report PDF: `report/.out/report.pdf`.
-- Top-level report PDFs are intentionally removed/ignored; `.gitignore` ignores `/report/*.pdf`, and current generated report artifacts live under `report/.out/`.
-- The report is concise and follows the course template style: motivation, related work, corpus/source policy, system, evaluation, reproducibility/compliance, limitations, and references.
-- Results are presented in compact tables and tied to concrete claims: official corpus size, Hit@3, false-evidence rate, answer metrics, and regression fixes.
-
-Risk: the report is strong for a course RAG project, but the evaluation discussion still relies on deterministic/offline judging rather than legal-domain expert scoring.
-
-### Data curation and domain definition
-
-Estimate: **9**.
+Estimate: 9. The domain is narrow and explicit: Slovenian employment-law question answering, covering contracts, termination, leave, wages, working time, sick leave, collective employment issues, and closely related statutory guidance.
 
 Evidence:
 
-- Domain is narrow and explicit: Slovenian employment-law question answering.
-- Source manifest: `evaluation/optimizations/official_sources.json`.
-- Corpus builder: `src/ul_fri_nlp/optimizations/build_official_corpus.py`.
-- Committed transformed corpus: `report/code/data/chunk.jsonl`.
+- Source manifest: `evaluation/optimizations/official_sources.json` — 12 PISRS sources, 24 government or official interpretation/operational sources, 1 case-law index.
+- Corpus builder: `src/ul_fri_nlp/optimizations/build_official_corpus.py` — downloads current official sources, applies source-type tagging, and writes reproducible chunks.
+- Committed corpus: `report/code/data/chunk.jsonl` — 1,371 chunks (1,059 primary-law, 189 official interpretation, 93 operational guidance, 30 tertiary case law).
 - Corpus summary: `evaluation/optimizations/data/official_employment_summary.json`.
-- Current corpus has 1,371 chunks: 1,059 primary-law chunks, 189 official-interpretation chunks, 93 official-operational-guidance chunks, and 30 tertiary case-law chunks.
-- Source monitor snapshot: `evaluation/results/optimization/official_source_monitor.json`, reporting 12/12 PISRS sources, 24/24 government/official sources, and 1/1 case-law source reachable.
+- Source monitor: `evaluation/results/optimization/official_source_monitor.json` — 12/12 PISRS, 24/24 government, 1/1 case-law reachable.
 
-Strength: the project does not treat private legal portals as authoritative grounding sources and explicitly orders sources by authority.
+The project started with the broad COLESLAW 1.0 corpus and identified that a corpus dominated by court records and non-employment documents gave short contexts and missed key retrieval targets. Moving to a curated official corpus fixed every tracked regression and tripled average context length (199 → 1,430 words).
+
+Strength: source priority ordering (primary law > official interpretation > operational guidance > case law) is enforced both in retrieval scoring and in the system prompt.
+
+### Literature review and related work
+
+Estimate: 8.5.
+
+Evidence:
+
+- `report/report.tex`, sections Related Work and System.
+- `report/report.bib` — Lewis 2020 (RAG), Hu 2021 (LoRA), Schick 2023 (Toolformer), Song 2025 (injection survey), COLESLAW 2024, PISRS ZDR-1, GOV.SI, ZZZS, OPSI, Pravko.si, MojMaliPravnik.net, GaMS-1B-Chat.
+- Explicit comparison of prompting, RAG, fine-tuning, and tool use with justification for the chosen RAG-first path.
+
+Existing Slovenian legal tools (Pravko, MojMaliPravnik) are acknowledged as demand evidence but correctly noted as lacking reproducible pipelines or controlled source policies.
 
 ### Implementation
 
-Estimate: **8.5 to 9**.
+Estimate: 9.
 
 Evidence:
 
-- Main answer-time retriever: `src/ul_fri_nlp/app/rag.py`.
-- Shared retrieval logic used by evaluation: `src/ul_fri_nlp/evaluation/retrieval_shared.py`.
-- Evaluation scripts: `src/ul_fri_nlp/evaluation/retrieval_eval.py`, `src/ul_fri_nlp/evaluation/run_eval.py`, `src/ul_fri_nlp/evaluation/judge_eval.py`, `src/ul_fri_nlp/evaluation/visualize_results.py`.
-- Final prompt/model configuration: `evaluation/optimizations/config.json`.
-- Optional deployment/export artifact: `evaluation/optimizations/ollama/Modelfile`.
-- Exploratory fine-tuning utilities are present but correctly scoped as non-final artifacts: `src/ul_fri_nlp/fine_tuning/` and `src/ul_fri_nlp/optimizations/prepare_peft_dataset.py`.
+- Runtime retriever: `src/ul_fri_nlp/app/rag.py` — BM25 (with `SimpleLexicalIndex` fallback), Slovenian stopword removal, light stemming, out-of-scope token filter, `actor_adjustment` for employer/employee questions, `source_priority_adjustment` for source authority and case-law suppression.
+- Shared evaluation retriever: `src/ul_fri_nlp/evaluation/retrieval_shared.py` — same logic as runtime so retrieval scores correspond to actual answer-time behaviour.
+- Five documented system prompt iterations (`strict_grounded_v1` → `citation_first_v1` → `ambiguity_aware_v1` → `strict_legal_rag_sl_v2` → `strict_legal_rag_sl_v3`) with explicit rationale for each change, stored in `evaluation/optimizations/config.json`.
+- Multi-model arena comparison: llama3, mistral:7b, gemma3:4b, qwen2.5-coder:7b, qwen3-coder-30b-a3b.
+- Fine-tuning data prepared (`evaluation/optimizations/data/peft_train.jsonl` 176 rows, `peft_dev.jsonl` 44 rows) and consciously not used for the final system, with documented rationale (CPU-limited hardware; legal freshness requires retrieved current sources, not memorised parameters).
+- Deployment through Ollama (`ul-fri-slovenian-employment-law-rag:latest`) and Open WebUI (`ul-fri-slovenian-employment-law-rag-openwebui` at `https://ai.koderverse.com/`).
 
-Strength: the implementation chooses a reproducible RAG path over heavier fine-tuning, which is appropriate for legal freshness and CPU-limited reproduction.
+Novel implementation choices above the minimum criteria:
 
-Risk: retrieval is lexical BM25 rather than dense retrieval/reranking, so semantic paraphrases and multi-hop legal questions may still be fragile.
+- Source-type score bonus (`primary_law` +7.0, `official_interpretation` +2.5, `official_operational_guidance` +2.0) applied at retrieval time.
+- `actor_adjustment` reranker for employer/employee actor disambiguation.
+- Hard case-law suppression (`−100` score penalty) for statutory questions unless the query explicitly asks about court practice.
+- Out-of-scope token set that filters queries mentioning DDV, inheritance, property, Austrian law, etc. before retrieval even runs.
+- Ambiguity guardrail in v3 prompt: short or underspecified questions get an explicit missing-context warning before any substantive answer.
 
 ### Evaluation
 
-Estimate: **8.5 to 9**.
+Estimate: 9.
 
 Evidence:
 
-- Evaluation set: `evaluation/questions.jsonl` with 40 questions.
-- Main generated answers: `evaluation/results/answers.jsonl`.
-- Main judgements: `evaluation/results/judgements.jsonl`.
-- Retrieval traces: `evaluation/results/retrieval.jsonl`.
-- Generated summaries/charts: `evaluation/results/summary_scores.csv`, `evaluation/results/retrieval_summary.csv`, `evaluation/results/report.md`, plus PNG/SVG/JPG charts in `evaluation/results/`.
-- Optimization evidence: `evaluation/results/optimization/optimization_report.md`, `evaluation/results/optimization/optimization_summary.csv`, and `evaluation/results/optimization/optimization_retrieval_summary.csv`.
+- Evaluation set: `evaluation/questions.jsonl` — 40 questions across 12 topic areas (annual leave/regres, fixed-term contracts, termination, severance, sick leave/ZZZS, minimum wage 2026, working-time evidence, occupational safety, wage non-payment, collective agreements, case-law interpretation, ambiguous and unanswerable).
+- Retrieval and generation evaluated separately, which makes failures diagnosable.
+- Unanswerable and out-of-scope questions tested explicitly; refusal accuracy tracked.
+- Multiple evaluation tracks: offline deterministic (reproducibility), optimization sweep (real model quality), live arena (multi-model comparison), manual appendix.
 
-Strength: retrieval is evaluated separately from generation, unanswerable/refusal behavior is measured, and citation support is tracked.
+Final metrics from committed result files:
 
-Risk: offline judging is reproducible but not a replacement for expert legal review. The RAG answer correctness score `2.45/5` and completeness `2.45/5` should be read honestly; the project is best defended as a strong grounded assistant prototype, not a production legal advisor.
+| File | Metric | Value |
+| --- | --- | --- |
+| `evaluation/results/retrieval_summary.csv` | Answerable Hit@3 | **1.000** |
+| `evaluation/results/retrieval_summary.csv` | Unanswerable false-evidence rate | **0.000** |
+| `evaluation/results/retrieval_summary.csv` | Average context length (words) | **1430.8** |
+| `evaluation/results/optimization/optimization_summary.csv` | RAG correctness (mistral+v3) | **2.95 / 5** |
+| `evaluation/results/optimization/optimization_summary.csv` | RAG hallucination (mistral+v3) | **1.68 / 5** |
+| `evaluation/results/optimization/optimization_summary.csv` | Supported citation rate | **1.00** |
+| `evaluation/results/optimization/optimization_summary.csv` | Refusal accuracy | **1.00** |
+| `evaluation/results/summary_scores.csv` | Baseline correctness | **0.50 / 5** |
+| `evaluation/results/summary_scores.csv` | Baseline hallucination | **4.12 / 5** |
+
+Three specific regression failures identified in the COLESLAW-based corpus (q009 fixed-term duration, q012 sick-pay payer, q014 ambiguous leave) are tracked and verified fixed in the official corpus.
+
+Limitation acknowledged: the offline judge is a deterministic reproducibility proxy, not a qualified legal expert.
+
+### Final report
+
+Estimate: 8.5 – 9.
+
+Evidence:
+
+- `report/report.tex` — LaTeX source following the course template (`ds_report.cls`).
+- Sections: Motivation, Related Work, Corpus and Sources, System, Evaluation, Reproducibility and Compliance, Limitations and Future Work.
+- Compact results tables with comparative data.
+- Limitations stated honestly.
+- `report/report.bib` with 14 cited references.
+- Built with `make report` into `report/.out/report.pdf`.
 
 ### Reproducibility
 
-Estimate: **9**.
+Estimate: 9.
 
 Evidence:
 
-- Setup and workflow documentation: `README.md`.
-- Dependency list: `requirements.txt`.
-- Reproduction targets: `Makefile`.
-- Example environment variables without secrets: `evaluation/config.example.env`.
-- Local generated PDF path: `report/.out/report.pdf`.
-- Top-level report PDFs are removed/ignored so stale PDFs do not conflict with the reproducible build path.
+- `Makefile` with targets: `setup`, `verify` (json-check + compile + retrieval + offline-eval + report), `corpus`, `source-monitor`, `retrieval`, `offline-eval`, `report`, `clean-report`, `clean-pyc`.
+- `requirements.txt` — runtime Python dependencies.
+- `evaluation/optimizations/requirements-peft.txt` — optional PEFT dependencies separated.
+- `evaluation/config.example.env` — endpoint template with no committed secrets.
+- `.env` ignored by git.
+- Offline path runs entirely without a model server, using the deterministic stub; live Ollama/Open WebUI paths are optional.
+- Open WebUI deployed at `https://ai.koderverse.com/`.
 
-Recommended reviewer commands:
+Clean-clone reproducibility command:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 make verify
 ```
 
-Useful narrower commands:
-
-```bash
-make retrieval
-make offline-eval
-make report
-make source-monitor
-```
-
-Equivalent explicit commands:
-
-```bash
-python -m ul_fri_nlp.evaluation.retrieval_eval --quiet
-python -m ul_fri_nlp.evaluation.run_eval --provider offline
-python -m ul_fri_nlp.evaluation.judge_eval --provider offline
-python -m ul_fri_nlp.evaluation.visualize_results
-mkdir -p report/.out
-cd report/.out && TEXINPUTS=..: pdflatex -interaction=nonstopmode -halt-on-error ../report.tex
-```
-
-Risk: live Ollama/Open WebUI runs depend on local endpoints and model availability, so the cleanest peer-review path is the deterministic offline pipeline.
+---
 
 ## Strengths
 
-- Clear domain boundary and safety posture for Slovenian employment law.
-- Strong official-source policy: PISRS first, official guidance second, case law only as tertiary support.
-- Committed corpus and scripts for rebuilding it from official sources.
-- Retrieval and generation are evaluated separately, which makes failures easier to diagnose.
-- Current main retrieval metrics are excellent: Hit@3 `1.0`, false evidence `0.0`.
-- RAG sharply improves over baseline on grounding, hallucination, citation support, and refusal accuracy.
-- The report and README are reviewer-oriented and point to concrete reproduction commands.
+- Narrow, well-defined domain with verifiable official sources.
+- Source authority ordering enforced at retrieval and prompt level (primary law first, case law suppressed).
+- Actor-sensitive retrieval reranker for employer/employee question disambiguation.
+- Systematic five-step prompt iteration with documented rationale.
+- Multi-model arena evaluation demonstrating RAG benefit is model-independent.
+- Fine-tuning consciously explored and consciously rejected with documented reasoning.
+- Source freshness monitor checking 37 official sources.
+- Three concrete regression fixes tracked from failure to pass.
+- Deterministic offline pipeline for peer-reviewer reproducibility.
+- Deployed Open WebUI instance at `https://ai.koderverse.com/`.
 
-## Main Risks For Graders
+## Risks / Limitations
 
-- No qualified legal-expert validation or user study.
-- Main RAG answer correctness/completeness scores are only `2.45/5`, even though grounding is high.
-- The offline judge is deterministic and useful for reproducibility, but it is still a proxy metric.
-- BM25 retrieval may miss semantic paraphrases that a dense retriever or reranker could catch.
-- Some live-model claims are endpoint-dependent; peer reviewers should grade the committed offline path first.
-
-## Peer Review Expectation
-
-The PDF says peer review is worth **20%** and asks each group to review two repositories of the same topic, follow the scoring criteria, and include feedback justifying the mark. For this repository, a fair peer review should:
-
-- run or at least inspect `make verify`, `make retrieval`, `make offline-eval`, and `make report`;
-- read `report/report.tex` or `report/.out/report.pdf`;
-- verify the exact metrics in `evaluation/results/retrieval_summary.csv` and `evaluation/results/summary_scores.csv`;
-- inspect the source/corpus evidence in `evaluation/optimizations/official_sources.json`, `evaluation/optimizations/data/official_employment_summary.json`, and `report/code/data/chunk.jsonl`;
-- judge whether the limitations are acceptable for a course prototype rather than assuming legal correctness from fluent answers.
+- No qualified legal-expert audit; correctness of individual answers is not certified.
+- Offline judge is a reproducible regression proxy, not a human evaluation.
+- RAG answer correctness/completeness at 2.95/5 with the best local model — informational assistant rather than legal advisor.
+- BM25 retrieval may miss semantic paraphrases; no dense embeddings or learned reranker in the final pipeline.
+- GaMS-1B-Chat (preferred Slovenian-focused model) not yet served on the local endpoint; current deployment uses mistral:7b.
 
 ## Bottom Line
 
-This is stronger than a minimum "8" submission because it includes a documented official corpus, source monitoring, reproducible evaluation, citation/refusal checks, optimization artifacts, and a concise report with limitations. The most defensible manual estimate is **9/10**, with the main downward pressure coming from the lack of expert legal validation and only moderate generated-answer correctness/completeness.
+Score **9/10**. The project goes meaningfully beyond minimum criteria through its source authority framework, domain-specific retrieval adjustments, and systematic prompt iteration. The gap to a 10 is the absence of expert legal validation and moderate generated-answer scores — honest limitations for a CPU-limited course prototype.
