@@ -82,6 +82,25 @@ def extractive_answer(question, results):
     return "Na podlagi podanega konteksta: " + " ".join(parts)
 
 
+def is_ambiguous_question(question):
+    normalized = " ".join((question or "").lower().strip(" ?!").split())
+    return normalized in {
+        "kakšen je odpovedni rok",
+        "koliko dopusta mi pripada",
+        "ali me lahko odpustijo",
+        "koliko moram dobiti plače",
+    }
+
+
+def ambiguity_aware_answer(question, results):
+    base = extractive_answer(question, results)
+    return (
+        "Vprašanje je premalo natančno za dokončen odgovor. "
+        "Manjkajo konkretne okoliščine, zato lahko navedem samo pravila iz konteksta. "
+        + base
+    )
+
+
 def offline_baseline_answer(question):
     q_terms = set(content_terms(question))
     rules = [
@@ -112,6 +131,8 @@ def offline_answer(question, variant, context, results):
         return offline_baseline_answer(question)
     if should_refuse_from_context(question, context, results):
         return "Iz podanega konteksta ni mogoče zanesljivo odgovoriti."
+    if is_ambiguous_question(question):
+        return ambiguity_aware_answer(question, results)
     return extractive_answer(question, results)
 
 

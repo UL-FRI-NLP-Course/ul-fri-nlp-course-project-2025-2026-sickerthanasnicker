@@ -3,9 +3,11 @@
   "retrieval_policy": [
     "Use PISRS as the canonical source for statutes and regulations.",
     "Use GOV.SI, MDDSZ, IRSD, eUprava, SPOT, ESS, and podatki.gov.si only as official explanations or operational guidance.",
-    "Use sodnapraksa.si only as secondary case-law support; do not let case law override a current statute.",
+    "Apply source priority in this order: primary_law, official_interpretation, official_operational_guidance, official_case_law.",
+    "Use sodnapraksa.si and COLESLAW case-law chunks only as tertiary interpretive support; do not let case law override a current statute.",
     "Exclude private legal portals, blogs, forums, and unofficial summaries from the grounded answer corpus."
   ],
+  "case_law_api_note": "Direct sodnapraksa API integration at https://sodnapraksa.si/api2/ requires permission, so the committed builder treats it as optional and uses COLESLAW/sodnapraksa chunks only when --include-case-law is selected.",
   "pisrs_collections": [
     "Register predpisov",
     "Neuradna prečiščena besedila"
@@ -182,6 +184,15 @@
       "topics": ["letni dopust", "regres", "sorazmerni dopust", "ZDR-1"]
     },
     {
+      "id": "mddsz_letni_dopust_regres_pdf",
+      "title": "Letni dopust in regres",
+      "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Delovna-razmerja/Letni-dopust-in-regres.pdf",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_interpretation_pdf",
+      "priority": "core",
+      "topics": ["letni dopust", "regres", "sorazmerni dopust", "ZDR-1"]
+    },
+    {
       "id": "gov_faq_dolocen_cas",
       "title": "Pogodba o zaposlitvi za določen čas PVO | GOV.SI",
       "url": "https://www.gov.si/assets/ministrstva/MDDSZ/Druge-oblike-dela-dokumenti/Pogodba-o-zaposlitvi-za-dolocen-cas_PVO.docx",
@@ -207,6 +218,15 @@
       "kind": "official_interpretation",
       "priority": "core",
       "topics": ["minimalna plača", "višina minimalne plače", "dodatki"]
+    },
+    {
+      "id": "gov_zepdsv_evidence_news",
+      "title": "Zakon o spremembah in dopolnitvah Zakona o evidencah na področju dela in socialne varnosti | GOV.SI",
+      "url": "https://www.gov.si/novice/2023-05-09-zakon-o-spremembah-in-dopolnitvah-zakona-o-evidencah-na-podrocju-dela-in-socialne-varnosti/",
+      "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
+      "kind": "official_news",
+      "priority": "supporting",
+      "topics": ["evidenca delovnega časa", "ZEPDSV", "elektronska evidenca"]
     },
     {
       "id": "gov_minimalna_placa_2026",
@@ -263,6 +283,33 @@
       "topics": ["pravice delavcev", "napoteni delavci"]
     },
     {
+      "id": "euprava_prva_zaposlitev",
+      "title": "Prva zaposlitev | eUprava",
+      "url": "https://e-uprava.gov.si/si/podrocja/delo-upokojitev/delo/prva-zaposlitev.html",
+      "owner": "eUprava",
+      "kind": "official_operational_guidance",
+      "priority": "supporting",
+      "topics": ["pogodba o zaposlitvi", "pogodba za določen čas", "pisna pogodba"]
+    },
+    {
+      "id": "euprava_neizplacana_placa",
+      "title": "Delodajalec mi ni izplačal plače. Kaj lahko storim? | eUprava",
+      "url": "https://e-uprava.gov.si/podrocja/delo-upokojitev/delo/prva-zaposlitev/delodajalec-mi-ni-izplacal-place-.html",
+      "owner": "eUprava",
+      "kind": "official_operational_guidance",
+      "priority": "core",
+      "topics": ["neizplačilo plače", "pisni obračun plače", "sodno varstvo", "inšpekcija dela"]
+    },
+    {
+      "id": "euprava_prijava_krsitev_pravic_delavca",
+      "title": "Prijava kršitev pravic delavca | eUprava",
+      "url": "https://e-uprava.gov.si/podrocja/delo-upokojitev/delo/prijava-krsitev-pravic-delavca.html",
+      "owner": "eUprava",
+      "kind": "official_operational_guidance",
+      "priority": "supporting",
+      "topics": ["kršitve pravic delavca", "Inšpektorat Republike Slovenije za delo"]
+    },
+    {
       "id": "spot_delovno_razmerje",
       "title": "Delovno razmerje | SPOT",
       "url": "https://spot.gov.si/sl/poslovanje/zaposlovanje-in-delovno-razmerje/delovno-razmerje",
@@ -270,6 +317,24 @@
       "kind": "official_business_guidance",
       "priority": "supporting",
       "topics": ["zaposlovanje", "pogodba o zaposlitvi", "delodajalci"]
+    },
+    {
+      "id": "spot_delovni_pogoji",
+      "title": "Delovni pogoji pri delovnem razmerju | SPOT",
+      "url": "https://spot.gov.si/sl/poslovanje/zaposlovanje-in-delovno-razmerje/delovno-razmerje/delovni-pogoji-pri-delovnem-razmerju/",
+      "owner": "SPOT",
+      "kind": "official_business_guidance",
+      "priority": "core",
+      "topics": ["delovni pogoji", "letni dopust", "delovni čas", "plača"]
+    },
+    {
+      "id": "zzzs_bolniska_pogoji",
+      "title": "Pogoji za nadomestilo plače med začasno zadržanostjo od dela | ZZZS",
+      "url": "https://zavarovanec.zzzs.si/denarna-nadomestila/nadomestilo-place-med-zacasno-zadrzanostjo-od-dela/pogoji-ki-jih-je-potrebno-izpolnjevati/",
+      "owner": "Zavod za zdravstveno zavarovanje Slovenije",
+      "kind": "official_operational_guidance",
+      "priority": "core",
+      "topics": ["bolniška odsotnost", "nadomestilo plače", "začasna zadržanost od dela"]
     },
     {
       "id": "ess_prenehanje",
@@ -283,7 +348,7 @@
     {
       "id": "opsi_evidenca_kolektivnih_pogodb",
       "title": "Evidenca kolektivnih pogodb | OPSI",
-      "url": "https://podatki.gov.si/dataset/evidenca-kolektivnih-pogodb?resource_id=5e1048b0-1c94-4848-9be0-4666c4e134d0",
+      "url": "https://podatki.gov.si/dataset/evidenca-kolektivnih-pogodb",
       "owner": "Ministrstvo za delo, družino, socialne zadeve in enake možnosti",
       "kind": "official_open_data_registry",
       "priority": "supporting",

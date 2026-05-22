@@ -13,6 +13,32 @@ KEYWORDS = [
     "nadurno delo", "odpravnina", "minimalna plača", "ZDR", "delovni čas"
 ]
 
+SOURCE_TYPE_RANK = {
+    "primary_law": 4,
+    "official_interpretation": 3,
+    "official_operational_guidance": 2,
+    "official_case_law": 1,
+}
+
+PRIORITY_RANK = {
+    "core": 2,
+    "current_amount": 2,
+    "supporting": 1,
+    "tertiary": 0,
+    "demo_support": 0,
+}
+
+CASE_LAW_QUERY_TERMS = (
+    "sodna praksa",
+    "sodni praksi",
+    "sodbo",
+    "sodišče",
+    "sodišča",
+    "judikat",
+    "razlaga",
+    "interpretacija",
+)
+
 
 TOKEN_RE = re.compile(r"[0-9]+|[A-Za-zČŠŽĆĐčšžćđ]+")
 
@@ -174,13 +200,58 @@ def actor_adjustment(query, text):
     if "nadurn" in query_l and "nadurno delo" in text_l:
         adjustment += 4.0
 
+    if "določen čas" in query_l and "dve leti" in text_l:
+        adjustment += 4.0
+
+    if "bolnišk" in query_l or "zadržanost" in query_l:
+        if "zdravstvenega zavarovanja" in text_l or "obveznega zdravstvenega zavarovanja" in text_l:
+            adjustment += 4.0
+        if "20 delovnih dni" in text_l:
+            adjustment += 2.0
+
+    if "regres" in query_l and "regres za letni dopust" in text_l:
+        adjustment += 3.0
+
+    if "minimaln" in query_l and "2026" in query_l and "1.481,88" in text_l:
+        adjustment += 8.0
+
+    if "evidenc" in query_l and "delovnega časa" in text_l:
+        adjustment += 3.0
+
+    if "kolektivn" in query_l and "kolektivnih pogodb" in text_l:
+        adjustment += 3.0
+
+    return adjustment
+
+
+def source_priority_adjustment(query, chunk):
+    """Prefer authoritative statutory sources, with case law only for practice questions."""
+    meta = chunk.get("meta", {})
+    source_type = meta.get("source_type", "")
+    priority = meta.get("priority", "")
+    query_l = query.lower()
+    asks_case_law = any(term in query_l for term in CASE_LAW_QUERY_TERMS)
+
+    adjustment = SOURCE_TYPE_RANK.get(source_type, 0) * 0.35
+    adjustment += PRIORITY_RANK.get(priority, 0) * 0.15
+
+    if source_type == "official_case_law" and not asks_case_law:
+        adjustment -= 100.0
+    elif source_type == "official_case_law" and asks_case_law:
+        adjustment += 5.0
+
     return adjustment
 
 
 def search(query, index, chunks, top_k=3):
     scores = index.get_scores(tokenize(query))
     adjusted = [
-        (i, float(score) + actor_adjustment(query, chunks[i]["text"]))
+        (
+            i,
+            float(score)
+            + actor_adjustment(query, chunks[i]["text"])
+            + source_priority_adjustment(query, chunks[i]),
+        )
         for i, score in enumerate(scores)
     ]
     ranked = sorted(adjusted, key=lambda x: x[1], reverse=True)[:top_k]

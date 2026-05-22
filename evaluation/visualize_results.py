@@ -41,6 +41,12 @@ def grouped_judgement_summary(rows):
         }
         for metric in METRICS:
             item[metric] = sum(float(row[metric]) for row in items) / len(items)
+        citation_required = [row for row in items if row.get("citation_required")]
+        item["supported_citation_rate"] = (
+            sum(1 for row in citation_required if row.get("citation_supported")) / len(citation_required)
+            if citation_required
+            else 0.0
+        )
         unanswerable = [row for row in items if row["type"] == "unanswerable"]
         item["refusal_accuracy"] = (
             sum(1 for row in unanswerable if row["refusal"]) / len(unanswerable)
@@ -207,6 +213,7 @@ def save_csv(summary, retrieval, output_dir):
         "completeness",
         "clarity",
         "hallucination",
+        "supported_citation_rate",
         "refusal_accuracy",
     ]
     with open(output_dir / "summary_scores.csv", "w", encoding="utf-8", newline="") as fp:
@@ -310,6 +317,7 @@ def save_report(summary, retrieval, output_dir, vote_rows=None):
         "completeness",
         "clarity",
         "hallucination",
+        "supported_citation_rate",
         "refusal_accuracy",
     ]
     content = f"""# Evaluation Results

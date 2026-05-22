@@ -89,6 +89,12 @@ def group_summary(rows):
         }
         for metric in METRICS:
             record[metric] = sum(float(item[metric]) for item in items) / len(items)
+        citation_required = [item for item in items if item.get("citation_required")]
+        record["supported_citation_rate"] = (
+            sum(1 for item in citation_required if item.get("citation_supported")) / len(citation_required)
+            if citation_required
+            else 0.0
+        )
         unanswerable = [item for item in items if item.get("type") == "unanswerable"]
         record["refusal_accuracy"] = (
             sum(1 for item in unanswerable if item.get("refusal")) / len(unanswerable)
@@ -134,6 +140,7 @@ def write_summary_csv(summary, output_dir):
         "completeness",
         "clarity",
         "hallucination",
+        "supported_citation_rate",
         "refusal_accuracy",
     ]
     with open(output_dir / "optimization_summary.csv", "w", encoding="utf-8", newline="") as fp:
@@ -173,6 +180,7 @@ def write_report(summary, retrieval, output_dir):
         "completeness",
         "clarity",
         "hallucination",
+        "supported_citation_rate",
         "refusal_accuracy",
     ]
     ranked = sorted(

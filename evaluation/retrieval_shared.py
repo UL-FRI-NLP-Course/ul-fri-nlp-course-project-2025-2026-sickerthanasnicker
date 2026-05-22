@@ -85,7 +85,10 @@ def source_label(chunk):
 def format_context(results):
     blocks = []
     for rank, (chunk, score) in enumerate(results, start=1):
+        meta = chunk.get("meta", {})
+        source_type = meta.get("source_type", "unknown")
+        url = meta.get("url", "")
         blocks.append(
-            f"[{rank}] Vir: {source_label(chunk)}; score={score}\n{chunk['text']}"
+            f"[{rank}] Vir: {source_label(chunk)}; tip={source_type}; score={score}; url={url}\n{chunk['text']}"
         )
     return "\n\n".join(blocks)

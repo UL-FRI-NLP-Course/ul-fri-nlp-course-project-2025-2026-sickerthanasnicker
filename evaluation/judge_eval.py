@@ -27,6 +27,11 @@ REFUSAL_RE = re.compile(
     re.IGNORECASE,
 )
 
+CONTEXT_SOURCE_RE = re.compile(
+    r"Vir:\s*(?P<label>.*?);\s*(?:tip=(?P<source_type>.*?);\s*)?score=",
+    re.IGNORECASE,
+)
+
 JUDGE_SYSTEM_PROMPT = """Ocenjuj odgovore na vprašanja iz slovenskega prava.
 
 Pomembno:
@@ -58,6 +63,88 @@ def score_overlap(reference, answer):
 
 def is_refusal(answer):
     return bool(REFUSAL_RE.search(answer or ""))
+
+
+def normalize_for_citation(text):
+    return re.sub(r"\s+", " ", (text or "").lower()).strip()
+
+
+def context_sources(context):
+    sources = []
+    for match in CONTEXT_SOURCE_RE.finditer(context or ""):
+        label = match.group("label").strip()
+        source_type = (match.group("source_type") or "").strip()
+        sources.append({"label": label, "source_type": source_type})
+    return sources
+
+
+def question_requests_case_law(question):
+    lowered = (question or "").lower()
+    return any(term in lowered for term in ("sodna praksa", "sodni praksi", "sodišče", "sodišča", "judikat"))
+
+
+def source_type_matches_claim(question_item, source_type):
+    if question_requests_case_law(question_item.get("question", "")):
+        return source_type == "official_case_law"
+    return source_type in {"", "primary_law", "official_interpretation", "official_operational_guidance"}
+
+
+def answer_cites_source(answer, source):
+    answer_norm = normalize_for_citation(answer)
+    label = source.get("label", "")
+    label_norm = normalize_for_citation(label)
+    if label_norm and label_norm in answer_norm:
+        return True
+
+    law = label.split(", čl.")[0].strip()
+    article_match = re.search(r"čl\.\s*([0-9]+[.]?[a-z]?)", label, re.IGNORECASE)
+    if article_match:
+        return normalize_for_citation(law) in answer_norm and article_match.group(1).lower() in answer_norm
+
+    source_hint = ""
+    if "|" in label:
+        source_hint = label.split("|")[-1].strip()
+    elif "." in label:
+        source_hint = label
+    return bool(source_hint and normalize_for_citation(source_hint) in answer_norm)
+
+
+def validate_citation(question_item, answer_item):
+    answer = answer_item.get("answer", "")
+    if question_item["type"] == "unanswerable" or is_refusal(answer):
+        return {
+            "citation_required": False,
+            "citation_supported": None,
+            "citation_reason": "Citation not required for refusal or unanswerable question.",
+        }
+
+    sources = context_sources(answer_item.get("context", ""))
+    if not sources:
+        return {
+            "citation_required": True,
+            "citation_supported": False,
+            "citation_reason": "No parseable retrieved sources in answer context.",
+        }
+
+    cited = [source for source in sources if answer_cites_source(answer, source)]
+    matching = [source for source in cited if source_type_matches_claim(question_item, source.get("source_type", ""))]
+    if matching:
+        return {
+            "citation_required": True,
+            "citation_supported": True,
+            "citation_reason": f"Cites matching retrieved source: {matching[0]['label']}.",
+        }
+    if cited:
+        return {
+            "citation_required": True,
+            "citation_supported": False,
+            "citation_reason": "Answer cites a retrieved source, but its source tier does not match the claim type.",
+        }
+    return {
+        "citation_required": True,
+        "citation_supported": False,
+        "citation_reason": "Supported non-refusal answer does not cite a retrieved source.",
+    }
 
 
 def clarity_score(answer):
@@ -225,6 +312,18 @@ def judge_answer(question_item, answer_item, provider, model, options):
         return enforce_unanswerable_rule(question_item, answer_item, judgement), "offline_fallback"
 
 
+def apply_citation_validation(question_item, answer_item, judgement):
+    citation = validate_citation(question_item, answer_item)
+    if citation["citation_required"] and citation["citation_supported"] is False:
+        judgement["grounding"] = min(judgement["grounding"], 2)
+        judgement["reason"] = (
+            judgement.get("reason", "")
+            + " Citation validation: "
+            + citation["citation_reason"]
+        ).strip()
+    return {**judgement, **citation}
+
+
 def summarize(rows):
     grouped = defaultdict(list)
     for row in rows:
@@ -245,13 +344,23 @@ def summarize(rows):
         for metric in ("correctness", "grounding", "completeness", "clarity", "hallucination"):
             avg[metric] = sum(item[metric] for item in items) / n if n else 0.0
 
+        citation_required = [item for item in items if item.get("citation_required")]
+        supported_citation_rate = (
+            sum(1 for item in citation_required if item.get("citation_supported")) / len(citation_required)
+            if citation_required
+            else 0.0
+        )
         unanswerable = [item for item in items if item["type"] == "unanswerable"]
         refusal_accuracy = (
             sum(1 for item in unanswerable if item["refusal"]) / len(unanswerable)
             if unanswerable
             else 0.0
         )
-        summary[(model_id, variant)] = {**avg, "refusal_accuracy": refusal_accuracy}
+        summary[(model_id, variant)] = {
+            **avg,
+            "supported_citation_rate": supported_citation_rate,
+            "refusal_accuracy": refusal_accuracy,
+        }
 
         print(
             f"{model_id:<24} {variant:<10} {n:>3} {avg['correctness']:>8.2f} "
@@ -313,6 +422,7 @@ def main():
     for idx, answer_item in enumerate(answers, start=1):
         question_item = question_map[answer_item["id"]]
         judgement, judge_provider = judge_answer(question_item, answer_item, provider, model, options)
+        judgement = apply_citation_validation(question_item, answer_item, judgement)
         passthrough = {
             key: answer_item[key]
             for key in (
