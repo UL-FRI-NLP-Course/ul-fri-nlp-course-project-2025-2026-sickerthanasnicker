@@ -2,12 +2,12 @@ import json
 from pathlib import Path
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 EVALUATION_DIR = PROJECT_ROOT / "evaluation"
 OPTIMIZATION_DIR = EVALUATION_DIR / "optimizations"
 CONFIG_FILE = OPTIMIZATION_DIR / "config.json"
 
-from ul_fri_nlp.evaluation.io_utils import load_jsonl
+from evaluation.io_utils import load_jsonl
 
 
 def load_optimization_config(path=CONFIG_FILE):

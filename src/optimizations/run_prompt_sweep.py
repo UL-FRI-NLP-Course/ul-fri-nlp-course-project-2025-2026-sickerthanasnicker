@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from ul_fri_nlp.optimizations.common import (
+from optimizations.common import (
     EVALUATION_DIR,
     OPTIMIZATION_DIR,
     enabled_items,
@@ -11,13 +11,13 @@ from ul_fri_nlp.optimizations.common import (
     select_items,
 )
 
-from ul_fri_nlp.evaluation.eval_config import load_env
-from ul_fri_nlp.evaluation.io_utils import append_jsonl, write_jsonl
-from ul_fri_nlp.evaluation.model_providers import chat_model
-from ul_fri_nlp.evaluation.progress_utils import Progress
-from ul_fri_nlp.evaluation.retrieval_eval import keyword_hit
-from ul_fri_nlp.evaluation.retrieval_shared import CHUNKS_FILE, build_index, format_context, load_chunks, retrieve, source_label
-from ul_fri_nlp.evaluation.run_eval import offline_answer
+from evaluation.eval_config import load_env
+from evaluation.io_utils import append_jsonl, write_jsonl
+from evaluation.model_providers import chat_model
+from evaluation.progress_utils import Progress
+from evaluation.retrieval_eval import keyword_hit
+from evaluation.retrieval_shared import CHUNKS_FILE, build_index, format_context, load_chunks, retrieve, source_label
+from evaluation.run_eval import offline_answer
 
 
 DEFAULT_OUTPUT = EVALUATION_DIR / "results" / "optimization" / "prompt_sweep_answers.jsonl"

@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 EVALUATION_DIR = PROJECT_ROOT / "evaluation"
 CONFIG_FILE = EVALUATION_DIR / "config.json"
 ROOT_ENV_FILE = PROJECT_ROOT / ".env"

@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from ul_fri_nlp.evaluation.eval_config import (
+from evaluation.eval_config import (
     EVALUATION_DIR,
     enabled_arena_models,
     generation_options,
@@ -10,11 +10,11 @@ from ul_fri_nlp.evaluation.eval_config import (
     load_config,
     load_env,
 )
-from ul_fri_nlp.evaluation.io_utils import append_jsonl, load_jsonl
-from ul_fri_nlp.evaluation.model_providers import chat_model
-from ul_fri_nlp.evaluation.progress_utils import Progress
-from ul_fri_nlp.evaluation.retrieval_shared import build_index, format_context, load_chunks, retrieve, source_label
-from ul_fri_nlp.evaluation.text_utils import content_terms, split_sentences
+from evaluation.io_utils import append_jsonl, load_jsonl
+from evaluation.model_providers import chat_model
+from evaluation.progress_utils import Progress
+from evaluation.retrieval_shared import build_index, format_context, load_chunks, retrieve, source_label
+from evaluation.text_utils import content_terms, split_sentences
 
 
 DEFAULT_QUESTIONS_FILE = EVALUATION_DIR / "questions.jsonl"

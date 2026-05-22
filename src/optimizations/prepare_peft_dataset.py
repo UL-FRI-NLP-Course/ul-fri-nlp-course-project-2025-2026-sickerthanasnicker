@@ -1,12 +1,12 @@
 import argparse
 from pathlib import Path
 
-from ul_fri_nlp.optimizations.common import EVALUATION_DIR, load_optimization_config, load_questions, prompt_by_id, resolve_optimization_path
+from optimizations.common import EVALUATION_DIR, load_optimization_config, load_questions, prompt_by_id, resolve_optimization_path
 
-from ul_fri_nlp.evaluation.io_utils import write_jsonl
-from ul_fri_nlp.evaluation.progress_utils import Progress
-from ul_fri_nlp.evaluation.retrieval_shared import build_index, format_context, load_chunks, retrieve
-from ul_fri_nlp.evaluation.text_utils import content_terms, split_sentences
+from evaluation.io_utils import write_jsonl
+from evaluation.progress_utils import Progress
+from evaluation.retrieval_shared import build_index, format_context, load_chunks, retrieve
+from evaluation.text_utils import content_terms, split_sentences
 
 
 DEFAULT_TRAIN = resolve_optimization_path("data/peft_train.jsonl")

@@ -1,7 +1,7 @@
 import argparse
 
-from ul_fri_nlp.evaluation.eval_config import load_env
-from ul_fri_nlp.evaluation.model_providers import list_ollama_models, list_openwebui_models
+from evaluation.eval_config import load_env
+from evaluation.model_providers import list_ollama_models, list_openwebui_models
 
 
 def parse_args():

@@ -78,14 +78,14 @@ make corpus
 
 ```bash
 # Set OLLAMA_URL in .env, then:
-python -m ul_fri_nlp.optimizations.create_ollama_model --verify
+python -m optimizations.create_ollama_model --verify
 ollama run ul-fri-slovenian-employment-law-rag
 ```
 
 Evaluate:
 
 ```bash
-python -m ul_fri_nlp.evaluation.run_eval \
+python -m evaluation.run_eval \
   --provider ollama \
   --model ul-fri-slovenian-employment-law-rag:latest
 ```
@@ -95,7 +95,7 @@ python -m ul_fri_nlp.evaluation.run_eval \
 Set `WEBUI_HOST` and `WEBUI_API_KEY` in `.env`, then register the preset:
 
 ```bash
-python -m ul_fri_nlp.optimizations.create_ollama_model \
+python -m optimizations.create_ollama_model \
   --skip-create \
   --register-openwebui \
   --smoke-openwebui

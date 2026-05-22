@@ -4,9 +4,9 @@ import subprocess
 import urllib.error
 from pathlib import Path
 
-from ul_fri_nlp.evaluation.eval_config import load_env
-from ul_fri_nlp.evaluation.io_utils import load_jsonl
-from ul_fri_nlp.evaluation.model_providers import (
+from evaluation.eval_config import load_env
+from evaluation.io_utils import load_jsonl
+from evaluation.model_providers import (
     _json_request,
     chat_openwebui,
     list_ollama_models,
@@ -15,7 +15,7 @@ from ul_fri_nlp.evaluation.model_providers import (
     webui_headers,
     webui_host,
 )
-from ul_fri_nlp.optimizations.common import (
+from optimizations.common import (
     OPTIMIZATION_DIR,
     load_optimization_config,
     prompt_by_id,

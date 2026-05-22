@@ -14,8 +14,8 @@ except ModuleNotFoundError:
     HAS_MATPLOTLIB = False
     plt = None
 
-from ul_fri_nlp.evaluation.eval_config import EVALUATION_DIR
-from ul_fri_nlp.evaluation.io_utils import load_jsonl
+from evaluation.eval_config import EVALUATION_DIR
+from evaluation.io_utils import load_jsonl
 
 
 DEFAULT_JUDGEMENTS_FILE = EVALUATION_DIR / "results" / "judgements.jsonl"

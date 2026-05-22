@@ -15,9 +15,9 @@ from bs4 import BeautifulSoup
 from docx import Document
 from pypdf import PdfReader
 
-from ul_fri_nlp.optimizations.common import OPTIMIZATION_DIR, PROJECT_ROOT
+from optimizations.common import OPTIMIZATION_DIR, PROJECT_ROOT
 
-from ul_fri_nlp.evaluation.io_utils import load_jsonl, write_json, write_jsonl
+from evaluation.io_utils import load_jsonl, write_json, write_jsonl
 
 
 DEFAULT_MANIFEST = OPTIMIZATION_DIR / "official_sources.json"

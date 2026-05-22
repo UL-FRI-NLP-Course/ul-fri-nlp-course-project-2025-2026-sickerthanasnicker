@@ -30,21 +30,21 @@ compile:
 	$(RUN_PYTHON) -m compileall -q src
 
 source-monitor:
-	$(RUN_PYTHON) -m ul_fri_nlp.optimizations.monitor_official_sources
+	$(RUN_PYTHON) -m optimizations.monitor_official_sources
 
 corpus:
-	$(RUN_PYTHON) -m ul_fri_nlp.optimizations.build_official_corpus \
+	$(RUN_PYTHON) -m optimizations.build_official_corpus \
 		--output report/code/data/chunk.jsonl \
 		--include-case-law \
 		--max-case-law-chunks 30
 
 retrieval:
-	$(RUN_PYTHON) -m ul_fri_nlp.evaluation.retrieval_eval --quiet
+	$(RUN_PYTHON) -m evaluation.retrieval_eval --quiet
 
 offline-eval:
-	$(RUN_PYTHON) -m ul_fri_nlp.evaluation.run_eval --provider offline
-	$(RUN_PYTHON) -m ul_fri_nlp.evaluation.judge_eval --provider offline
-	$(RUN_PYTHON) -m ul_fri_nlp.evaluation.visualize_results
+	$(RUN_PYTHON) -m evaluation.run_eval --provider offline
+	$(RUN_PYTHON) -m evaluation.judge_eval --provider offline
+	$(RUN_PYTHON) -m evaluation.visualize_results
 
 report:
 	mkdir -p report/.out

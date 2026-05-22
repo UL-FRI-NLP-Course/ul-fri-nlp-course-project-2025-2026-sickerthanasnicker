@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from ul_fri_nlp.evaluation.eval_config import (
+from evaluation.eval_config import (
     EVALUATION_DIR,
     generation_options,
     get_default_judge_model,
@@ -12,10 +12,10 @@ from ul_fri_nlp.evaluation.eval_config import (
     load_config,
     load_env,
 )
-from ul_fri_nlp.evaluation.io_utils import load_jsonl, write_jsonl
-from ul_fri_nlp.evaluation.model_providers import chat_model
-from ul_fri_nlp.evaluation.progress_utils import Progress
-from ul_fri_nlp.evaluation.text_utils import content_terms
+from evaluation.io_utils import load_jsonl, write_jsonl
+from evaluation.model_providers import chat_model
+from evaluation.progress_utils import Progress
+from evaluation.text_utils import content_terms
 
 
 DEFAULT_QUESTIONS_FILE = EVALUATION_DIR / "questions.jsonl"

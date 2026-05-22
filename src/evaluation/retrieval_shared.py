@@ -1,5 +1,5 @@
-from ul_fri_nlp.app.rag import CHUNKS_FILE, build_search_index, search
-from ul_fri_nlp.evaluation.io_utils import load_jsonl
+from app.rag import CHUNKS_FILE, build_search_index, search
+from evaluation.io_utils import load_jsonl
 
 
 def load_chunks(path=CHUNKS_FILE):

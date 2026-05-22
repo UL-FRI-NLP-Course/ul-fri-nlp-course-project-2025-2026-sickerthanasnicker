@@ -4,7 +4,7 @@ import re
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CORPUS_DIR = PROJECT_ROOT / "report" / "code" / "data"
 CHUNKS_FILE = CORPUS_DIR / "chunk.jsonl"
 INDEX_FILE = CORPUS_DIR / "index.pkl"
@@ -326,7 +326,7 @@ def format_reference(meta):
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--build":
         if len(sys.argv) < 3:
-            print("Uporaba: python -m ul_fri_nlp.app.rag --build <pot_do_coleslaw>")
+            print("Uporaba: python -m app.rag --build <pot_do_coleslaw>")
             return
         build_index(sys.argv[2])
         return
@@ -336,7 +336,7 @@ def main():
         build_index_from_chunks()
 
     if not INDEX_FILE.exists():
-        print("Index ne obstaja. Najprej zaženi: python -m ul_fri_nlp.app.rag --build <pot_do_coleslaw>")
+        print("Index ne obstaja. Najprej zaženi: python -m app.rag --build <pot_do_coleslaw>")
         return
 
     index, chunks = load_index()

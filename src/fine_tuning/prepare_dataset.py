@@ -2,11 +2,11 @@ import argparse
 from pathlib import Path
 
 
-from ul_fri_nlp.evaluation.eval_config import EVALUATION_DIR
-from ul_fri_nlp.evaluation.io_utils import load_jsonl, write_jsonl
-from ul_fri_nlp.evaluation.progress_utils import Progress
-from ul_fri_nlp.evaluation.retrieval_shared import build_index, format_context, load_chunks, retrieve
-from ul_fri_nlp.evaluation.text_utils import content_terms
+from evaluation.eval_config import EVALUATION_DIR
+from evaluation.io_utils import load_jsonl, write_jsonl
+from evaluation.progress_utils import Progress
+from evaluation.retrieval_shared import build_index, format_context, load_chunks, retrieve
+from evaluation.text_utils import content_terms
 
 
 DEFAULT_QUESTIONS_FILE = EVALUATION_DIR / "questions.jsonl"
